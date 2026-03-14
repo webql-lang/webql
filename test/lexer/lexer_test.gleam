@@ -1,3 +1,4 @@
+import gleam/list
 import gleeunit
 import webfn/lexer
 import webfn/lexer/span
@@ -26,4 +27,24 @@ pub fn run_lexer_in_a_single_string_test() {
 
   assert token.Token(kind: token.String, span: span.Span(start: 0, end: 13))
     == token
+}
+
+pub fn run_lexer_on_all_grouping_chars_test() {
+  let groupings = [
+    #("(", token.LParen),
+    #(")", token.RParen),
+    #("{", token.LBrace),
+    #("}", token.RBrace),
+    #("[", token.LSquare),
+    #("]", token.RSquare),
+  ]
+
+  list.each(groupings, fn(group) {
+    let #(source, expected_kind) = group
+
+    let assert Ok([token, ..]) = lexer.run(lexer.new(source))
+
+    assert token.Token(kind: expected_kind, span: span.Span(start: 0, end: 1))
+      == token
+  })
 }
