@@ -3,6 +3,7 @@ import gleam/list
 import webfn/lexer/lex_number
 import webfn/lexer/lex_string
 import webfn/lexer/token
+import webfn/lexer/tokenize_grouping
 
 pub type LexerMode {
   Normal
@@ -78,6 +79,20 @@ fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
 
     // ========= STRING =========
     <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
+
+    // ======= GROUPINGS ========
+    <<"(", rest:bytes>>
+    | <<")", rest:bytes>>
+    | <<"[", rest:bytes>>
+    | <<"]", rest:bytes>>
+    | <<"{", rest:bytes>>
+    | <<"}", rest:bytes>> -> #(
+      token.Token(
+        kind: tokenize_grouping.tokenize(lexer.remaining_bytes),
+        span: token.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
     // TODO: this will eventually be exhaustive
     _ -> #(

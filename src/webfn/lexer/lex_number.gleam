@@ -2,7 +2,7 @@ import webfn/lexer/token
 
 const starting_token_kind = token.Int
 
-/// Lexs number values.
+/// Lexes number values.
 /// By default the number lexer assumes it is parsing an integer.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
   lex_number(bytes, starting_token_kind, start, size)
