@@ -54,7 +54,7 @@ pub fn lex_string_unterminated_test() {
   assert start == 0
   assert end == 5
 
-  let assert <<"":utf8>> = rest
+  assert bit_array.byte_size(rest) == 0
 }
 
 pub fn lex_string_unterminated_after_escape_test() {
@@ -66,7 +66,7 @@ pub fn lex_string_unterminated_after_escape_test() {
   assert start == 0
   assert end == 6
 
-  let assert <<"":utf8>> = rest
+  assert bit_array.byte_size(rest) == 0
 }
 
 pub fn lex_string_respects_non_zero_start_test() {
