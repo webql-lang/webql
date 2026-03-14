@@ -1,4 +1,3 @@
-import gleam/list
 import gleeunit
 import webfn/lexer
 import webfn/lexer/span
@@ -30,21 +29,24 @@ pub fn run_lexer_in_a_single_string_test() {
 }
 
 pub fn run_lexer_on_all_grouping_chars_test() {
-  let groupings = [
-    #("(", token.LParen),
-    #(")", token.RParen),
-    #("{", token.LBrace),
-    #("}", token.RBrace),
-    #("[", token.LSquare),
-    #("]", token.RSquare),
-  ]
+  let assert Ok([l_paren, r_paren, l_brace, r_brace, l_square, r_square, ..]) =
+    lexer.run(lexer.new("(){}[]"))
 
-  list.each(groupings, fn(group) {
-    let #(source, expected_kind) = group
+  assert token.Token(kind: token.LParen, span: span.Span(start: 0, end: 1))
+    == l_paren
 
-    let assert Ok([token, ..]) = lexer.run(lexer.new(source))
+  assert token.Token(kind: token.RParen, span: span.Span(start: 1, end: 2))
+    == r_paren
 
-    assert token.Token(kind: expected_kind, span: span.Span(start: 0, end: 1))
-      == token
-  })
+  assert token.Token(kind: token.LBrace, span: span.Span(start: 2, end: 3))
+    == l_brace
+
+  assert token.Token(kind: token.RBrace, span: span.Span(start: 3, end: 4))
+    == r_brace
+
+  assert token.Token(kind: token.LSquare, span: span.Span(start: 4, end: 5))
+    == l_square
+
+  assert token.Token(kind: token.RSquare, span: span.Span(start: 5, end: 6))
+    == r_square
 }
