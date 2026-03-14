@@ -11,6 +11,6 @@ pub fn tokenize(bytes: BitArray) -> token.TokenKind {
     <<"[", _rest:bytes>> -> token.LSquare
     <<"]", _rest:bytes>> -> token.RSquare
 
-    _illegal_token -> panic as "Unknown byte recieved while parsing a grouping!"
+    _illegal_token -> panic as "Unknown byte recieved while parsing grouping!"
   }
 }
