@@ -31,6 +31,9 @@ pub type TokenKind {
   Arrow
   EOF
   Space
+
+  // ========== ERRORS ============
+  UnterminatedString
 }
 
 pub type Token {

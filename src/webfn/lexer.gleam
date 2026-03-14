@@ -1,7 +1,8 @@
 import gleam/bit_array
 import gleam/list
+import webfn/lexer/lex_number
+import webfn/lexer/lex_string
 import webfn/lexer/token
-import webfn/lexer/tokenize_number
 
 pub type LexerMode {
   Normal
@@ -40,14 +41,14 @@ pub fn run(lexer: Lexer) -> List(token.Token) {
   let tokens = []
 
   lexer
-  |> tokenize(tokens)
+  |> lex(tokens)
   |> list.reverse()
 }
 
 // ========= PRIVATE FUNCTIONS =========
-fn tokenize(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
+fn lex(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
   let #(token, rest) = case lexer.mode {
-    Normal -> tokenize_normal_mode(lexer)
+    Normal -> lex_normal_mode(lexer)
   }
 
   case token.kind {
@@ -56,13 +57,14 @@ fn tokenize(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
       let lexer =
         Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
 
-      tokenize(lexer, [token, ..tokens])
+      lex(lexer, [token, ..tokens])
     }
   }
 }
 
-fn tokenize_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
+fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
   case lexer.remaining_bytes {
+    // ========= NUMBER =========
     <<"0", rest:bytes>>
     | <<"1", rest:bytes>>
     | <<"2", rest:bytes>>
@@ -72,7 +74,10 @@ fn tokenize_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
     | <<"6", rest:bytes>>
     | <<"7", rest:bytes>>
     | <<"8", rest:bytes>>
-    | <<"9", rest:bytes>> -> tokenize_number.tokenize(rest, lexer.position, 1)
+    | <<"9", rest:bytes>> -> lex_number.lex(rest, lexer.position, 1)
+
+    // ========= STRING =========
+    <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
 
     // TODO: this will eventually be exhaustive
     _ -> #(
