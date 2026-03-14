@@ -6,37 +6,37 @@ pub fn main() {
   gleeunit.main()
 }
 
-pub fn tokenize_lparen_test() {
+pub fn tokenize_l_paren_test() {
   let kind = tokenize_grouping.tokenize(<<"(":utf8>>)
 
   assert kind == Ok(#(token.LParen, 1))
 }
 
-pub fn tokenize_rparen_test() {
+pub fn tokenize_r_paren_test() {
   let kind = tokenize_grouping.tokenize(<<")":utf8>>)
 
   assert kind == Ok(#(token.RParen, 1))
 }
 
-pub fn tokenize_lbrace_test() {
+pub fn tokenize_l_brace_test() {
   let kind = tokenize_grouping.tokenize(<<"{":utf8>>)
 
   assert kind == Ok(#(token.LBrace, 1))
 }
 
-pub fn tokenize_rbrace_test() {
+pub fn tokenize_r_brace_test() {
   let kind = tokenize_grouping.tokenize(<<"}":utf8>>)
 
   assert kind == Ok(#(token.RBrace, 1))
 }
 
-pub fn tokenize_lsquare_test() {
+pub fn tokenize_l_square_test() {
   let kind = tokenize_grouping.tokenize(<<"[":utf8>>)
 
   assert kind == Ok(#(token.LSquare, 1))
 }
 
-pub fn tokenize_rsquare_test() {
+pub fn tokenize_r_square_test() {
   let kind = tokenize_grouping.tokenize(<<"]":utf8>>)
 
   assert kind == Ok(#(token.RSquare, 1))

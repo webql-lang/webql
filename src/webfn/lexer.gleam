@@ -13,6 +13,7 @@ pub type LexerMode {
 
 pub type LexerError {
   IllegalToken(span: span.Span, message: String)
+  Unimplemented
 }
 
 pub opaque type Lexer {
@@ -101,10 +102,7 @@ fn lex_normal_mode(lexer: Lexer) -> Result(#(token.Token, BitArray), LexerError)
     }
 
     // TODO: this will eventually be exhaustive
-    _ ->
-      Ok(
-        #(token.Token(kind: token.EOF, span: span.Span(start: 0, end: 0)), <<>>),
-      )
+    _ -> Error(Unimplemented)
   }
 }
 
