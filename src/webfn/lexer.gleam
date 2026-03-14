@@ -65,7 +65,7 @@ fn lex(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
 
 fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
   case lexer.remaining_bytes {
-    // ========= NUMBER =========
+    // ======== NUMBER =========
     <<"0", rest:bytes>>
     | <<"1", rest:bytes>>
     | <<"2", rest:bytes>>
