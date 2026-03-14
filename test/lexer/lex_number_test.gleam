@@ -1,15 +1,14 @@
 import gleam/bit_array
 import gleeunit
+import webfn/lexer/lex_number
 import webfn/lexer/token
-import webfn/lexer/tokenize_number
 
 pub fn main() {
   gleeunit.main()
 }
 
-pub fn tokenize_int_stops_correctly_test() {
-  let #(tok, rest) =
-    tokenize_number.tokenize(bit_array.from_string("23 abc"), 0, 0)
+pub fn lex_int_stops_correctly_test() {
+  let #(tok, rest) = lex_number.lex(bit_array.from_string("23 abc"), 0, 0)
 
   let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
   let assert token.Int = kind
@@ -20,9 +19,8 @@ pub fn tokenize_int_stops_correctly_test() {
   let assert <<" abc":utf8>> = rest
 }
 
-pub fn tokenize_float_detected_test() {
-  let #(tok, rest) =
-    tokenize_number.tokenize(bit_array.from_string("23.45;"), 0, 0)
+pub fn lex_float_detected_test() {
+  let #(tok, rest) = lex_number.lex(bit_array.from_string("23.45;"), 0, 0)
 
   let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
   let assert token.Float = kind
@@ -33,9 +31,8 @@ pub fn tokenize_float_detected_test() {
   let assert <<";":utf8>> = rest
 }
 
-pub fn tokenize_allows_underscores_in_int_test() {
-  let #(tok, rest) =
-    tokenize_number.tokenize(bit_array.from_string("2_3x"), 0, 0)
+pub fn lex_allows_underscores_in_int_test() {
+  let #(tok, rest) = lex_number.lex(bit_array.from_string("2_3x"), 0, 0)
 
   let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
   let assert token.Int = kind

@@ -19,3 +19,10 @@ pub fn run_lexer_on_a_single_float_test() {
   assert token.Token(kind: token.Float, span: token.Span(start: 0, end: 4))
     == token
 }
+
+pub fn run_lexer_in_a_single_string_test() {
+  let assert [token, ..] = lexer.run(lexer.new("\"hello world\""))
+
+  assert token.Token(kind: token.String, span: token.Span(start: 0, end: 13))
+    == token
+}
