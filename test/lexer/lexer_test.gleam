@@ -1,5 +1,6 @@
 import gleeunit
 import webfn/lexer
+import webfn/lexer/span
 import webfn/lexer/token
 
 pub fn main() {
@@ -7,22 +8,22 @@ pub fn main() {
 }
 
 pub fn run_lexer_on_a_single_integer_test() {
-  let assert [token, ..] = lexer.run(lexer.new("123"))
+  let assert Ok([token, ..]) = lexer.run(lexer.new("123"))
 
-  assert token.Token(kind: token.Int, span: token.Span(start: 0, end: 3))
+  assert token.Token(kind: token.Int, span: span.Span(start: 0, end: 3))
     == token
 }
 
 pub fn run_lexer_on_a_single_float_test() {
-  let assert [token, ..] = lexer.run(lexer.new("1.23"))
+  let assert Ok([token, ..]) = lexer.run(lexer.new("1.23"))
 
-  assert token.Token(kind: token.Float, span: token.Span(start: 0, end: 4))
+  assert token.Token(kind: token.Float, span: span.Span(start: 0, end: 4))
     == token
 }
 
 pub fn run_lexer_in_a_single_string_test() {
-  let assert [token, ..] = lexer.run(lexer.new("\"hello world\""))
+  let assert Ok([token, ..]) = lexer.run(lexer.new("\"hello world\""))
 
-  assert token.Token(kind: token.String, span: token.Span(start: 0, end: 13))
+  assert token.Token(kind: token.String, span: span.Span(start: 0, end: 13))
     == token
 }

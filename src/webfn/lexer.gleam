@@ -1,12 +1,18 @@
 import gleam/bit_array
 import gleam/list
+import gleam/result
 import webfn/lexer/lex_number
 import webfn/lexer/lex_string
+import webfn/lexer/span
 import webfn/lexer/token
 import webfn/lexer/tokenize_grouping
 
 pub type LexerMode {
   Normal
+}
+
+pub type LexerError {
+  IllegalToken(span: span.Span, message: String)
 }
 
 pub opaque type Lexer {
@@ -38,22 +44,26 @@ pub fn new(source: String) -> Lexer {
 }
 
 /// Takes a lexer source and converts it to a list of tokens.
-pub fn run(lexer: Lexer) -> List(token.Token) {
+pub fn run(lexer: Lexer) -> Result(List(token.Token), LexerError) {
   let tokens = []
 
-  lexer
-  |> lex(tokens)
-  |> list.reverse()
+  case lex(lexer, tokens) {
+    Ok(result) -> Ok(list.reverse(result))
+    Error(message) -> Error(message)
+  }
 }
 
 // ========= PRIVATE FUNCTIONS =========
-fn lex(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
-  let #(token, rest) = case lexer.mode {
+fn lex(
+  lexer: Lexer,
+  tokens: List(token.Token),
+) -> Result(List(token.Token), LexerError) {
+  use #(token, rest) <- result.try(case lexer.mode {
     Normal -> lex_normal_mode(lexer)
-  }
+  })
 
   case token.kind {
-    token.EOF -> [token, ..tokens]
+    token.EOF -> Ok([token, ..tokens])
     _continue -> {
       let lexer =
         Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
@@ -63,7 +73,7 @@ fn lex(lexer: Lexer, tokens: List(token.Token)) -> List(token.Token) {
   }
 }
 
-fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
+fn lex_normal_mode(lexer: Lexer) -> Result(#(token.Token, BitArray), LexerError) {
   case lexer.remaining_bytes {
     // ======== NUMBER =========
     <<"0", rest:bytes>>
@@ -75,10 +85,10 @@ fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
     | <<"6", rest:bytes>>
     | <<"7", rest:bytes>>
     | <<"8", rest:bytes>>
-    | <<"9", rest:bytes>> -> lex_number.lex(rest, lexer.position, 1)
+    | <<"9", rest:bytes>> -> Ok(lex_number.lex(rest, lexer.position, 1))
 
     // ========= STRING =========
-    <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
+    <<"\"", rest:bytes>> -> Ok(lex_string.lex(rest, lexer.position, 1))
 
     // ======= GROUPINGS ========
     <<"(", rest:bytes>>
@@ -86,18 +96,44 @@ fn lex_normal_mode(lexer: Lexer) -> #(token.Token, BitArray) {
     | <<"[", rest:bytes>>
     | <<"]", rest:bytes>>
     | <<"{", rest:bytes>>
-    | <<"}", rest:bytes>> -> #(
-      token.Token(
-        kind: tokenize_grouping.tokenize(lexer.remaining_bytes),
-        span: token.Span(start: lexer.position, end: lexer.position + 1),
-      ),
-      rest,
-    )
+    | <<"}", rest:bytes>> -> {
+      tokenize(lexer, rest, tokenize_grouping.tokenize)
+    }
 
     // TODO: this will eventually be exhaustive
-    _ -> #(
-      token.Token(kind: token.EOF, span: token.Span(start: 0, end: 0)),
-      <<>>,
-    )
+    _ ->
+      Ok(
+        #(token.Token(kind: token.EOF, span: span.Span(start: 0, end: 0)), <<>>),
+      )
+  }
+}
+
+fn tokenize(
+  lexer: Lexer,
+  bytes: BitArray,
+  fun: fn(BitArray) -> Result(#(token.TokenKind, Int), String),
+) {
+  case fun(lexer.remaining_bytes) {
+    Ok(#(kind, offset)) -> {
+      let token = #(
+        token.Token(
+          kind:,
+          span: span.Span(start: lexer.position, end: lexer.position + offset),
+        ),
+        bytes,
+      )
+
+      Ok(token)
+    }
+
+    Error(message) -> {
+      let illegal =
+        IllegalToken(
+          span: span.Span(start: lexer.position, end: lexer.position),
+          message: message,
+        )
+
+      Error(illegal)
+    }
   }
 }

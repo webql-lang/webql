@@ -1,6 +1,7 @@
 import gleam/bit_array
 import gleeunit
 import webfn/lexer/lex_number
+import webfn/lexer/span
 import webfn/lexer/token
 
 pub fn main() {
@@ -10,7 +11,7 @@ pub fn main() {
 pub fn lex_int_stops_correctly_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("23 abc"), 0, 0)
 
-  let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: span.Span(start: start, end: end)) = tok
   let assert token.Int = kind
 
   assert start == 0
@@ -22,7 +23,7 @@ pub fn lex_int_stops_correctly_test() {
 pub fn lex_float_detected_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("23.45;"), 0, 0)
 
-  let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: span.Span(start: start, end: end)) = tok
   let assert token.Float = kind
 
   assert start == 0
@@ -34,7 +35,7 @@ pub fn lex_float_detected_test() {
 pub fn lex_allows_underscores_in_int_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("2_3x"), 0, 0)
 
-  let token.Token(kind: kind, span: token.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: span.Span(start: start, end: end)) = tok
   let assert token.Int = kind
 
   assert start == 0

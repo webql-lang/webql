@@ -1,3 +1,4 @@
+import webfn/lexer/span
 import webfn/lexer/token
 
 /// Lexes string values.
@@ -13,10 +14,7 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
       let end = start + size + 1
 
       #(
-        token.Token(
-          kind: token.String,
-          span: token.Span(start: start, end: end),
-        ),
+        token.Token(kind: token.String, span: span.Span(start: start, end: end)),
         rest,
       )
     }
@@ -36,7 +34,7 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.UnterminatedString,
-          span: token.Span(start: start, end: start + size),
+          span: span.Span(start: start, end: start + size),
         ),
         unterminated_string_bytes,
       )
@@ -56,7 +54,7 @@ fn lex_escape_string(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.UnterminatedString,
-          span: token.Span(start: start, end: end),
+          span: span.Span(start: start, end: end),
         ),
         unterminated_string_bytes,
       )
