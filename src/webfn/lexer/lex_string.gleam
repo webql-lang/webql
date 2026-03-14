@@ -1,6 +1,6 @@
 import webfn/lexer/token
 
-/// Lexs string values.
+/// Lexes string values.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
   lex_string(bytes, start, size)
 }
