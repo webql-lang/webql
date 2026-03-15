@@ -1,6 +1,4 @@
-pub type TokenSpan {
-  Span(start: Int, end: Int)
-}
+import webfn/lexer/span
 
 pub type TokenKind {
   // ========== LITERALS ==========
@@ -37,5 +35,5 @@ pub type TokenKind {
 }
 
 pub type Token {
-  Token(kind: TokenKind, span: TokenSpan)
+  Token(kind: TokenKind, span: span.Span)
 }
