@@ -1,8 +1,13 @@
-import webfn/lexer/span
+import webfn/lexer/diagnostic
+import webfn/lexer/position
 import webfn/lexer/token
 
 /// Lexes string values.
-pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
+pub fn lex(
+  bytes: BitArray,
+  start: Int,
+  size: Int,
+) -> Result(#(token.Token, BitArray), diagnostic.Diagnostic) {
   lex_string(bytes, start, size)
 }
 
@@ -13,10 +18,13 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
     <<"\"", rest:bytes>> -> {
       let end = start + size + 1
 
-      #(
-        token.Token(kind: token.String, span: span.Span(start: start, end: end)),
+      Ok(#(
+        token.Token(
+          kind: token.String,
+          span: position.Span(start: start, end: end),
+        ),
         rest,
-      )
+      ))
     }
 
     // ========= ESCAPE STRING =========
@@ -30,14 +38,11 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
     }
 
     // ====== UNTERMINATED STRING ======
-    unterminated_string_bytes -> {
-      #(
-        token.Token(
-          kind: token.UnterminatedString,
-          span: span.Span(start: start, end: start + size),
-        ),
-        unterminated_string_bytes,
-      )
+    _unterminated_string -> {
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnterminatedString,
+        span: position.Span(start: start, end: start + size),
+      ))
     }
   }
 }
@@ -48,16 +53,13 @@ fn lex_escape_string(bytes: BitArray, start: Int, size: Int) {
       lex_string(rest, start, size + 2)
     }
 
-    unterminated_string_bytes -> {
+    _unterminated_string -> {
       let end = start + size + 1
 
-      #(
-        token.Token(
-          kind: token.UnterminatedString,
-          span: span.Span(start: start, end: end),
-        ),
-        unterminated_string_bytes,
-      )
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnterminatedString,
+        span: position.Span(start: start, end: end),
+      ))
     }
   }
 }

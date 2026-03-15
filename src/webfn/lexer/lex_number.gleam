@@ -1,4 +1,4 @@
-import webfn/lexer/span
+import webfn/lexer/position
 import webfn/lexer/token
 
 const starting_token_kind = token.Int
@@ -37,7 +37,7 @@ fn lex_number(bytes: BitArray, kind: token.TokenKind, start: Int, size: Int) {
       #(
         token.Token(
           kind: kind,
-          span: span.Span(start: start, end: start + size),
+          span: position.Span(start: start, end: start + size),
         ),
         next_bytes,
       )
