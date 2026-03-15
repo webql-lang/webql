@@ -5,8 +5,8 @@ import webfn/lexer/diagnostic
 import webfn/lexer/lex_number
 import webfn/lexer/lex_string
 import webfn/lexer/position
+import webfn/lexer/symbol
 import webfn/lexer/token
-import webfn/lexer/tokenize_grouping
 
 pub type LexerMode {
   Normal
@@ -74,7 +74,7 @@ fn lex_normal_mode(
   lexer: Lexer,
 ) -> Result(#(token.Token, BitArray), diagnostic.Diagnostic) {
   case lexer.remaining_bytes {
-    // ======== NUMBER =========
+    // ========= NUMBER ===========
     <<"0", rest:bytes>>
     | <<"1", rest:bytes>>
     | <<"2", rest:bytes>>
@@ -86,21 +86,15 @@ fn lex_normal_mode(
     | <<"8", rest:bytes>>
     | <<"9", rest:bytes>> -> Ok(lex_number.lex(rest, lexer.position, 1))
 
-    // ========= STRING =========
+    // ========== STRING ==========
     <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
 
-    // ======= GROUPINGS ========
-    <<"(", rest:bytes>>
-    | <<")", rest:bytes>>
-    | <<"[", rest:bytes>>
-    | <<"]", rest:bytes>>
-    | <<"{", rest:bytes>>
-    | <<"}", rest:bytes>> -> {
-      tokenize(lexer, rest, tokenize_grouping.tokenize)
+    // ========== SYMBOLS =========
+    <<_char, rest:bytes>> -> {
+      symbol.tokenize(lexer.remaining_bytes, rest, lexer.position)
     }
 
-    // ======= PUNCTUATION ========
-    // TODO: this will eventually be exhaustive
+    // ============ EOF ===========
     _eof ->
       Ok(
         #(
@@ -108,35 +102,5 @@ fn lex_normal_mode(
           <<>>,
         ),
       )
-  }
-}
-
-fn tokenize(
-  lexer: Lexer,
-  bytes: BitArray,
-  fun: fn(BitArray) -> Result(#(token.TokenKind, Int), _),
-) {
-  case fun(lexer.remaining_bytes) {
-    Ok(#(kind, offset)) -> {
-      let token = #(
-        token.Token(
-          kind:,
-          span: position.Span(
-            start: lexer.position,
-            end: lexer.position + offset,
-          ),
-        ),
-        bytes,
-      )
-
-      Ok(token)
-    }
-
-    Error(_diagnostic) -> {
-      Error(diagnostic.Diagnostic(
-        diagnostic.IllegalToken,
-        span: position.Span(start: lexer.position, end: lexer.position),
-      ))
-    }
   }
 }
