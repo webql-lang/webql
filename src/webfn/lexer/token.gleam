@@ -1,4 +1,4 @@
-import webfn/lexer/span
+import webfn/lexer/position
 
 pub type TokenKind {
   // ========== LITERALS ==========
@@ -18,22 +18,17 @@ pub type TokenKind {
   LSquare
   RSquare
 
-  // ========= INTEGERS ===========
-  Plus
-  Minus
-
   // ======== PUNCTUATION =========
   Colon
   Comma
   Equal
-  Arrow
-  EOF
-  Space
+  RArrow
 
-  // ========== ERRORS ============
-  UnterminatedString
+  // ========== SPACING ===========
+  Space
+  EOF
 }
 
 pub type Token {
-  Token(kind: TokenKind, span: span.Span)
+  Token(kind: TokenKind, span: position.Span)
 }
