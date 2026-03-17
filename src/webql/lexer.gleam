@@ -1,14 +1,14 @@
 import gleam/bit_array
 import gleam/list
 import gleam/result
-import webfn/lexer/diagnostic
-import webfn/lexer/lex_comment
-import webfn/lexer/lex_number
-import webfn/lexer/lex_string
-import webfn/lexer/lex_whitespace
-import webfn/lexer/position
-import webfn/lexer/symbol
-import webfn/lexer/token
+import webql/lexer/diagnostic
+import webql/lexer/lex_comment
+import webql/lexer/lex_number
+import webql/lexer/lex_string
+import webql/lexer/lex_whitespace
+import webql/lexer/position
+import webql/lexer/symbol
+import webql/lexer/token
 
 pub type LexerMode {
   Normal

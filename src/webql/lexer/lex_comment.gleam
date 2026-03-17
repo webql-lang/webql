@@ -1,5 +1,5 @@
-import webfn/lexer/position
-import webfn/lexer/token
+import webql/lexer/position
+import webql/lexer/token
 
 /// Lexes single line comments beginning with '#'.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {

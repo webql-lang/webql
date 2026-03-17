@@ -1,4 +1,4 @@
-import webfn/lexer/position
+import webql/lexer/position
 
 pub type TokenKind {
   // ========== LITERALS ==========
