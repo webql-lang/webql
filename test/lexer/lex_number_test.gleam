@@ -1,8 +1,8 @@
 import gleam/bit_array
 import gleeunit
-import webfn/lexer/lex_number
-import webfn/lexer/position
-import webfn/lexer/token
+import webql/lexer/lex_number
+import webql/lexer/position
+import webql/lexer/token
 
 pub fn main() {
   gleeunit.main()
