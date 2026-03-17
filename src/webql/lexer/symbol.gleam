@@ -1,6 +1,6 @@
-import webfn/lexer/diagnostic
-import webfn/lexer/position
-import webfn/lexer/token
+import webql/lexer/diagnostic
+import webql/lexer/position
+import webql/lexer/token
 
 const single_offset_size = 1
 

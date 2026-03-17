@@ -1,8 +1,8 @@
 import gleeunit
-import webfn/lexer/diagnostic
-import webfn/lexer/position
-import webfn/lexer/symbol
-import webfn/lexer/token
+import webql/lexer/diagnostic
+import webql/lexer/position
+import webql/lexer/symbol
+import webql/lexer/token
 
 pub fn main() {
   gleeunit.main()

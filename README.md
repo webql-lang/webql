@@ -1,20 +1,20 @@
-# webfn
+# webql
 
-[![Package Version](https://img.shields.io/hexpm/v/webfn)](https://hex.pm/packages/webfn)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/webfn/)
+[![Package Version](https://img.shields.io/hexpm/v/webql)](https://hex.pm/packages/webql)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/webql/)
 
 ```sh
-gleam add webfn@1
+gleam add webql@1
 ```
 ```gleam
-import webfn
+import webql
 
 pub fn main() -> Nil {
   // TODO: An example of the project in use
 }
 ```
 
-Further documentation can be found at <https://hexdocs.pm/webfn>.
+Further documentation can be found at <https://hexdocs.pm/webql>.
 
 ## Development
 

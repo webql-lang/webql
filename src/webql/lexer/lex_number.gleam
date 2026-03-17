@@ -1,5 +1,5 @@
-import webfn/lexer/position
-import webfn/lexer/token
+import webql/lexer/position
+import webql/lexer/token
 
 const starting_token_kind = token.Int
 
