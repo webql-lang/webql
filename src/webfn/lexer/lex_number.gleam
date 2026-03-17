@@ -9,7 +9,8 @@ pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
   lex_number(bytes, starting_token_kind, start, size)
 }
 
-// ========= PRIVATE FUNCTIONS =========
+// PRIVATE FUNCTIONS
+// =================
 fn lex_number(bytes: BitArray, kind: token.TokenKind, start: Int, size: Int) {
   case bytes {
     // ========= INT =========

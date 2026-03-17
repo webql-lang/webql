@@ -2,8 +2,10 @@ import gleam/bit_array
 import gleam/list
 import gleam/result
 import webfn/lexer/diagnostic
+import webfn/lexer/lex_comment
 import webfn/lexer/lex_number
 import webfn/lexer/lex_string
+import webfn/lexer/lex_whitespace
 import webfn/lexer/position
 import webfn/lexer/symbol
 import webfn/lexer/token
@@ -22,12 +24,18 @@ pub opaque type Lexer {
     remaining_bytes: BitArray,
     /// The current byte position from the start of the source.
     position: Int,
-    /// The current mode the lexer is parsing code in
+    /// The current mode the lexer is parsing code in.
     mode: LexerMode,
+    /// Whether the Lexer will crash if it recieves invalid tokens.
+    strict: Bool,
+    /// A option to determine if the lexer will tokenize comments.
+    comments: Bool,
+    /// A option to determine if the lexer will tokenize whitespace.
+    whitespace: Bool,
   )
 }
 
-/// Creates a new lexer instance from a utf8 source
+/// Creates a new lexer instance from a source.
 pub fn new(source: String) -> Lexer {
   let bytes = bit_array.from_string(source)
 
@@ -37,7 +45,20 @@ pub fn new(source: String) -> Lexer {
     bytes:,
     position: 0,
     mode: Normal,
+    strict: True,
+    comments: True,
+    whitespace: True,
   )
+}
+
+/// Configures comments on an active lexer instance
+pub fn comments(lexer: Lexer, enabled comments: Bool) {
+  Lexer(..lexer, comments:)
+}
+
+/// Configures whitespace on an active lexer instance
+pub fn whitespace(lexer: Lexer, enabled whitespace: Bool) {
+  Lexer(..lexer, whitespace:)
 }
 
 /// Takes a lexer source and converts it to a list of tokens.
@@ -50,7 +71,8 @@ pub fn run(lexer: Lexer) -> Result(List(token.Token), diagnostic.Diagnostic) {
   }
 }
 
-// ========= PRIVATE FUNCTIONS =========
+// PRIVATE FUNCTIONS
+// =================
 fn lex(
   lexer: Lexer,
   tokens: List(token.Token),
@@ -60,7 +82,25 @@ fn lex(
   })
 
   case token.kind {
+    // ============ EOF ===========
     token.EOF -> Ok([token, ..tokens])
+
+    // =========== SKIP ===========
+    token.CommentSingle if !lexer.comments -> {
+      let lexer =
+        Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
+
+      lex(lexer, tokens)
+    }
+
+    token.Space if !lexer.whitespace -> {
+      let lexer =
+        Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
+
+      lex(lexer, tokens)
+    }
+
+    // =========== CONT ===========
     _continue -> {
       let lexer =
         Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
@@ -89,9 +129,18 @@ fn lex_normal_mode(
     // ========== STRING ==========
     <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
 
+    // ======== COMMENTS ==========
+    <<"#", rest:bytes>> -> Ok(lex_comment.lex(rest, lexer.position, 1))
+
+    // ======= WHITESPACE =========
+    <<" ", rest:bytes>>
+    | <<"\n", rest:bytes>>
+    | <<"\r", rest:bytes>>
+    | <<"\t", rest:bytes>> -> Ok(lex_whitespace.lex(rest, lexer.position, 1))
+
     // ========== SYMBOLS =========
-    <<_char, rest:bytes>> -> {
-      symbol.tokenize(lexer.remaining_bytes, rest, lexer.position)
+    <<_char, _rest:bytes>> -> {
+      symbol.tokenize(lexer.remaining_bytes, lexer.position)
     }
 
     // ============ EOF ===========

@@ -11,7 +11,8 @@ pub fn lex(
   lex_string(bytes, start, size)
 }
 
-// ========= PRIVATE FUNCTIONS =========
+// PRIVATE FUNCTIONS
+// =================
 fn lex_string(bytes: BitArray, start: Int, size: Int) {
   case bytes {
     // ========= CLOSE STRING =========
