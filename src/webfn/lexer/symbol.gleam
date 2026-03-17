@@ -10,17 +10,16 @@ const double_offset_size = 2
 /// If a illegal token is recieved a diagnostic error will be supplied.
 pub fn tokenize(
   remaining_bytes: BitArray,
-  bytes: BitArray,
   position: Int,
 ) -> Result(#(token.Token, BitArray), diagnostic.Diagnostic) {
-  case classify(remaining_bytes) {
-    Ok(#(kind, size)) -> {
+  case lexeme(remaining_bytes) {
+    Ok(#(kind, size, rest_bytes)) -> {
       let token = #(
         token.Token(
           kind:,
           span: position.Span(start: position, end: position + size),
         ),
-        bytes,
+        rest_bytes,
       )
 
       Ok(token)
@@ -35,23 +34,21 @@ pub fn tokenize(
   }
 }
 
-fn classify(
-  bytes: BitArray,
-) -> Result(#(token.TokenKind, Int), diagnostic.DiagnosticKind) {
+fn lexeme(bytes: BitArray) {
   case bytes {
     // ========= GROUPINGS =========
-    <<"(", _rest:bytes>> -> Ok(#(token.LParen, single_offset_size))
-    <<")", _rest:bytes>> -> Ok(#(token.RParen, single_offset_size))
-    <<"{", _rest:bytes>> -> Ok(#(token.LBrace, single_offset_size))
-    <<"}", _rest:bytes>> -> Ok(#(token.RBrace, single_offset_size))
-    <<"[", _rest:bytes>> -> Ok(#(token.LSquare, single_offset_size))
-    <<"]", _rest:bytes>> -> Ok(#(token.RSquare, single_offset_size))
+    <<"(", rest:bytes>> -> Ok(#(token.LParen, single_offset_size, rest))
+    <<")", rest:bytes>> -> Ok(#(token.RParen, single_offset_size, rest))
+    <<"{", rest:bytes>> -> Ok(#(token.LBrace, single_offset_size, rest))
+    <<"}", rest:bytes>> -> Ok(#(token.RBrace, single_offset_size, rest))
+    <<"[", rest:bytes>> -> Ok(#(token.LSquare, single_offset_size, rest))
+    <<"]", rest:bytes>> -> Ok(#(token.RSquare, single_offset_size, rest))
 
     // ======== PUNCTUATION =========
-    <<":", _rest:bytes>> -> Ok(#(token.Colon, single_offset_size))
-    <<",", _rest:bytes>> -> Ok(#(token.Comma, single_offset_size))
-    <<"=", _rest:bytes>> -> Ok(#(token.Equal, single_offset_size))
-    <<"->", _rest:bytes>> -> Ok(#(token.RArrow, double_offset_size))
+    <<":", rest:bytes>> -> Ok(#(token.Colon, single_offset_size, rest))
+    <<",", rest:bytes>> -> Ok(#(token.Comma, single_offset_size, rest))
+    <<"=", rest:bytes>> -> Ok(#(token.Equal, single_offset_size, rest))
+    <<"->", rest:bytes>> -> Ok(#(token.RArrow, double_offset_size, rest))
 
     // ========== ILLEGAL ===========
     _illegal_token -> Error(diagnostic.IllegalToken)

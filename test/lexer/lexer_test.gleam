@@ -28,9 +28,20 @@ pub fn run_lexer_in_a_single_string_test() {
     == token
 }
 
-pub fn run_lexer_on_all_grouping_chars_test() {
-  let assert Ok([l_paren, r_paren, l_brace, r_brace, l_square, r_square, ..]) =
-    lexer.run(lexer.new("(){}[]"))
+pub fn run_lexer_on_the_full_symbol_set_test() {
+  let assert Ok([
+    l_paren,
+    r_paren,
+    l_brace,
+    r_brace,
+    l_square,
+    r_square,
+    colon,
+    comma,
+    equal,
+    r_arrow,
+    ..
+  ]) = lexer.run(lexer.new("(){}[]:,=->"))
 
   assert token.Token(kind: token.LParen, span: position.Span(start: 0, end: 1))
     == l_paren
@@ -49,4 +60,75 @@ pub fn run_lexer_on_all_grouping_chars_test() {
 
   assert token.Token(kind: token.RSquare, span: position.Span(start: 5, end: 6))
     == r_square
+
+  assert token.Token(kind: token.Colon, span: position.Span(start: 6, end: 7))
+    == colon
+
+  assert token.Token(kind: token.Comma, span: position.Span(start: 7, end: 8))
+    == comma
+
+  assert token.Token(kind: token.Equal, span: position.Span(start: 8, end: 9))
+    == equal
+
+  assert token.Token(kind: token.RArrow, span: position.Span(start: 9, end: 11))
+    == r_arrow
+}
+
+pub fn run_lexer_on_a_single_comment_test() {
+  let assert Ok([token, ..]) = lexer.run(lexer.new("# hello"))
+
+  assert token.Token(
+      kind: token.CommentSingle,
+      span: position.Span(start: 0, end: 7),
+    )
+    == token
+}
+
+pub fn run_lexer_on_a_single_whitespace_test() {
+  let assert Ok([token, ..]) = lexer.run(lexer.new(" \t\n"))
+
+  assert token.Token(kind: token.Space, span: position.Span(start: 0, end: 3))
+    == token
+}
+
+pub fn run_lexer_skips_comments_when_disabled_test() {
+  let lexer = lexer.comments(lexer.new("# hello\n123"), enabled: False)
+
+  let assert Ok([space, int, eof]) = lexer.run(lexer)
+
+  assert token.Token(kind: token.Space, span: position.Span(start: 7, end: 8))
+    == space
+
+  assert token.Token(kind: token.Int, span: position.Span(start: 8, end: 11))
+    == int
+
+  assert token.Token(kind: token.EOF, span: position.Span(start: 0, end: 0))
+    == eof
+}
+
+pub fn run_lexer_skips_whitespace_when_disabled_test() {
+  let lexer = lexer.whitespace(lexer.new(" \t123"), enabled: False)
+
+  let assert Ok([int, eof]) = lexer.run(lexer)
+
+  assert token.Token(kind: token.Int, span: position.Span(start: 2, end: 5))
+    == int
+
+  assert token.Token(kind: token.EOF, span: position.Span(start: 0, end: 0))
+    == eof
+}
+
+pub fn run_lexer_skips_comments_and_whitespace_when_disabled_test() {
+  let lexer =
+    lexer.new("# hello\n\t123")
+    |> lexer.comments(enabled: False)
+    |> lexer.whitespace(enabled: False)
+
+  let assert Ok([int, eof]) = lexer.run(lexer)
+
+  assert token.Token(kind: token.Int, span: position.Span(start: 9, end: 12))
+    == int
+
+  assert token.Token(kind: token.EOF, span: position.Span(start: 0, end: 0))
+    == eof
 }
