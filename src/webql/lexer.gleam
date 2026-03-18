@@ -12,7 +12,8 @@ import webql/lexer/position
 import webql/lexer/token
 
 pub type LexerMode {
-  Normal
+  HaltOnError
+  RecoverOnError
 }
 
 pub opaque type Lexer {
@@ -25,13 +26,11 @@ pub opaque type Lexer {
     remaining_bytes: BitArray,
     /// The current byte position from the start of the source.
     position: Int,
-    /// The current mode the lexer is parsing code in.
+    /// A mode determining whether the compiler will halt or recover if it sees invalid tokens.
     mode: LexerMode,
-    /// Whether the Lexer will crash if it recieves invalid tokens.
-    strict: Bool,
-    /// A option to determine if the lexer will tokenize comments.
+    /// A option to determine if the lexer will lex_token comments. By default this is true.
     comments: Bool,
-    /// A option to determine if the lexer will tokenize whitespace.
+    /// A option to determine if the lexer will lex_token whitespace. By default this is true.
     whitespace: Bool,
   )
 }
@@ -45,75 +44,61 @@ pub fn new(source: String) -> Lexer {
     remaining_bytes: bytes,
     bytes:,
     position: 0,
-    mode: Normal,
-    strict: True,
+    mode: HaltOnError,
     comments: True,
     whitespace: True,
   )
 }
 
-/// Configures comments on an active lexer instance
-pub fn comments(lexer: Lexer, enabled comments: Bool) {
-  Lexer(..lexer, comments:)
-}
-
-/// Configures whitespace on an active lexer instance
-pub fn whitespace(lexer: Lexer, enabled whitespace: Bool) {
-  Lexer(..lexer, whitespace:)
-}
-
 /// Takes a lexer source and converts it to a list of tokens.
-pub fn run(lexer: Lexer) -> Result(List(token.Token), diagnostic.Diagnostic) {
+pub fn lex(lexer: Lexer) -> Result(List(token.Token), diagnostic.Diagnostic) {
   let tokens = []
 
-  case lex(lexer, tokens) {
+  case lex_source(lexer, tokens) {
     Ok(result) -> Ok(list.reverse(result))
     Error(message) -> Error(message)
   }
 }
 
+/// Configures comments on an active lexer instance
+pub fn with_comments(lexer: Lexer, enabled comments: Bool) {
+  Lexer(..lexer, comments:)
+}
+
+/// Configures whitespace on an active lexer instance
+pub fn with_whitespace(lexer: Lexer, enabled whitespace: Bool) {
+  Lexer(..lexer, whitespace:)
+}
+
+/// Configures stictness on an active lexer instance.
+pub fn with_mode(lexer: Lexer, mode mode: LexerMode) {
+  Lexer(..lexer, mode:)
+}
+
 // PRIVATE FUNCTIONS
 // =================
-fn lex(
-  lexer: Lexer,
-  tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+fn lex_source(lexer: Lexer, tokens: List(token.Token)) {
   use #(token, rest) <- result.try(case lexer.mode {
-    Normal -> lex_normal_mode(lexer)
+    RecoverOnError -> Ok(lex_token(lexer))
+    HaltOnError -> lex_token_or_error(lexer)
   })
+
+  let lexer = Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
 
   case token.kind {
     // ============ EOF ===========
     token.EOF -> Ok([token, ..tokens])
 
     // =========== SKIP ===========
-    token.CommentSingle if !lexer.comments -> {
-      let lexer =
-        Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
-
-      lex(lexer, tokens)
-    }
-
-    token.Space if !lexer.whitespace -> {
-      let lexer =
-        Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
-
-      lex(lexer, tokens)
-    }
+    token.CommentSingle if !lexer.comments -> lex_source(lexer, tokens)
+    token.Space if !lexer.whitespace -> lex_source(lexer, tokens)
 
     // =========== CONT ===========
-    _continue -> {
-      let lexer =
-        Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
-
-      lex(lexer, [token, ..tokens])
-    }
+    _continue -> lex_source(lexer, [token, ..tokens])
   }
 }
 
-fn lex_normal_mode(
-  lexer: Lexer,
-) -> Result(#(token.Token, BitArray), diagnostic.Diagnostic) {
+fn lex_token(lexer: Lexer) {
   case lexer.remaining_bytes {
     // ========= NUMBER ===========
     <<"0", rest:bytes>>
@@ -125,114 +110,103 @@ fn lex_normal_mode(
     | <<"6", rest:bytes>>
     | <<"7", rest:bytes>>
     | <<"8", rest:bytes>>
-    | <<"9", rest:bytes>> -> Ok(lex_number.lex(rest, lexer.position, 1))
+    | <<"9", rest:bytes>> -> lex_number.lex(rest, lexer.position, 1)
 
     // ========== STRING ==========
     <<"\"", rest:bytes>> -> lex_string.lex(rest, lexer.position, 1)
 
     // ======== COMMENTS ==========
-    <<"#", rest:bytes>> -> Ok(lex_comment.lex(rest, lexer.position, 1))
+    <<"#", rest:bytes>> -> lex_comment.lex(rest, lexer.position, 1)
 
     // ======== GROUPINGS =========
-    <<"(", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.LParen,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"(", rest:bytes>> -> #(
+      token.Token(
+        kind: token.LParen,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<")", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.RParen,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<")", rest:bytes>> -> #(
+      token.Token(
+        kind: token.RParen,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"{", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.LBrace,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"{", rest:bytes>> -> #(
+      token.Token(
+        kind: token.LBrace,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"}", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.RBrace,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"}", rest:bytes>> -> #(
+      token.Token(
+        kind: token.RBrace,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"[", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.LSquare,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"[", rest:bytes>> -> #(
+      token.Token(
+        kind: token.LSquare,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"]", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.RSquare,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"]", rest:bytes>> -> #(
+      token.Token(
+        kind: token.RSquare,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
     // ======= PUNCTUATION ========
-    <<":", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.Colon,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<":", rest:bytes>> -> #(
+      token.Token(
+        kind: token.Colon,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<",", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.Comma,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<",", rest:bytes>> -> #(
+      token.Token(
+        kind: token.Comma,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"=", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.Equal,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<"=", rest:bytes>> -> #(
+      token.Token(
+        kind: token.Equal,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<".", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.Dot,
-          span: position.Span(start: lexer.position, end: lexer.position + 1),
-        ),
-        rest,
-      ))
+    <<".", rest:bytes>> -> #(
+      token.Token(
+        kind: token.Dot,
+        span: position.Span(start: lexer.position, end: lexer.position + 1),
+      ),
+      rest,
+    )
 
-    <<"->", rest:bytes>> ->
-      Ok(#(
-        token.Token(
-          kind: token.RArrow,
-          span: position.Span(start: lexer.position, end: lexer.position + 2),
-        ),
-        rest,
-      ))
+    <<"->", rest:bytes>> -> #(
+      token.Token(
+        kind: token.RArrow,
+        span: position.Span(start: lexer.position, end: lexer.position + 2),
+      ),
+      rest,
+    )
 
     // ======= IDENTIFIERS ========
     <<"A", rest:bytes>>
@@ -260,8 +234,7 @@ fn lex_normal_mode(
     | <<"W", rest:bytes>>
     | <<"X", rest:bytes>>
     | <<"Y", rest:bytes>>
-    | <<"Z", rest:bytes>> ->
-      Ok(lex_upper_identifier.lex(rest, lexer.position, 1))
+    | <<"Z", rest:bytes>> -> lex_upper_identifier.lex(rest, lexer.position, 1)
 
     <<"a", rest:bytes>>
     | <<"b", rest:bytes>>
@@ -288,32 +261,40 @@ fn lex_normal_mode(
     | <<"w", rest:bytes>>
     | <<"x", rest:bytes>>
     | <<"y", rest:bytes>>
-    | <<"z", rest:bytes>> ->
-      Ok(lex_lower_identifier.lex(rest, lexer.position, 1))
+    | <<"z", rest:bytes>> -> lex_lower_identifier.lex(rest, lexer.position, 1)
 
     // ======= WHITESPACE =========
     <<" ", rest:bytes>>
     | <<"\n", rest:bytes>>
     | <<"\r", rest:bytes>>
-    | <<"\t", rest:bytes>> -> Ok(lex_whitespace.lex(rest, lexer.position, 1))
+    | <<"\t", rest:bytes>> -> lex_whitespace.lex(rest, lexer.position, 1)
 
     // ========== SYMBOLS =========
-    <<_char, _rest:bytes>> ->
-      Error(diagnostic.Diagnostic(
-        kind: diagnostic.IllegalToken,
+    <<_char, rest:bytes>> -> #(
+      token.Token(
+        kind: token.Diagnostic(diagnostic.IllegalToken),
         span: position.Span(start: lexer.position, end: lexer.position + 1),
-      ))
+      ),
+      rest,
+    )
 
     // ============ EOF ===========
-    _eof ->
-      Ok(
-        #(
-          token.Token(
-            kind: token.EOF,
-            span: position.Span(start: lexer.position, end: lexer.position),
-          ),
-          <<>>,
-        ),
-      )
+    _eof -> #(
+      token.Token(
+        kind: token.EOF,
+        span: position.Span(start: lexer.position, end: lexer.position),
+      ),
+      <<>>,
+    )
+  }
+}
+
+fn lex_token_or_error(lexer: Lexer) {
+  case lex_token(lexer) {
+    #(token.Token(kind: token.Diagnostic(kind: kind), span: span), _bytes) -> {
+      Error(diagnostic.Diagnostic(kind:, span:))
+    }
+
+    token -> Ok(token)
   }
 }
