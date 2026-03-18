@@ -8,7 +8,6 @@ pub type TokenKind {
   String
   Bool
   CommentSingle
-  CommentMulti
 
   // ========= GROUPINGS ==========
   LParen
@@ -23,6 +22,11 @@ pub type TokenKind {
   Comma
   Equal
   RArrow
+  Dot
+
+  // ======== IDENTIFIERS =========
+  UpperIdentifier
+  LowerIdentifier
 
   // ========== SPACING ===========
   Space

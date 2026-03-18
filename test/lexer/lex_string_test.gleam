@@ -1,13 +1,8 @@
 import gleam/bit_array
-import gleeunit
 import webql/lexer/diagnostic
 import webql/lexer/lex_string
 import webql/lexer/position
 import webql/lexer/token
-
-pub fn main() {
-  gleeunit.main()
-}
 
 pub fn lex_string_stops_correctly_test() {
   let assert Ok(#(tok, rest)) =

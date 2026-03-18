@@ -1,12 +1,7 @@
 import gleam/bit_array
-import gleeunit
 import webql/lexer/lex_comment
 import webql/lexer/position
 import webql/lexer/token
-
-pub fn main() {
-  gleeunit.main()
-}
 
 pub fn lex_comment_stops_at_newline_test() {
   let #(tok, rest) =

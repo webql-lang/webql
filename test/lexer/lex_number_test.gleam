@@ -1,12 +1,7 @@
 import gleam/bit_array
-import gleeunit
 import webql/lexer/lex_number
 import webql/lexer/position
 import webql/lexer/token
-
-pub fn main() {
-  gleeunit.main()
-}
 
 pub fn lex_int_stops_correctly_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("23 abc"), 0, 0)
