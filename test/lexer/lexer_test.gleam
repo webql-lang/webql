@@ -4,7 +4,7 @@ import webql/lexer/position
 import webql/lexer/token
 
 pub fn run_lexer_on_empty_input_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new(""))
+  let assert Ok(tokens) = lexer.lex(lexer.new(""))
 
   assert tokens
     == [
@@ -13,7 +13,7 @@ pub fn run_lexer_on_empty_input_test() {
 }
 
 pub fn run_lexer_on_a_single_integer_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("123"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("123"))
 
   assert tokens
     == [
@@ -23,7 +23,7 @@ pub fn run_lexer_on_a_single_integer_test() {
 }
 
 pub fn run_lexer_on_a_single_float_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("1.23"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("1.23"))
 
   assert tokens
     == [
@@ -33,7 +33,7 @@ pub fn run_lexer_on_a_single_float_test() {
 }
 
 pub fn run_lexer_on_a_single_string_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("\"hello world\""))
+  let assert Ok(tokens) = lexer.lex(lexer.new("\"hello world\""))
 
   assert tokens
     == [
@@ -43,7 +43,7 @@ pub fn run_lexer_on_a_single_string_test() {
 }
 
 pub fn run_lexer_on_the_full_symbol_set_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("(){}[]:,=->."))
+  let assert Ok(tokens) = lexer.lex(lexer.new("(){}[]:,=->."))
 
   assert tokens
     == [
@@ -63,7 +63,7 @@ pub fn run_lexer_on_the_full_symbol_set_test() {
 }
 
 pub fn run_lexer_on_a_single_comment_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("# hello"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("# hello"))
 
   assert tokens
     == [
@@ -76,7 +76,7 @@ pub fn run_lexer_on_a_single_comment_test() {
 }
 
 pub fn run_lexer_on_a_single_whitespace_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new(" \t\n"))
+  let assert Ok(tokens) = lexer.lex(lexer.new(" \t\n"))
 
   assert tokens
     == [
@@ -86,7 +86,7 @@ pub fn run_lexer_on_a_single_whitespace_test() {
 }
 
 pub fn run_lexer_on_a_mixed_stream_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("(123) -> \"hi\", # ok\n[]"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("(123) -> \"hi\", # ok\n[]"))
 
   assert tokens
     == [
@@ -111,9 +111,9 @@ pub fn run_lexer_on_a_mixed_stream_test() {
 }
 
 pub fn run_lexer_skips_comments_when_disabled_test() {
-  let lexer = lexer.comments(lexer.new("# hello\n123"), enabled: False)
+  let lexer = lexer.with_comments(lexer.new("# hello\n123"), enabled: False)
 
-  let assert Ok(tokens) = lexer.run(lexer)
+  let assert Ok(tokens) = lexer.lex(lexer)
 
   assert tokens
     == [
@@ -124,9 +124,9 @@ pub fn run_lexer_skips_comments_when_disabled_test() {
 }
 
 pub fn run_lexer_skips_whitespace_when_disabled_test() {
-  let lexer = lexer.whitespace(lexer.new(" \t123"), enabled: False)
+  let lexer = lexer.with_whitespace(lexer.new(" \t123"), enabled: False)
 
-  let assert Ok(tokens) = lexer.run(lexer)
+  let assert Ok(tokens) = lexer.lex(lexer)
 
   assert tokens
     == [
@@ -138,10 +138,10 @@ pub fn run_lexer_skips_whitespace_when_disabled_test() {
 pub fn run_lexer_skips_comments_and_whitespace_when_disabled_test() {
   let lexer =
     lexer.new("# hello\n\t123")
-    |> lexer.comments(enabled: False)
-    |> lexer.whitespace(enabled: False)
+    |> lexer.with_comments(enabled: False)
+    |> lexer.with_whitespace(enabled: False)
 
-  let assert Ok(tokens) = lexer.run(lexer)
+  let assert Ok(tokens) = lexer.lex(lexer)
 
   assert tokens
     == [
@@ -151,7 +151,7 @@ pub fn run_lexer_skips_comments_and_whitespace_when_disabled_test() {
 }
 
 pub fn run_lexer_on_a_single_upper_identifier_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("Abc"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("Abc"))
 
   assert tokens
     == [
@@ -164,7 +164,7 @@ pub fn run_lexer_on_a_single_upper_identifier_test() {
 }
 
 pub fn run_lexer_on_a_single_lower_identifier_test() {
-  let assert Ok(tokens) = lexer.run(lexer.new("abc_2"))
+  let assert Ok(tokens) = lexer.lex(lexer.new("abc_2"))
 
   assert tokens
     == [
@@ -180,14 +180,45 @@ pub fn run_lexer_fails_on_invalid_symbol_test() {
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.IllegalToken,
     span: position.Span(start: 0, end: 1),
-  )) = lexer.run(lexer.new("!"))
+  )) = lexer.lex(lexer.new("!"))
 }
 
 pub fn run_lexer_fails_on_invalid_symbol_after_valid_tokens_test() {
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.IllegalToken,
     span: position.Span(start: 3, end: 4),
-  )) = lexer.run(lexer.new("123!"))
+  )) = lexer.lex(lexer.new("123!"))
+}
+
+pub fn run_lexer_recovers_on_invalid_symbol_test() {
+  let lexer = lexer.with_mode(lexer.new("!"), lexer.RecoverOnError)
+
+  let assert Ok(tokens) = lexer.lex(lexer)
+
+  assert tokens
+    == [
+      token.Token(
+        kind: token.Diagnostic(diagnostic.IllegalToken),
+        span: position.Span(start: 0, end: 1),
+      ),
+      token.Token(kind: token.EOF, span: position.Span(start: 1, end: 1)),
+    ]
+}
+
+pub fn run_lexer_recovers_on_invalid_symbol_after_valid_tokens_test() {
+  let lexer = lexer.with_mode(lexer.new("123!"), lexer.RecoverOnError)
+
+  let assert Ok(tokens) = lexer.lex(lexer)
+
+  assert tokens
+    == [
+      token.Token(kind: token.Int, span: position.Span(start: 0, end: 3)),
+      token.Token(
+        kind: token.Diagnostic(diagnostic.IllegalToken),
+        span: position.Span(start: 3, end: 4),
+      ),
+      token.Token(kind: token.EOF, span: position.Span(start: 4, end: 4)),
+    ]
 }
 
 pub fn run_lexer_on_basic_syntax_test() {
@@ -202,7 +233,7 @@ pub fn run_lexer_on_basic_syntax_test() {
   m.out->.out
 }"
 
-  let assert Ok(tokens) = lexer.run(lexer.new(source))
+  let assert Ok(tokens) = lexer.lex(lexer.new(source))
 
   assert tokens
     == [

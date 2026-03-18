@@ -1,3 +1,4 @@
+import webql/lexer/diagnostic
 import webql/lexer/position
 
 pub type TokenKind {
@@ -31,6 +32,9 @@ pub type TokenKind {
   // ========== SPACING ===========
   Space
   EOF
+
+  // ========= UNSTRICT ===========
+  Diagnostic(kind: diagnostic.DiagnosticKind)
 }
 
 pub type Token {
