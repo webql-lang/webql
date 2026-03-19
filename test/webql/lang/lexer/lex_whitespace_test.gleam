@@ -1,7 +1,7 @@
 import gleam/bit_array
-import webql/lexer/lex_whitespace
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer/lex_whitespace
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 pub fn lex_whitespace_stops_at_non_whitespace_test() {
   let #(tok, rest) =

@@ -1,42 +1,16 @@
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 /// Lexes upper identifiers.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
-  lex_upper_identifier(bytes, start, size)
+  lex_lower_identifier(bytes, start, size)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn lex_upper_identifier(bytes: BitArray, start: Int, size: Int) {
+fn lex_lower_identifier(bytes: BitArray, start: Int, size: Int) {
   case bytes {
-    <<"A", rest:bytes>>
-    | <<"B", rest:bytes>>
-    | <<"C", rest:bytes>>
-    | <<"D", rest:bytes>>
-    | <<"E", rest:bytes>>
-    | <<"F", rest:bytes>>
-    | <<"G", rest:bytes>>
-    | <<"H", rest:bytes>>
-    | <<"I", rest:bytes>>
-    | <<"J", rest:bytes>>
-    | <<"K", rest:bytes>>
-    | <<"L", rest:bytes>>
-    | <<"M", rest:bytes>>
-    | <<"N", rest:bytes>>
-    | <<"O", rest:bytes>>
-    | <<"P", rest:bytes>>
-    | <<"Q", rest:bytes>>
-    | <<"R", rest:bytes>>
-    | <<"S", rest:bytes>>
-    | <<"T", rest:bytes>>
-    | <<"U", rest:bytes>>
-    | <<"V", rest:bytes>>
-    | <<"W", rest:bytes>>
-    | <<"X", rest:bytes>>
-    | <<"Y", rest:bytes>>
-    | <<"Z", rest:bytes>>
-    | <<"a", rest:bytes>>
+    <<"a", rest:bytes>>
     | <<"b", rest:bytes>>
     | <<"c", rest:bytes>>
     | <<"d", rest:bytes>>
@@ -71,8 +45,9 @@ fn lex_upper_identifier(bytes: BitArray, start: Int, size: Int) {
     | <<"6", rest:bytes>>
     | <<"7", rest:bytes>>
     | <<"8", rest:bytes>>
-    | <<"9", rest:bytes>> -> {
-      lex_upper_identifier(rest, start, size + 1)
+    | <<"9", rest:bytes>>
+    | <<"_", rest:bytes>> -> {
+      lex_lower_identifier(rest, start, size + 1)
     }
 
     _rest -> {
@@ -80,7 +55,7 @@ fn lex_upper_identifier(bytes: BitArray, start: Int, size: Int) {
 
       #(
         token.Token(
-          kind: token.UpperIdentifier,
+          kind: token.LowerIdentifier,
           span: position.Span(start: start, end: end),
         ),
         bytes,
