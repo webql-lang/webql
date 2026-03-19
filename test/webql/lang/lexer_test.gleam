@@ -1,7 +1,7 @@
-import webql/lexer
-import webql/lexer/diagnostic
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer
+import webql/lang/lexer/diagnostic
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 pub fn run_lexer_on_empty_input_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new(""))

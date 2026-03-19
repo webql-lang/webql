@@ -1,5 +1,5 @@
-import webql/lexer/diagnostic
-import webql/lexer/position
+import webql/lang/lexer/diagnostic
+import webql/lang/source/position
 
 pub type TokenKind {
   // ========== LITERALS ==========

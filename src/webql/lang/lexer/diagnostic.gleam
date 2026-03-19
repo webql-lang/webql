@@ -1,4 +1,4 @@
-import webql/lexer/position
+import webql/lang/source/position
 
 pub type DiagnosticKind {
   IllegalToken

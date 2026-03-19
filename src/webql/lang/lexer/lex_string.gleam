@@ -1,6 +1,6 @@
-import webql/lexer/diagnostic
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer/diagnostic
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 /// Lexes string values.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {

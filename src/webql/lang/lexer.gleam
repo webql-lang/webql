@@ -1,15 +1,15 @@
 import gleam/bit_array
 import gleam/list
 import gleam/result
-import webql/lexer/diagnostic
-import webql/lexer/lex_comment
-import webql/lexer/lex_lower_identifier
-import webql/lexer/lex_number
-import webql/lexer/lex_string
-import webql/lexer/lex_upper_identifier
-import webql/lexer/lex_whitespace
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer/diagnostic
+import webql/lang/lexer/lex_comment
+import webql/lang/lexer/lex_lower_identifier
+import webql/lang/lexer/lex_number
+import webql/lang/lexer/lex_string
+import webql/lang/lexer/lex_upper_identifier
+import webql/lang/lexer/lex_whitespace
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 pub type LexerMode {
   HaltOnError

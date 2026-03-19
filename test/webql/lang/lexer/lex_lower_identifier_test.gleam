@@ -1,6 +1,6 @@
-import webql/lexer/lex_lower_identifier
-import webql/lexer/position
-import webql/lexer/token
+import webql/lang/lexer/lex_lower_identifier
+import webql/lang/lexer/token
+import webql/lang/source/position
 
 pub fn lex_lower_identifier_stops_correctly_test() {
   let #(tok, rest) = lex_lower_identifier.lex(<<"test(":utf8>>, 0, 0)
