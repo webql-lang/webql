@@ -191,7 +191,7 @@ pub fn run_lexer_fails_on_invalid_symbol_after_valid_tokens_test() {
 }
 
 pub fn run_lexer_recovers_on_invalid_symbol_test() {
-  let lexer = lexer.with_mode(lexer.new("!"), lexer.RecoverOnError)
+  let lexer = lexer.with_mode(lexer.new("!"), lexer.Recover)
 
   let assert Ok(tokens) = lexer.lex(lexer)
 
@@ -206,7 +206,7 @@ pub fn run_lexer_recovers_on_invalid_symbol_test() {
 }
 
 pub fn run_lexer_recovers_on_invalid_symbol_after_valid_tokens_test() {
-  let lexer = lexer.with_mode(lexer.new("123!"), lexer.RecoverOnError)
+  let lexer = lexer.with_mode(lexer.new("123!"), lexer.Recover)
 
   let assert Ok(tokens) = lexer.lex(lexer)
 

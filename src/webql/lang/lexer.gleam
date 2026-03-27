@@ -12,8 +12,8 @@ import webql/lang/lexer/token
 import webql/lang/source/position
 
 pub type LexerMode {
-  HaltOnError
-  RecoverOnError
+  Halt
+  Recover
 }
 
 pub opaque type Lexer {
@@ -44,7 +44,7 @@ pub fn new(source: String) -> Lexer {
     remaining_bytes: bytes,
     bytes:,
     position: 0,
-    mode: HaltOnError,
+    mode: Halt,
     comments: True,
     whitespace: True,
   )
@@ -79,8 +79,8 @@ pub fn with_mode(lexer: Lexer, mode mode: LexerMode) {
 // =================
 fn lex_source(lexer: Lexer, tokens: List(token.Token)) {
   use #(token, rest) <- result.try(case lexer.mode {
-    RecoverOnError -> Ok(lex_token(lexer))
-    HaltOnError -> lex_token_or_error(lexer)
+    Recover -> Ok(lex_token(lexer))
+    Halt -> lex_token_or_error(lexer)
   })
 
   let lexer = Lexer(..lexer, remaining_bytes: rest, position: token.span.end)
