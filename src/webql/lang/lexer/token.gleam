@@ -7,7 +7,6 @@ pub type TokenKind {
   Int
   Float
   String
-  Bool
   CommentSingle
 
   // ========= GROUPINGS ==========

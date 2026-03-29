@@ -269,7 +269,7 @@ fn lex_token(lexer: Lexer) {
     | <<"\r", rest:bytes>>
     | <<"\t", rest:bytes>> -> lex_whitespace.lex(rest, lexer.position, 1)
 
-    // ========== SYMBOLS =========
+    // ========== ILLEGAL =========
     <<_char, rest:bytes>> -> #(
       token.Token(
         kind: token.Diagnostic(diagnostic.IllegalToken),

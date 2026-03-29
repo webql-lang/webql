@@ -1,37 +1,28 @@
 /// Top-level anonymous operation.
 ///
 /// Represents an executable graph with inputs, outputs,
-/// nested declarations, and expressions that wire data flow.
+/// nested operations, and expressions that wire data flow.
 ///
 /// ## Examples
 ///
 ///     .in -> .out { ... }
 ///     -> .out { ... }
-pub type Operation {
-  Operation(
-    inputs: List(Field),
-    outputs: List(Field),
-    declarations: List(Declaration),
-    expressions: List(Expression),
-  )
-}
-
-/// A reusable named operation declared within an operation.
-///
-/// Declarations may contain other declarations and expressions,
-/// but are distinct from the anonymous top-level `Operation`.
-///
-/// ## Examples
 ///
 ///     in: Int -> out: Int {
 ///       Inner = .in: Int -> .out: Int { ... }
 ///     }
-pub type Declaration {
-  Declaration(
+pub type Operation {
+  Operation(
+    inputs: List(Field),
+    outputs: List(Field),
+    operations: List(Operation),
+    expressions: List(Expression),
+  )
+  NestedOperation(
     name: String,
     inputs: List(Field),
     outputs: List(Field),
-    declarations: List(Declaration),
+    operations: List(Operation),
     expressions: List(Expression),
   )
 }
@@ -58,7 +49,7 @@ pub type Annotation {
   ListTypeAnnotation(of: Annotation)
 }
 
-/// An executable statement inside an operation or declaration body.
+/// An executable statement inside an operation body.
 ///
 /// ## Examples
 ///
