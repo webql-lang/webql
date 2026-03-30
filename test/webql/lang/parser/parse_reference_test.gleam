@@ -1,5 +1,6 @@
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_reference
 import webql/lang/source/position
 
@@ -92,7 +93,7 @@ pub fn parse_skips_leading_spaces_before_operation_port_reference_test() {
   assert rest == []
 }
 
-pub fn parse_skips_spaces_between_node_alias_and_dot_test() {
+pub fn parse_returns_error_when_space_exists_between_node_alias_and_dot_test() {
   let source = "m .out"
   let tokens = [
     token.Token(
@@ -107,31 +108,13 @@ pub fn parse_skips_spaces_between_node_alias_and_dot_test() {
     ),
   ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Error(error) = parse_reference.parse(source, tokens)
 
-  assert reference == ast.NodePortReference(alias: "m", port: "out")
-  assert rest == []
-}
-
-pub fn parse_skips_spaces_between_dot_and_node_port_test() {
-  let source = "m. out"
-  let tokens = [
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 0, end: 1),
-    ),
-    token.Token(kind: token.Dot, span: position.Span(start: 1, end: 2)),
-    token.Token(kind: token.Space, span: position.Span(start: 2, end: 3)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 3, end: 6),
-    ),
-  ]
-
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
-
-  assert reference == ast.NodePortReference(alias: "m", port: "out")
-  assert rest == []
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.Space),
+      span: position.Span(start: 1, end: 2),
+    )
 }
 
 pub fn parse_preserves_remaining_tokens_after_reference_test() {
