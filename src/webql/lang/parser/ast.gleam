@@ -1,3 +1,11 @@
+import webql/lang/lexer/token
+import webql/lang/source/position
+
+/// Represents a AST relative to a span and the next available tokens.
+pub type Parsed(a) {
+  Parsed(node: a, span: position.Span, tokens: List(token.Token))
+}
+
 /// Top-level anonymous operation.
 ///
 /// Represents an executable graph with inputs, outputs,
@@ -17,6 +25,7 @@ pub type Operation {
     outputs: List(Field),
     operations: List(Operation),
     expressions: List(Expression),
+    span: position.Span,
   )
   NestedOperation(
     name: String,
@@ -24,6 +33,7 @@ pub type Operation {
     outputs: List(Field),
     operations: List(Operation),
     expressions: List(Expression),
+    span: position.Span,
   )
 }
 
@@ -34,7 +44,7 @@ pub type Operation {
 ///     in: Int
 ///     out: String
 pub type Field {
-  Field(name: String, annotation: Annotation)
+  Field(name: String, annotation: Annotation, span: position.Span)
 }
 
 /// A type annotation describing the shape of a field.
@@ -45,8 +55,8 @@ pub type Field {
 ///     Int
 ///     [Bool]
 pub type Annotation {
-  NamedTypeAnnotation(name: String)
-  ListTypeAnnotation(of: Annotation)
+  NamedTypeAnnotation(name: String, span: position.Span)
+  ListTypeAnnotation(of: Annotation, span: position.Span)
 }
 
 /// An executable statement inside an operation body.
@@ -57,8 +67,8 @@ pub type Annotation {
 ///     1 -> m.l
 ///     m.out -> .out
 pub type Expression {
-  BindingExpression(alias: String, node: String)
-  EdgeExpression(from: Reference, to: Reference)
+  BindingExpression(alias: String, node: String, span: position.Span)
+  EdgeExpression(from: Reference, to: Reference, span: position.Span)
 }
 
 /// A reference used in an expression.
@@ -69,9 +79,9 @@ pub type Expression {
 ///     .out
 ///     "test"
 pub type Reference {
-  OperationPortReference(port: String)
-  NodePortReference(alias: String, port: String)
-  ValueReference(value: Value)
+  OperationPortReference(port: String, span: position.Span)
+  NodePortReference(alias: String, port: String, span: position.Span)
+  ValueReference(value: Value, span: position.Span)
 }
 
 /// A literal value embedded directly in the graph.
@@ -82,7 +92,7 @@ pub type Reference {
 ///     3.3
 ///     "hello world"
 pub type Value {
-  IntValue(value: Int)
-  FloatValue(value: Float)
-  StringValue(value: String)
+  IntValue(value: Int, span: position.Span)
+  FloatValue(value: Float, span: position.Span)
+  StringValue(value: String, span: position.Span)
 }

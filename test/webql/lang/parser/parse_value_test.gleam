@@ -1,4 +1,5 @@
 import gleam/list
+import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
@@ -9,57 +10,80 @@ pub fn parse_values_test() {
   let values = [
     #(
       "123",
-      [token.Token(kind: token.Int, span: position.Span(start: 0, end: 3))],
-      ast.IntValue(value: 123),
+      position.Span(start: 0, end: 3),
+      ast.IntValue(span: position.Span(start: 0, end: 3), value: 123),
     ),
     #(
       "1.23",
-      [token.Token(kind: token.Float, span: position.Span(start: 0, end: 4))],
-      ast.FloatValue(value: 1.23),
+      position.Span(start: 0, end: 4),
+      ast.FloatValue(span: position.Span(start: 0, end: 4), value: 1.23),
     ),
     #(
       "\"test\"",
-      [token.Token(kind: token.String, span: position.Span(start: 0, end: 6))],
-      ast.StringValue(value: "test"),
+      position.Span(start: 0, end: 6),
+      ast.StringValue(span: position.Span(start: 0, end: 6), value: "test"),
     ),
   ]
 
   list.each(values, fn(value) {
-    let #(source, tokens, expected) = value
+    let #(source, expected_span, expected_value) = value
 
-    let assert Ok(#(value, rest)) = parse_value.parse(source, tokens)
+    let assert Ok(tokens) =
+      source
+      |> lexer.new()
+      |> lexer.lex()
 
-    assert value == expected
-    assert rest == []
+    let assert Ok(ast.Parsed(node: parsed_value, span: span, tokens: rest)) =
+      parse_value.parse(source, tokens)
+
+    assert parsed_value == expected_value
+    assert span == expected_span
+
+    assert rest
+      == [
+        token.Token(
+          kind: token.EOF,
+          span: position.Span(start: expected_span.end, end: expected_span.end),
+        ),
+      ]
   })
 }
 
 pub fn parse_skips_space_test() {
   let source = "  123"
 
-  let tokens = [
-    token.Token(kind: token.Space, span: position.Span(start: 0, end: 2)),
-    token.Token(kind: token.Int, span: position.Span(start: 2, end: 5)),
-  ]
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  let assert Ok(#(value, _)) = parse_value.parse(source, tokens)
+  let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
+    parse_value.parse(source, tokens)
 
-  assert value == ast.IntValue(value: 123)
+  assert value
+    == ast.IntValue(span: position.Span(start: 2, end: 5), value: 123)
+
+  assert span == position.Span(start: 2, end: 5)
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 5, end: 5))]
 }
 
 pub fn parse_preserves_rest_test() {
   let source = "123 abc"
 
-  let tokens = [
-    token.Token(kind: token.Int, span: position.Span(start: 0, end: 3)),
-    token.Token(kind: token.Space, span: position.Span(start: 3, end: 4)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 4, end: 7),
-    ),
-  ]
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  let assert Ok(#(_, rest)) = parse_value.parse(source, tokens)
+  let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
+    parse_value.parse(source, tokens)
+
+  assert value
+    == ast.IntValue(span: position.Span(start: 0, end: 3), value: 123)
+
+  assert span == position.Span(start: 0, end: 3)
 
   assert rest
     == [
@@ -68,15 +92,17 @@ pub fn parse_preserves_rest_test() {
         kind: token.LowerIdentifier,
         span: position.Span(start: 4, end: 7),
       ),
+      token.Token(kind: token.EOF, span: position.Span(start: 7, end: 7)),
     ]
 }
 
 pub fn parse_invalid_float_test() {
   let source = "1.2.3"
 
-  let tokens = [
-    token.Token(kind: token.Float, span: position.Span(start: 0, end: 5)),
-  ]
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
   let assert Error(error) = parse_value.parse(source, tokens)
 

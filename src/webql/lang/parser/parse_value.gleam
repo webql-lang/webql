@@ -6,6 +6,7 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
+import webql/lang/source
 import webql/lang/source/position
 
 /// Parses a literal value.
@@ -18,44 +19,35 @@ import webql/lang/source/position
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Value, List(token.Token)), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Value), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.Int, span: span), ..rest] -> {
-      let value =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+      let literal = source.slice(source, span)
+      use value <- result.try(parse_int(literal, span))
 
-      use value <- result.try(parse_int(value, span))
-      Ok(#(value, rest))
+      Ok(ast.Parsed(node: value, span: span, tokens: rest))
     }
 
     [token.Token(kind: token.Float, span: span), ..rest] -> {
-      let value =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+      let literal = source.slice(source, span)
+      use value <- result.try(parse_float(literal, span))
 
-      use value <- result.try(parse_float(value, span))
-      Ok(#(value, rest))
+      Ok(ast.Parsed(node: value, span: span, tokens: rest))
     }
 
     [token.Token(kind: token.String, span: span), ..rest] -> {
-      let length = span.end - span.start
-      let quotes = 2
-
       let value =
         string.slice(
           from: source,
           at_index: span.start + 1,
-          length: length - quotes,
+          length: span.end - span.start - 2,
         )
 
-      Ok(#(ast.StringValue(value:), rest))
+      Ok(ast.Parsed(
+        node: ast.StringValue(value:, span:),
+        span: span,
+        tokens: rest,
+      ))
     }
 
     _tokens -> {
@@ -65,24 +57,32 @@ pub fn parse(
   }
 }
 
-fn parse_int(value: String, span: position.Span) {
-  case int.parse(value) {
-    Ok(value) -> Ok(ast.IntValue(value: value))
+fn parse_int(
+  raw: String,
+  span: position.Span,
+) -> Result(ast.Value, diagnostic.Diagnostic) {
+  case int.parse(raw) {
+    Ok(value) -> Ok(ast.IntValue(value:, span:))
+
     Error(_error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedToken(token.Int),
-        span:,
+        span: span,
       ))
   }
 }
 
-fn parse_float(value: String, span: position.Span) {
-  case float.parse(value) {
-    Ok(value) -> Ok(ast.FloatValue(value: value))
+fn parse_float(
+  raw: String,
+  span: position.Span,
+) -> Result(ast.Value, diagnostic.Diagnostic) {
+  case float.parse(raw) {
+    Ok(value) -> Ok(ast.FloatValue(value:, span:))
+
     Error(_error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedToken(token.Float),
-        span:,
+        span: span,
       ))
   }
 }

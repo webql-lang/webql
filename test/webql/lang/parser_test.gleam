@@ -32,9 +32,17 @@ pub fn parse_valid_operation_test() {
   should.equal(
     operation,
     ast.Operation(
+      span: position.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(name: "out", annotation: ast.NamedTypeAnnotation("Int")),
+        ast.Field(
+          span: position.Span(start: 3, end: 11),
+          name: "out",
+          annotation: ast.NamedTypeAnnotation(
+            span: position.Span(start: 8, end: 11),
+            name: "Int",
+          ),
+        ),
       ],
       operations: [],
       expressions: [],
@@ -72,9 +80,17 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
   should.equal(
     operation,
     ast.Operation(
+      span: position.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(name: "out", annotation: ast.NamedTypeAnnotation("Int")),
+        ast.Field(
+          span: position.Span(start: 3, end: 11),
+          name: "out",
+          annotation: ast.NamedTypeAnnotation(
+            span: position.Span(start: 8, end: 11),
+            name: "Int",
+          ),
+        ),
       ],
       operations: [],
       expressions: [],

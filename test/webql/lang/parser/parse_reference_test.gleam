@@ -1,3 +1,4 @@
+import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
@@ -6,107 +7,153 @@ import webql/lang/source/position
 
 pub fn parse_node_port_reference_test() {
   let source = "m.out"
-  let tokens = [
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 0, end: 1),
-    ),
-    token.Token(kind: token.Dot, span: position.Span(start: 1, end: 2)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 2, end: 5),
-    ),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.NodePortReference(alias: "m", port: "out")
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 5)
+
+  assert reference
+    == ast.NodePortReference(
+      span: position.Span(start: 0, end: 5),
+      alias: "m",
+      port: "out",
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 5, end: 5))]
 }
 
 pub fn parse_operation_port_reference_test() {
   let source = ".out"
-  let tokens = [
-    token.Token(kind: token.Dot, span: position.Span(start: 0, end: 1)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 1, end: 4),
-    ),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.OperationPortReference(port: "out")
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 4)
+
+  assert reference
+    == ast.OperationPortReference(
+      span: position.Span(start: 0, end: 4),
+      port: "out",
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 4, end: 4))]
 }
 
 pub fn parse_int_value_reference_test() {
   let source = "123"
-  let tokens = [
-    token.Token(kind: token.Int, span: position.Span(start: 0, end: 3)),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.ValueReference(value: ast.IntValue(value: 123))
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 3)
+
+  assert reference
+    == ast.ValueReference(
+      span: position.Span(start: 0, end: 3),
+      value: ast.IntValue(span: position.Span(start: 0, end: 3), value: 123),
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 3, end: 3))]
 }
 
 pub fn parse_float_value_reference_test() {
   let source = "1.23"
-  let tokens = [
-    token.Token(kind: token.Float, span: position.Span(start: 0, end: 4)),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.ValueReference(value: ast.FloatValue(value: 1.23))
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 4)
+
+  assert reference
+    == ast.ValueReference(
+      span: position.Span(start: 0, end: 4),
+      value: ast.FloatValue(span: position.Span(start: 0, end: 4), value: 1.23),
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 4, end: 4))]
 }
 
 pub fn parse_string_value_reference_test() {
   let source = "\"test\""
-  let tokens = [
-    token.Token(kind: token.String, span: position.Span(start: 0, end: 6)),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.ValueReference(value: ast.StringValue(value: "test"))
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 6)
+
+  assert reference
+    == ast.ValueReference(
+      span: position.Span(start: 0, end: 6),
+      value: ast.StringValue(
+        span: position.Span(start: 0, end: 6),
+        value: "test",
+      ),
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 6, end: 6))]
 }
 
 pub fn parse_skips_leading_spaces_before_operation_port_reference_test() {
   let source = " .out"
-  let tokens = [
-    token.Token(kind: token.Space, span: position.Span(start: 0, end: 1)),
-    token.Token(kind: token.Dot, span: position.Span(start: 1, end: 2)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 2, end: 5),
-    ),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.OperationPortReference(port: "out")
-  assert rest == []
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 1, end: 5)
+
+  assert reference
+    == ast.OperationPortReference(
+      span: position.Span(start: 1, end: 5),
+      port: "out",
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: position.Span(start: 5, end: 5))]
 }
 
 pub fn parse_returns_error_when_space_exists_between_node_alias_and_dot_test() {
   let source = "m .out"
-  let tokens = [
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 0, end: 1),
-    ),
-    token.Token(kind: token.Space, span: position.Span(start: 1, end: 2)),
-    token.Token(kind: token.Dot, span: position.Span(start: 2, end: 3)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 3, end: 6),
-    ),
-  ]
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
   let assert Error(error) = parse_reference.parse(source, tokens)
 
@@ -119,26 +166,24 @@ pub fn parse_returns_error_when_space_exists_between_node_alias_and_dot_test() {
 
 pub fn parse_preserves_remaining_tokens_after_reference_test() {
   let source = "m.out next"
-  let tokens = [
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 0, end: 1),
-    ),
-    token.Token(kind: token.Dot, span: position.Span(start: 1, end: 2)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 2, end: 5),
-    ),
-    token.Token(kind: token.Space, span: position.Span(start: 5, end: 6)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 6, end: 10),
-    ),
-  ]
 
-  let assert Ok(#(reference, rest)) = parse_reference.parse(source, tokens)
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-  assert reference == ast.NodePortReference(alias: "m", port: "out")
+  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+    parse_reference.parse(source, tokens)
+
+  assert span == position.Span(start: 0, end: 5)
+
+  assert reference
+    == ast.NodePortReference(
+      span: position.Span(start: 0, end: 5),
+      alias: "m",
+      port: "out",
+    )
+
   assert rest
     == [
       token.Token(kind: token.Space, span: position.Span(start: 5, end: 6)),
@@ -146,5 +191,6 @@ pub fn parse_preserves_remaining_tokens_after_reference_test() {
         kind: token.LowerIdentifier,
         span: position.Span(start: 6, end: 10),
       ),
+      token.Token(kind: token.EOF, span: position.Span(start: 10, end: 10)),
     ]
 }

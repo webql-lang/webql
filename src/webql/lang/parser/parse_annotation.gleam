@@ -1,33 +1,28 @@
 import gleam/result
-import gleam/string
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
+import webql/lang/source
 
 /// Parses annotations in a field.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Annotation, List(token.Token)), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Annotation), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.UpperIdentifier, ..) as token, ..rest] ->
-      Ok(#(parse_named_type_annotation(source, token), rest))
+    [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
+      let name = source.slice(source, span)
+      Ok(ast.Parsed(
+        node: ast.NamedTypeAnnotation(span:, name:),
+        span:,
+        tokens: rest,
+      ))
+    }
 
-    _token -> {
+    _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
       parse(source, tokens)
     }
   }
-}
-
-fn parse_named_type_annotation(source: String, token: token.Token) {
-  let name =
-    string.slice(
-      from: source,
-      at_index: token.span.start,
-      length: token.span.end - token.span.start,
-    )
-
-  ast.NamedTypeAnnotation(name)
 }

@@ -1,49 +1,57 @@
 import gleam/result
-import gleam/string
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_annotation
 import webql/lang/parser/parse_nonstarter
+import webql/lang/source
+import webql/lang/source/position
 
-/// Parses a fields or single key/value (type) pairs.
+/// Parses a field or single key/value (type) pair.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Field, List(token.Token)), diagnostic.Diagnostic) {
-  use #(key, tokens) <- result.try(parse_key(source, tokens))
-  use tokens <- result.try(parse_seperator(source, tokens))
-  use #(annotation, tokens) <- result.try(parse_annotation.parse(source, tokens))
+) -> Result(ast.Parsed(ast.Field), diagnostic.Diagnostic) {
+  use key <- result.try(parse_key(source, tokens))
+  use tokens <- result.try(parse_separator(source, key.tokens))
+  use ast.Parsed(node: annotation, span: annotation_span, tokens: tokens) <- result.try(
+    parse_annotation.parse(source, tokens),
+  )
 
-  Ok(#(ast.Field(name: key, annotation: annotation), tokens))
+  let span = position.cover(key.span, annotation_span)
+
+  Ok(ast.Parsed(
+    node: ast.Field(span: span, name: key.node, annotation: annotation),
+    span: span,
+    tokens: tokens,
+  ))
 }
 
-fn parse_key(source: String, tokens: List(token.Token)) {
+fn parse_key(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(ast.Parsed(String), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span: span), ..rest] -> {
-      let name =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+    [token.Token(kind: token.LowerIdentifier, span: span), ..rest] ->
+      Ok(ast.Parsed(node: source.slice(source, span), span: span, tokens: rest))
 
-      Ok(#(name, rest))
-    }
-
-    _token -> {
+    _ -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
       parse_key(source, tokens)
     }
   }
 }
 
-fn parse_seperator(source: String, tokens: List(token.Token)) {
+fn parse_separator(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(List(token.Token), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.Colon, ..), ..rest] -> Ok(rest)
-    _token -> {
+
+    _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_seperator(source, tokens)
+      parse_separator(source, tokens)
     }
   }
 }
