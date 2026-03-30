@@ -3,28 +3,7 @@ import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source/position
 
-pub fn parse_consumes_single_space_test() {
-  let source = " abc"
-  let tokens = [
-    token.Token(kind: token.Space, span: position.Span(start: 0, end: 1)),
-    token.Token(
-      kind: token.LowerIdentifier,
-      span: position.Span(start: 1, end: 4),
-    ),
-  ]
-
-  let assert Ok(rest) = parse_nonstarter.parse(source: source, tokens: tokens)
-
-  assert rest
-    == [
-      token.Token(
-        kind: token.LowerIdentifier,
-        span: position.Span(start: 1, end: 4),
-      ),
-    ]
-}
-
-pub fn parse_consumes_multiple_spaces_test() {
+pub fn parse_consumes_leading_spaces_test() {
   let source = "   abc"
   let tokens = [
     token.Token(kind: token.Space, span: position.Span(start: 0, end: 1)),
@@ -47,17 +26,21 @@ pub fn parse_consumes_multiple_spaces_test() {
     ]
 }
 
-pub fn parse_returns_empty_list_when_only_spaces_remain_test() {
+pub fn parse_preserves_eof_after_spaces_test() {
   let source = "   "
   let tokens = [
     token.Token(kind: token.Space, span: position.Span(start: 0, end: 1)),
     token.Token(kind: token.Space, span: position.Span(start: 1, end: 2)),
     token.Token(kind: token.Space, span: position.Span(start: 2, end: 3)),
+    token.Token(kind: token.EOF, span: position.Span(start: 3, end: 3)),
   ]
 
   let assert Ok(rest) = parse_nonstarter.parse(source: source, tokens: tokens)
 
-  assert rest == []
+  assert rest
+    == [
+      token.Token(kind: token.EOF, span: position.Span(start: 3, end: 3)),
+    ]
 }
 
 pub fn parse_returns_unexpected_token_when_first_token_is_not_space_test() {
@@ -79,7 +62,7 @@ pub fn parse_returns_unexpected_token_when_first_token_is_not_space_test() {
     )
 }
 
-pub fn parse_returns_unexpected_eof_at_end_of_source_test() {
+pub fn parse_returns_unexpected_eof_when_input_is_empty_test() {
   let source = "abc"
   let tokens = []
 
@@ -93,9 +76,11 @@ pub fn parse_returns_unexpected_eof_at_end_of_source_test() {
     )
 }
 
-pub fn parse_returns_unexpected_eof_at_zero_for_empty_source_test() {
-  let source = ""
-  let tokens = []
+pub fn parse_returns_unexpected_eof_when_first_token_is_eof_test() {
+  let source = "abc"
+  let tokens = [
+    token.Token(kind: token.EOF, span: position.Span(start: 3, end: 3)),
+  ]
 
   let assert Error(error) =
     parse_nonstarter.parse(source: source, tokens: tokens)
@@ -103,6 +88,6 @@ pub fn parse_returns_unexpected_eof_at_zero_for_empty_source_test() {
   assert error
     == diagnostic.Diagnostic(
       kind: diagnostic.UnexpectedEof,
-      span: position.Span(start: 0, end: 0),
+      span: position.Span(start: 3, end: 3),
     )
 }

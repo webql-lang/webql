@@ -27,10 +27,8 @@ pub fn parse_binding_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.BindingExpression(alias: "m", node: "Math"))
-
-  rest |> should.equal([])
+  should.equal(expression, ast.BindingExpression(alias: "m", node: "Math"))
+  should.equal(rest, [])
 }
 
 pub fn parse_binding_expression_without_spaces_test() {
@@ -49,10 +47,8 @@ pub fn parse_binding_expression_without_spaces_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.BindingExpression(alias: "m", node: "Math"))
-
-  rest |> should.equal([])
+  should.equal(expression, ast.BindingExpression(alias: "m", node: "Math"))
+  should.equal(rest, [])
 }
 
 pub fn parse_node_port_edge_expression_test() {
@@ -79,13 +75,15 @@ pub fn parse_node_port_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.NodePortReference(alias: "m", port: "out"),
-    to: ast.OperationPortReference(port: "out"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.NodePortReference(alias: "m", port: "out"),
+      to: ast.OperationPortReference(port: "out"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_operation_port_edge_expression_test() {
@@ -112,13 +110,15 @@ pub fn parse_operation_port_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.OperationPortReference(port: "in"),
-    to: ast.NodePortReference(alias: "m", port: "l"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.OperationPortReference(port: "in"),
+      to: ast.NodePortReference(alias: "m", port: "l"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_int_value_edge_expression_test() {
@@ -141,13 +141,15 @@ pub fn parse_int_value_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.ValueReference(value: ast.IntValue(value: 1)),
-    to: ast.NodePortReference(alias: "m", port: "l"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.ValueReference(value: ast.IntValue(value: 1)),
+      to: ast.NodePortReference(alias: "m", port: "l"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_float_value_edge_expression_test() {
@@ -170,13 +172,15 @@ pub fn parse_float_value_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.ValueReference(value: ast.FloatValue(value: 1.23)),
-    to: ast.NodePortReference(alias: "m", port: "l"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.ValueReference(value: ast.FloatValue(value: 1.23)),
+      to: ast.NodePortReference(alias: "m", port: "l"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_string_value_edge_expression_test() {
@@ -195,13 +199,15 @@ pub fn parse_string_value_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.ValueReference(value: ast.StringValue(value: "test")),
-    to: ast.OperationPortReference(port: "out"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.ValueReference(value: ast.StringValue(value: "test")),
+      to: ast.OperationPortReference(port: "out"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_skips_leading_spaces_test() {
@@ -224,10 +230,8 @@ pub fn parse_skips_leading_spaces_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.BindingExpression(alias: "m", node: "Math"))
-
-  rest |> should.equal([])
+  should.equal(expression, ast.BindingExpression(alias: "m", node: "Math"))
+  should.equal(rest, [])
 }
 
 pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
@@ -256,13 +260,15 @@ pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.NodePortReference(alias: "m", port: "out"),
-    to: ast.OperationPortReference(port: "out"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.NodePortReference(alias: "m", port: "out"),
+      to: ast.OperationPortReference(port: "out"),
+    ),
+  )
 
-  rest |> should.equal([])
+  should.equal(rest, [])
 }
 
 pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
@@ -287,12 +293,9 @@ pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
   ]
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
+  should.equal(expression, ast.BindingExpression(alias: "m", node: "Math"))
 
-  expression
-  |> should.equal(ast.BindingExpression(alias: "m", node: "Math"))
-
-  rest
-  |> should.equal([
+  should.equal(rest, [
     token.Token(kind: token.Space, span: position.Span(start: 8, end: 9)),
     token.Token(
       kind: token.LowerIdentifier,
@@ -326,14 +329,15 @@ pub fn parse_preserves_remaining_tokens_after_edge_expression_test() {
 
   let assert Ok(#(expression, rest)) = parse_expression.parse(source, tokens)
 
-  expression
-  |> should.equal(ast.EdgeExpression(
-    from: ast.OperationPortReference(port: "in"),
-    to: ast.OperationPortReference(port: "out"),
-  ))
+  should.equal(
+    expression,
+    ast.EdgeExpression(
+      from: ast.OperationPortReference(port: "in"),
+      to: ast.OperationPortReference(port: "out"),
+    ),
+  )
 
-  rest
-  |> should.equal([
+  should.equal(rest, [
     token.Token(kind: token.Space, span: position.Span(start: 11, end: 12)),
     token.Token(
       kind: token.LowerIdentifier,
