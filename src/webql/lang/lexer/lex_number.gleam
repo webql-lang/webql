@@ -1,5 +1,5 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 const starting_token_kind = token.Int
 
@@ -38,7 +38,7 @@ fn lex_number(bytes: BitArray, kind: token.TokenKind, start: Int, size: Int) {
       #(
         token.Token(
           kind: kind,
-          span: position.Span(start: start, end: start + size),
+          span: source.Span(start: start, end: start + size),
         ),
         next_bytes,
       )

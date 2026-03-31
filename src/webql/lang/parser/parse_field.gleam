@@ -5,7 +5,6 @@ import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_annotation
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source
-import webql/lang/source/position
 
 /// Parses a field or single key/value (type) pair.
 pub fn parse(
@@ -14,16 +13,16 @@ pub fn parse(
 ) -> Result(ast.Parsed(ast.Field), diagnostic.Diagnostic) {
   use key <- result.try(parse_key(source, tokens))
   use tokens <- result.try(parse_separator(source, key.tokens))
-  use ast.Parsed(node: annotation, span: annotation_span, tokens: tokens) <- result.try(
+  use ast.Parsed(node: annotation, span: annotation_span, tokens:) <- result.try(
     parse_annotation.parse(source, tokens),
   )
 
-  let span = position.cover(key.span, annotation_span)
+  let span = source.cover(key.span, annotation_span)
 
   Ok(ast.Parsed(
-    node: ast.Field(span: span, name: key.node, annotation: annotation),
-    span: span,
-    tokens: tokens,
+    node: ast.Field(span:, name: key.node, annotation: annotation),
+    span:,
+    tokens:,
   ))
 }
 
@@ -32,10 +31,10 @@ fn parse_key(
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(String), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span: span), ..rest] ->
-      Ok(ast.Parsed(node: source.slice(source, span), span: span, tokens: rest))
+    [token.Token(kind: token.LowerIdentifier, span:), ..rest] ->
+      Ok(ast.Parsed(node: source.slice(source, span), span:, tokens: rest))
 
-    _ -> {
+    _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
       parse_key(source, tokens)
     }

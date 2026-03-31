@@ -1,9 +1,9 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 /// Represents a AST relative to a span and the next available tokens.
 pub type Parsed(a) {
-  Parsed(node: a, span: position.Span, tokens: List(token.Token))
+  Parsed(node: a, span: source.Span, tokens: List(token.Token))
 }
 
 /// Top-level anonymous operation.
@@ -25,7 +25,7 @@ pub type Operation {
     outputs: List(Field),
     operations: List(Operation),
     expressions: List(Expression),
-    span: position.Span,
+    span: source.Span,
   )
   NestedOperation(
     name: String,
@@ -33,7 +33,7 @@ pub type Operation {
     outputs: List(Field),
     operations: List(Operation),
     expressions: List(Expression),
-    span: position.Span,
+    span: source.Span,
   )
 }
 
@@ -44,7 +44,7 @@ pub type Operation {
 ///     in: Int
 ///     out: String
 pub type Field {
-  Field(name: String, annotation: Annotation, span: position.Span)
+  Field(name: String, annotation: Annotation, span: source.Span)
 }
 
 /// A type annotation describing the shape of a field.
@@ -55,8 +55,8 @@ pub type Field {
 ///     Int
 ///     [Bool]
 pub type Annotation {
-  NamedTypeAnnotation(name: String, span: position.Span)
-  ListTypeAnnotation(of: Annotation, span: position.Span)
+  NamedTypeAnnotation(name: String, span: source.Span)
+  ListTypeAnnotation(of: Annotation, span: source.Span)
 }
 
 /// An executable statement inside an operation body.
@@ -67,8 +67,8 @@ pub type Annotation {
 ///     1 -> m.l
 ///     m.out -> .out
 pub type Expression {
-  BindingExpression(alias: String, node: String, span: position.Span)
-  EdgeExpression(from: Reference, to: Reference, span: position.Span)
+  BindingExpression(alias: String, node: String, span: source.Span)
+  EdgeExpression(from: Reference, to: Reference, span: source.Span)
 }
 
 /// A reference used in an expression.
@@ -79,9 +79,9 @@ pub type Expression {
 ///     .out
 ///     "test"
 pub type Reference {
-  OperationPortReference(port: String, span: position.Span)
-  NodePortReference(alias: String, port: String, span: position.Span)
-  ValueReference(value: Value, span: position.Span)
+  OperationPortReference(port: String, span: source.Span)
+  NodePortReference(alias: String, port: String, span: source.Span)
+  ValueReference(value: Value, span: source.Span)
 }
 
 /// A literal value embedded directly in the graph.
@@ -92,7 +92,7 @@ pub type Reference {
 ///     3.3
 ///     "hello world"
 pub type Value {
-  IntValue(value: Int, span: position.Span)
-  FloatValue(value: Float, span: position.Span)
-  StringValue(value: String, span: position.Span)
+  IntValue(value: Int, span: source.Span)
+  FloatValue(value: Float, span: source.Span)
+  StringValue(value: String, span: source.Span)
 }

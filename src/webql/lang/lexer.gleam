@@ -9,7 +9,7 @@ import webql/lang/lexer/lex_string
 import webql/lang/lexer/lex_upper_identifier
 import webql/lang/lexer/lex_whitespace
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 pub type LexerMode {
   Halt
@@ -122,7 +122,7 @@ fn lex_token(lexer: Lexer) {
     <<"(", rest:bytes>> -> #(
       token.Token(
         kind: token.LParen,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -130,7 +130,7 @@ fn lex_token(lexer: Lexer) {
     <<")", rest:bytes>> -> #(
       token.Token(
         kind: token.RParen,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -138,7 +138,7 @@ fn lex_token(lexer: Lexer) {
     <<"{", rest:bytes>> -> #(
       token.Token(
         kind: token.LBrace,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -146,7 +146,7 @@ fn lex_token(lexer: Lexer) {
     <<"}", rest:bytes>> -> #(
       token.Token(
         kind: token.RBrace,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -154,7 +154,7 @@ fn lex_token(lexer: Lexer) {
     <<"[", rest:bytes>> -> #(
       token.Token(
         kind: token.LSquare,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -162,7 +162,7 @@ fn lex_token(lexer: Lexer) {
     <<"]", rest:bytes>> -> #(
       token.Token(
         kind: token.RSquare,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -171,7 +171,7 @@ fn lex_token(lexer: Lexer) {
     <<":", rest:bytes>> -> #(
       token.Token(
         kind: token.Colon,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -179,7 +179,7 @@ fn lex_token(lexer: Lexer) {
     <<",", rest:bytes>> -> #(
       token.Token(
         kind: token.Comma,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -187,7 +187,7 @@ fn lex_token(lexer: Lexer) {
     <<"=", rest:bytes>> -> #(
       token.Token(
         kind: token.Equal,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -195,7 +195,7 @@ fn lex_token(lexer: Lexer) {
     <<".", rest:bytes>> -> #(
       token.Token(
         kind: token.Dot,
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -203,7 +203,7 @@ fn lex_token(lexer: Lexer) {
     <<"->", rest:bytes>> -> #(
       token.Token(
         kind: token.RArrow,
-        span: position.Span(start: lexer.position, end: lexer.position + 2),
+        span: source.Span(start: lexer.position, end: lexer.position + 2),
       ),
       rest,
     )
@@ -273,7 +273,7 @@ fn lex_token(lexer: Lexer) {
     <<_char, rest:bytes>> -> #(
       token.Token(
         kind: token.Diagnostic(diagnostic.IllegalToken),
-        span: position.Span(start: lexer.position, end: lexer.position + 1),
+        span: source.Span(start: lexer.position, end: lexer.position + 1),
       ),
       rest,
     )
@@ -282,7 +282,7 @@ fn lex_token(lexer: Lexer) {
     _eof -> #(
       token.Token(
         kind: token.EOF,
-        span: position.Span(start: lexer.position, end: lexer.position),
+        span: source.Span(start: lexer.position, end: lexer.position),
       ),
       <<>>,
     )

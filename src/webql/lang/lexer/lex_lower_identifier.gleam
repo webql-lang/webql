@@ -1,5 +1,5 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 /// Lexes upper identifiers.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
@@ -56,7 +56,7 @@ fn lex_lower_identifier(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.LowerIdentifier,
-          span: position.Span(start: start, end: end),
+          span: source.Span(start: start, end: end),
         ),
         bytes,
       )

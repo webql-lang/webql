@@ -1,4 +1,4 @@
-import webql/lang/source/position
+import webql/lang/source
 
 pub type DiagnosticKind {
   IllegalToken
@@ -6,5 +6,5 @@ pub type DiagnosticKind {
 }
 
 pub type Diagnostic {
-  Diagnostic(kind: DiagnosticKind, span: position.Span)
+  Diagnostic(kind: DiagnosticKind, span: source.Span)
 }

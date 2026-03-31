@@ -3,7 +3,7 @@ import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/parse_expression
-import webql/lang/source/position
+import webql/lang/source
 
 pub fn parse_binding_expression_test() {
   let source = "m = Math"
@@ -19,14 +19,14 @@ pub fn parse_binding_expression_test() {
   should.equal(
     expression,
     ast.BindingExpression(
-      span: position.Span(start: 0, end: 8),
+      span: source.Span(start: 0, end: 8),
       alias: "m",
       node: "Math",
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 8, end: 8))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 8, end: 8))]
 }
 
 pub fn parse_binding_expression_without_spaces_test() {
@@ -43,14 +43,14 @@ pub fn parse_binding_expression_without_spaces_test() {
   should.equal(
     expression,
     ast.BindingExpression(
-      span: position.Span(start: 0, end: 6),
+      span: source.Span(start: 0, end: 6),
       alias: "m",
       node: "Math",
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 6, end: 6))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 6, end: 6))]
 }
 
 pub fn parse_node_port_edge_expression_test() {
@@ -67,21 +67,21 @@ pub fn parse_node_port_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 13),
+      span: source.Span(start: 0, end: 13),
       from: ast.NodePortReference(
-        span: position.Span(start: 0, end: 5),
+        span: source.Span(start: 0, end: 5),
         alias: "m",
         port: "out",
       ),
       to: ast.OperationPortReference(
-        span: position.Span(start: 9, end: 13),
+        span: source.Span(start: 9, end: 13),
         port: "out",
       ),
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 13, end: 13))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 13, end: 13))]
 }
 
 pub fn parse_operation_port_edge_expression_test() {
@@ -98,13 +98,13 @@ pub fn parse_operation_port_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 10),
+      span: source.Span(start: 0, end: 10),
       from: ast.OperationPortReference(
-        span: position.Span(start: 0, end: 3),
+        span: source.Span(start: 0, end: 3),
         port: "in",
       ),
       to: ast.NodePortReference(
-        span: position.Span(start: 7, end: 10),
+        span: source.Span(start: 7, end: 10),
         alias: "m",
         port: "l",
       ),
@@ -112,7 +112,7 @@ pub fn parse_operation_port_edge_expression_test() {
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 10, end: 10))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 10, end: 10))]
 }
 
 pub fn parse_int_value_edge_expression_test() {
@@ -129,13 +129,13 @@ pub fn parse_int_value_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 8),
+      span: source.Span(start: 0, end: 8),
       from: ast.ValueReference(
-        span: position.Span(start: 0, end: 1),
-        value: ast.IntValue(span: position.Span(start: 0, end: 1), value: 1),
+        span: source.Span(start: 0, end: 1),
+        value: ast.IntValue(span: source.Span(start: 0, end: 1), value: 1),
       ),
       to: ast.NodePortReference(
-        span: position.Span(start: 5, end: 8),
+        span: source.Span(start: 5, end: 8),
         alias: "m",
         port: "l",
       ),
@@ -143,7 +143,7 @@ pub fn parse_int_value_edge_expression_test() {
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 8, end: 8))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 8, end: 8))]
 }
 
 pub fn parse_float_value_edge_expression_test() {
@@ -160,16 +160,13 @@ pub fn parse_float_value_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 11),
+      span: source.Span(start: 0, end: 11),
       from: ast.ValueReference(
-        span: position.Span(start: 0, end: 4),
-        value: ast.FloatValue(
-          span: position.Span(start: 0, end: 4),
-          value: 1.23,
-        ),
+        span: source.Span(start: 0, end: 4),
+        value: ast.FloatValue(span: source.Span(start: 0, end: 4), value: 1.23),
       ),
       to: ast.NodePortReference(
-        span: position.Span(start: 8, end: 11),
+        span: source.Span(start: 8, end: 11),
         alias: "m",
         port: "l",
       ),
@@ -177,7 +174,7 @@ pub fn parse_float_value_edge_expression_test() {
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 11, end: 11))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 11, end: 11))]
 }
 
 pub fn parse_string_value_edge_expression_test() {
@@ -194,23 +191,23 @@ pub fn parse_string_value_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 14),
+      span: source.Span(start: 0, end: 14),
       from: ast.ValueReference(
-        span: position.Span(start: 0, end: 6),
+        span: source.Span(start: 0, end: 6),
         value: ast.StringValue(
-          span: position.Span(start: 0, end: 6),
+          span: source.Span(start: 0, end: 6),
           value: "test",
         ),
       ),
       to: ast.OperationPortReference(
-        span: position.Span(start: 10, end: 14),
+        span: source.Span(start: 10, end: 14),
         port: "out",
       ),
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 14, end: 14))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14))]
 }
 
 pub fn parse_skips_leading_spaces_test() {
@@ -227,14 +224,14 @@ pub fn parse_skips_leading_spaces_test() {
   should.equal(
     expression,
     ast.BindingExpression(
-      span: position.Span(start: 2, end: 10),
+      span: source.Span(start: 2, end: 10),
       alias: "m",
       node: "Math",
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 10, end: 10))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 10, end: 10))]
 }
 
 pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
@@ -251,21 +248,21 @@ pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 15),
+      span: source.Span(start: 0, end: 15),
       from: ast.NodePortReference(
-        span: position.Span(start: 0, end: 7),
+        span: source.Span(start: 0, end: 7),
         alias: "m",
         port: "out",
       ),
       to: ast.OperationPortReference(
-        span: position.Span(start: 11, end: 15),
+        span: source.Span(start: 11, end: 15),
         port: "out",
       ),
     ),
   )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 15, end: 15))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 15, end: 15))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
@@ -282,19 +279,19 @@ pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
   should.equal(
     expression,
     ast.BindingExpression(
-      span: position.Span(start: 0, end: 8),
+      span: source.Span(start: 0, end: 8),
       alias: "m",
       node: "Math",
     ),
   )
 
   should.equal(rest, [
-    token.Token(kind: token.Space, span: position.Span(start: 8, end: 9)),
+    token.Token(kind: token.Space, span: source.Span(start: 8, end: 9)),
     token.Token(
       kind: token.LowerIdentifier,
-      span: position.Span(start: 9, end: 14),
+      span: source.Span(start: 9, end: 14),
     ),
-    token.Token(kind: token.EOF, span: position.Span(start: 14, end: 14)),
+    token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14)),
   ])
 }
 
@@ -312,24 +309,24 @@ pub fn parse_preserves_remaining_tokens_after_edge_expression_test() {
   should.equal(
     expression,
     ast.EdgeExpression(
-      span: position.Span(start: 0, end: 11),
+      span: source.Span(start: 0, end: 11),
       from: ast.OperationPortReference(
-        span: position.Span(start: 0, end: 3),
+        span: source.Span(start: 0, end: 3),
         port: "in",
       ),
       to: ast.OperationPortReference(
-        span: position.Span(start: 7, end: 11),
+        span: source.Span(start: 7, end: 11),
         port: "out",
       ),
     ),
   )
 
   should.equal(rest, [
-    token.Token(kind: token.Space, span: position.Span(start: 11, end: 12)),
+    token.Token(kind: token.Space, span: source.Span(start: 11, end: 12)),
     token.Token(
       kind: token.LowerIdentifier,
-      span: position.Span(start: 12, end: 17),
+      span: source.Span(start: 12, end: 17),
     ),
-    token.Token(kind: token.EOF, span: position.Span(start: 17, end: 17)),
+    token.Token(kind: token.EOF, span: source.Span(start: 17, end: 17)),
   ])
 }

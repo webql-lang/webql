@@ -7,7 +7,6 @@ import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source
-import webql/lang/source/position
 
 /// Parses a literal value.
 ///
@@ -21,21 +20,21 @@ pub fn parse(
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(ast.Value), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.Int, span: span), ..rest] -> {
+    [token.Token(kind: token.Int, span:), ..rest] -> {
       let literal = source.slice(source, span)
       use value <- result.try(parse_int(literal, span))
 
-      Ok(ast.Parsed(node: value, span: span, tokens: rest))
+      Ok(ast.Parsed(node: value, span:, tokens: rest))
     }
 
-    [token.Token(kind: token.Float, span: span), ..rest] -> {
+    [token.Token(kind: token.Float, span:), ..rest] -> {
       let literal = source.slice(source, span)
       use value <- result.try(parse_float(literal, span))
 
-      Ok(ast.Parsed(node: value, span: span, tokens: rest))
+      Ok(ast.Parsed(node: value, span:, tokens: rest))
     }
 
-    [token.Token(kind: token.String, span: span), ..rest] -> {
+    [token.Token(kind: token.String, span:), ..rest] -> {
       let value =
         string.slice(
           from: source,
@@ -43,11 +42,7 @@ pub fn parse(
           length: span.end - span.start - 2,
         )
 
-      Ok(ast.Parsed(
-        node: ast.StringValue(value:, span:),
-        span: span,
-        tokens: rest,
-      ))
+      Ok(ast.Parsed(node: ast.StringValue(value:, span:), span:, tokens: rest))
     }
 
     _tokens -> {
@@ -59,7 +54,7 @@ pub fn parse(
 
 fn parse_int(
   raw: String,
-  span: position.Span,
+  span: source.Span,
 ) -> Result(ast.Value, diagnostic.Diagnostic) {
   case int.parse(raw) {
     Ok(value) -> Ok(ast.IntValue(value:, span:))
@@ -67,14 +62,14 @@ fn parse_int(
     Error(_error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedToken(token.Int),
-        span: span,
+        span:,
       ))
   }
 }
 
 fn parse_float(
   raw: String,
-  span: position.Span,
+  span: source.Span,
 ) -> Result(ast.Value, diagnostic.Diagnostic) {
   case float.parse(raw) {
     Ok(value) -> Ok(ast.FloatValue(value:, span:))
@@ -82,7 +77,7 @@ fn parse_float(
     Error(_error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedToken(token.Float),
-        span: span,
+        span:,
       ))
   }
 }

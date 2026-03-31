@@ -1,11 +1,11 @@
 import webql/lang/lexer/lex_upper_identifier
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 pub fn lex_upper_identifier_stops_correctly_test() {
   let #(tok, rest) = lex_upper_identifier.lex(<<"Testing(":utf8>>, 0, 0)
 
-  let token.Token(kind: kind, span: position.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
   let assert token.UpperIdentifier = kind
 
   assert start == 0
@@ -17,7 +17,7 @@ pub fn lex_upper_identifier_stops_correctly_test() {
 pub fn lex_upper_identifier_allows_letters_and_digits_test() {
   let #(tok, rest) = lex_upper_identifier.lex(<<"Test1,":utf8>>, 4, 0)
 
-  let token.Token(kind: kind, span: position.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
   let assert token.UpperIdentifier = kind
 
   assert start == 4
@@ -29,7 +29,7 @@ pub fn lex_upper_identifier_allows_letters_and_digits_test() {
 pub fn lex_upper_identifier_stops_on_whitespace_test() {
   let #(tok, rest) = lex_upper_identifier.lex(<<"TEST rest":utf8>>, 10, 0)
 
-  let token.Token(kind: kind, span: position.Span(start: start, end: end)) = tok
+  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
   let assert token.UpperIdentifier = kind
 
   assert start == 10

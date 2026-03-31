@@ -4,24 +4,24 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_value
-import webql/lang/source/position
+import webql/lang/source
 
 pub fn parse_values_test() {
   let values = [
     #(
       "123",
-      position.Span(start: 0, end: 3),
-      ast.IntValue(span: position.Span(start: 0, end: 3), value: 123),
+      source.Span(start: 0, end: 3),
+      ast.IntValue(span: source.Span(start: 0, end: 3), value: 123),
     ),
     #(
       "1.23",
-      position.Span(start: 0, end: 4),
-      ast.FloatValue(span: position.Span(start: 0, end: 4), value: 1.23),
+      source.Span(start: 0, end: 4),
+      ast.FloatValue(span: source.Span(start: 0, end: 4), value: 1.23),
     ),
     #(
       "\"test\"",
-      position.Span(start: 0, end: 6),
-      ast.StringValue(span: position.Span(start: 0, end: 6), value: "test"),
+      source.Span(start: 0, end: 6),
+      ast.StringValue(span: source.Span(start: 0, end: 6), value: "test"),
     ),
   ]
 
@@ -43,7 +43,7 @@ pub fn parse_values_test() {
       == [
         token.Token(
           kind: token.EOF,
-          span: position.Span(start: expected_span.end, end: expected_span.end),
+          span: source.Span(start: expected_span.end, end: expected_span.end),
         ),
       ]
   })
@@ -60,13 +60,12 @@ pub fn parse_skips_space_test() {
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
     parse_value.parse(source, tokens)
 
-  assert value
-    == ast.IntValue(span: position.Span(start: 2, end: 5), value: 123)
+  assert value == ast.IntValue(span: source.Span(start: 2, end: 5), value: 123)
 
-  assert span == position.Span(start: 2, end: 5)
+  assert span == source.Span(start: 2, end: 5)
 
   assert rest
-    == [token.Token(kind: token.EOF, span: position.Span(start: 5, end: 5))]
+    == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
 }
 
 pub fn parse_preserves_rest_test() {
@@ -80,19 +79,18 @@ pub fn parse_preserves_rest_test() {
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
     parse_value.parse(source, tokens)
 
-  assert value
-    == ast.IntValue(span: position.Span(start: 0, end: 3), value: 123)
+  assert value == ast.IntValue(span: source.Span(start: 0, end: 3), value: 123)
 
-  assert span == position.Span(start: 0, end: 3)
+  assert span == source.Span(start: 0, end: 3)
 
   assert rest
     == [
-      token.Token(kind: token.Space, span: position.Span(start: 3, end: 4)),
+      token.Token(kind: token.Space, span: source.Span(start: 3, end: 4)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: position.Span(start: 4, end: 7),
+        span: source.Span(start: 4, end: 7),
       ),
-      token.Token(kind: token.EOF, span: position.Span(start: 7, end: 7)),
+      token.Token(kind: token.EOF, span: source.Span(start: 7, end: 7)),
     ]
 }
 
@@ -107,5 +105,5 @@ pub fn parse_invalid_float_test() {
   let assert Error(error) = parse_value.parse(source, tokens)
 
   assert error.kind == diagnostic.UnexpectedToken(token.Float)
-  assert error.span == position.Span(start: 0, end: 5)
+  assert error.span == source.Span(start: 0, end: 5)
 }

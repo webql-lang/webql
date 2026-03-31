@@ -1,7 +1,7 @@
 import gleam/bit_array
 import webql/lang/lexer/token
 import webql/lang/parser/diagnostic
-import webql/lang/source/position
+import webql/lang/source
 
 /// Handles non-starter tokens (ie. spaces) that have no material effect on parsing.
 /// If the remaining tokens still are invalid, returns an unexpected token or EOF diagnostic.
@@ -29,7 +29,7 @@ fn unexpected_eof(source: String) {
 
   Error(diagnostic.Diagnostic(
     kind: diagnostic.UnexpectedEof,
-    span: position.Span(start: byte_length, end: byte_length),
+    span: source.Span(start: byte_length, end: byte_length),
   ))
 }
 

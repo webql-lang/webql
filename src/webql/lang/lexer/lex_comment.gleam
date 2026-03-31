@@ -1,5 +1,5 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 /// Lexes single line comments beginning with '#'.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
@@ -14,7 +14,7 @@ fn lex_comment(bytes: BitArray, start: Int, size: Int) {
     <<"\r\n", _rest:bytes>> | <<"\n", _rest:bytes>> | <<"\r", _rest:bytes>> -> #(
       token.Token(
         kind: token.CommentSingle,
-        span: position.Span(start: start, end: start + size),
+        span: source.Span(start: start, end: start + size),
       ),
       bytes,
     )
@@ -26,7 +26,7 @@ fn lex_comment(bytes: BitArray, start: Int, size: Int) {
     _eof -> #(
       token.Token(
         kind: token.CommentSingle,
-        span: position.Span(start: start, end: start + size),
+        span: source.Span(start: start, end: start + size),
       ),
       bytes,
     )

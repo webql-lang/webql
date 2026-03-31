@@ -7,7 +7,6 @@ import webql/lang/parser/parse_expression
 import webql/lang/parser/parse_field
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source
-import webql/lang/source/position
 
 /// Parses an operation.
 ///
@@ -25,7 +24,7 @@ pub fn parse(
     | [token.Token(kind: token.RArrow, span:), ..] ->
       parse_root(source, tokens, span.start)
 
-    _ -> {
+    _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
       parse(source, remaining)
     }
@@ -37,21 +36,17 @@ fn parse_root(
   tokens: List(token.Token),
   start: Int,
 ) -> Result(ast.Parsed(ast.Operation), diagnostic.Diagnostic) {
-  use ast.Parsed(node: inputs, tokens: tokens, ..) <- result.try(
+  use ast.Parsed(node: inputs, tokens:, ..) <- result.try(
     parse_inputs(source, tokens, []),
   )
-  use ast.Parsed(node: outputs, tokens: tokens, ..) <- result.try(
+  use ast.Parsed(node: outputs, tokens:, ..) <- result.try(
     parse_outputs(source, tokens, []),
   )
-  use
-    ast.Parsed(
-      node: #(operations, expressions),
-      span: body_span,
-      tokens: tokens,
-    )
-  <- result.try(parse_body(source, tokens, #([], [])))
+  use ast.Parsed(node: #(operations, expressions), tokens:, ..) as body <- result.try(
+    parse_body(source, tokens, #([], [])),
+  )
 
-  let span = position.Span(start: start, end: body_span.end)
+  let span = source.Span(start: start, end: body.span.end)
 
   Ok(ast.Parsed(
     node: ast.Operation(
@@ -62,7 +57,7 @@ fn parse_root(
       expressions: list.reverse(expressions),
     ),
     span:,
-    tokens: tokens,
+    tokens:,
   ))
 }
 
@@ -82,7 +77,7 @@ fn parse_nested(
       parse_nested_equal(source, name)
     }
 
-    _ -> {
+    _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
       parse_nested(source, remaining)
     }
@@ -100,18 +95,18 @@ fn parse_nested_equal(
       case operation.node {
         ast.Operation(inputs:, outputs:, operations:, expressions:, ..) -> {
           let span =
-            position.Span(start: name.span.start, end: operation.span.end)
+            source.Span(start: name.span.start, end: operation.span.end)
 
           Ok(ast.Parsed(
             node: ast.NestedOperation(
-              span: span,
+              span:,
               name: name.node,
-              inputs: inputs,
-              outputs: outputs,
-              operations: operations,
-              expressions: expressions,
+              inputs:,
+              outputs:,
+              operations:,
+              expressions:,
             ),
-            span: span,
+            span:,
             tokens: operation.tokens,
           ))
         }
@@ -125,12 +120,12 @@ fn parse_nested_equal(
       }
     }
 
-    _ -> {
+    _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, name.tokens))
 
       parse_nested_equal(
         source,
-        ast.Parsed(node: name.node, span: name.span, tokens: tokens),
+        ast.Parsed(node: name.node, span: name.span, tokens:),
       )
     }
   }
@@ -156,7 +151,7 @@ fn parse_inputs(
     [token.Token(kind: token.RArrow, span:), ..rest] ->
       Ok(ast.Parsed(node: inputs, span:, tokens: rest))
 
-    _ -> {
+    _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
       parse_inputs(source, remaining, inputs)
     }
@@ -181,9 +176,9 @@ fn parse_outputs(
       parse_outputs(source, rest, outputs)
 
     [token.Token(kind: token.LBrace, span:), ..] ->
-      Ok(ast.Parsed(node: outputs, span:, tokens: tokens))
+      Ok(ast.Parsed(node: outputs, span:, tokens:))
 
-    _ -> {
+    _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
       parse_outputs(source, remaining, outputs)
     }
@@ -227,7 +222,7 @@ fn parse_body(
       parse_body(source, remaining, #(operations, [expression, ..expressions]))
     }
 
-    _ -> {
+    _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
       parse_body(source, remaining, body)
     }

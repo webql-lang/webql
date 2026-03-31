@@ -6,7 +6,6 @@ import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_value
 import webql/lang/source
-import webql/lang/source/position
 
 pub fn parse(
   source: String,
@@ -59,7 +58,7 @@ fn parse_node_port_reference(
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -72,7 +71,7 @@ fn parse_node_port_reference_port(
   case alias.tokens {
     [token.Token(kind: token.LowerIdentifier, ..) as name, ..rest] -> {
       let port = source.slice(source, name.span)
-      let span = position.cover(alias.span, name.span)
+      let span = source.cover(alias.span, name.span)
 
       Ok(ast.Parsed(
         node: ast.NodePortReference(span:, alias: alias.node, port:),
@@ -89,7 +88,7 @@ fn parse_node_port_reference_port(
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -102,7 +101,7 @@ fn parse_operation_port_reference(
   case dot.tokens {
     [token.Token(kind: token.LowerIdentifier, ..) as token, ..tokens] -> {
       let port = source.slice(source, token.span)
-      let span = position.cover(dot.span, token.span)
+      let span = source.cover(dot.span, token.span)
 
       Ok(ast.Parsed(
         node: ast.OperationPortReference(span:, port:),
@@ -119,7 +118,7 @@ fn parse_operation_port_reference(
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -129,9 +128,10 @@ fn parse_value_reference(
   source: String,
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  use ast.Parsed(node: value, span:, tokens: tokens) <- result.try(
-    parse_value.parse(source, tokens),
-  )
+  use ast.Parsed(node: value, span:, tokens:) <- result.try(parse_value.parse(
+    source,
+    tokens,
+  ))
 
-  Ok(ast.Parsed(node: ast.ValueReference(span:, value:), span:, tokens: tokens))
+  Ok(ast.Parsed(node: ast.ValueReference(span:, value:), span:, tokens:))
 }

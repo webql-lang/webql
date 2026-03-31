@@ -1,5 +1,5 @@
 import webql/lang/lexer/diagnostic
-import webql/lang/source/position
+import webql/lang/source
 
 pub type TokenKind {
   // ========== LITERALS ==========
@@ -37,5 +37,5 @@ pub type TokenKind {
 }
 
 pub type Token {
-  Token(kind: TokenKind, span: position.Span)
+  Token(kind: TokenKind, span: source.Span)
 }

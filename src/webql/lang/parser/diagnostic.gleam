@@ -1,5 +1,5 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 pub type DiagnosticKind {
   UnexpectedEof
@@ -7,5 +7,5 @@ pub type DiagnosticKind {
 }
 
 pub type Diagnostic {
-  Diagnostic(kind: DiagnosticKind, span: position.Span)
+  Diagnostic(kind: DiagnosticKind, span: source.Span)
 }
