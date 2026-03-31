@@ -5,34 +5,28 @@ import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_value
-import webql/lang/source/position
+import webql/lang/source
 
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Reference, List(token.Token)), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let alias =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+        ast.Parsed(node: source.slice(source, span), span:, tokens: rest)
 
-      parse_node_port_reference(source, rest, alias)
+      parse_node_port_reference(source, alias)
     }
 
-    [token.Token(kind: token.Dot, ..), ..rest] ->
-      parse_operation_port_reference(source, rest)
+    [token.Token(kind: token.Dot, span:), ..rest] -> {
+      let dot = ast.Parsed(node: Nil, span:, tokens: rest)
+      parse_operation_port_reference(source, dot)
+    }
 
-    [token.Token(kind: token.Int, ..), ..] ->
-      parse_value_reference(source, tokens)
-
-    [token.Token(kind: token.Float, ..), ..] ->
-      parse_value_reference(source, tokens)
-
-    [token.Token(kind: token.String, ..), ..] ->
+    [token.Token(kind: token.Int, ..), ..]
+    | [token.Token(kind: token.Float, ..), ..]
+    | [token.Token(kind: token.String, ..), ..] ->
       parse_value_reference(source, tokens)
 
     _tokens -> {
@@ -44,22 +38,27 @@ pub fn parse(
 
 fn parse_node_port_reference(
   source: String,
-  tokens: List(token.Token),
-  alias: String,
-) -> Result(#(ast.Reference, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.Dot, ..), ..rest] ->
-      parse_node_port_reference_port(source, rest, alias)
+  alias: ast.Parsed(String),
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+  case alias.tokens {
+    [token.Token(kind: token.Dot, ..), ..tokens] ->
+      parse_node_port_reference_port(
+        source,
+        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+      )
 
-    [token.Token(kind:, span:), ..] ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.UnexpectedToken(kind), span:))
+    [token.Token(kind: kind, span:), ..] ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnexpectedToken(kind:),
+        span:,
+      ))
 
     [] -> {
       let length = string.length(source)
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -67,22 +66,21 @@ fn parse_node_port_reference(
 
 fn parse_node_port_reference_port(
   source: String,
-  tokens: List(token.Token),
-  alias: String,
-) -> Result(#(ast.Reference, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
-      let port =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+  alias: ast.Parsed(String),
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+  case alias.tokens {
+    [token.Token(kind: token.LowerIdentifier, ..) as name, ..rest] -> {
+      let port = source.slice(source, name.span)
+      let span = source.cover(alias.span, name.span)
 
-      Ok(#(ast.NodePortReference(alias:, port:), rest))
+      Ok(ast.Parsed(
+        node: ast.NodePortReference(span:, alias: alias.node, port:),
+        span:,
+        tokens: rest,
+      ))
     }
 
-    [token.Token(kind:, span:), ..] ->
+    [token.Token(kind: kind, span:), ..] ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnexpectedToken(kind), span:))
 
     [] -> {
@@ -90,7 +88,7 @@ fn parse_node_port_reference_port(
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -98,21 +96,21 @@ fn parse_node_port_reference_port(
 
 fn parse_operation_port_reference(
   source: String,
-  tokens: List(token.Token),
-) -> Result(#(ast.Reference, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
-      let port =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+  dot: ast.Parsed(Nil),
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+  case dot.tokens {
+    [token.Token(kind: token.LowerIdentifier, ..) as token, ..tokens] -> {
+      let port = source.slice(source, token.span)
+      let span = source.cover(dot.span, token.span)
 
-      Ok(#(ast.OperationPortReference(port:), rest))
+      Ok(ast.Parsed(
+        node: ast.OperationPortReference(span:, port:),
+        span:,
+        tokens:,
+      ))
     }
 
-    [token.Token(kind:, span:), ..] ->
+    [token.Token(kind: kind, span:), ..] ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnexpectedToken(kind), span:))
 
     [] -> {
@@ -120,7 +118,7 @@ fn parse_operation_port_reference(
 
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
-        span: position.Span(start: length, end: length),
+        span: source.Span(start: length, end: length),
       ))
     }
   }
@@ -129,7 +127,11 @@ fn parse_operation_port_reference(
 fn parse_value_reference(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Reference, List(token.Token)), diagnostic.Diagnostic) {
-  use #(value, tokens) <- result.try(parse_value.parse(source, tokens))
-  Ok(#(ast.ValueReference(value:), tokens))
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+  use ast.Parsed(node: value, span:, tokens:) <- result.try(parse_value.parse(
+    source,
+    tokens,
+  ))
+
+  Ok(ast.Parsed(node: ast.ValueReference(span:, value:), span:, tokens:))
 }

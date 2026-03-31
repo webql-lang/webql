@@ -1,12 +1,12 @@
 import gleam/result
-import gleam/string
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_reference
+import webql/lang/source
 
-/// Parse executable statements in an operation body.
+/// Parses an executable statement inside an operation body.
 ///
 /// ## Examples
 ///
@@ -16,29 +16,19 @@ import webql/lang/parser/parse_reference
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span: span), ..rest] -> {
-      let value =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+    [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
+      let identifier =
+        ast.Parsed(node: source.slice(source, span), span:, tokens: rest)
 
-      parse_lower_identifier_expression(source, rest, value)
+      parse_lower_identifier_expression(source, identifier)
     }
 
-    [token.Token(kind: token.Dot, ..), ..] ->
-      parse_edge_expression(source, tokens)
-
-    [token.Token(kind: token.Int, ..), ..] ->
-      parse_edge_expression(source, tokens)
-
-    [token.Token(kind: token.Float, ..), ..] ->
-      parse_edge_expression(source, tokens)
-
-    [token.Token(kind: token.String, ..), ..] ->
+    [token.Token(kind: token.Dot, ..), ..]
+    | [token.Token(kind: token.Int, ..), ..]
+    | [token.Token(kind: token.Float, ..), ..]
+    | [token.Token(kind: token.String, ..), ..] ->
       parse_edge_expression(source, tokens)
 
     _tokens -> {
@@ -50,68 +40,85 @@ pub fn parse(
 
 fn parse_lower_identifier_expression(
   source: String,
-  tokens: List(token.Token),
-  value: String,
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.Equal, ..), ..rest] ->
-      parse_binding_expression(source, rest, value)
+  identifier: ast.Parsed(String),
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+  case identifier.tokens {
+    [token.Token(kind: token.Equal, ..), ..tokens] ->
+      parse_binding_expression(
+        source,
+        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+      )
 
-    [token.Token(kind: token.Dot, ..), ..rest] ->
-      parse_node_port_edge_expression(source, rest, value)
+    [token.Token(kind: token.Dot, ..), ..tokens] ->
+      parse_node_port_edge_expression(
+        source,
+        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+      )
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_lower_identifier_expression(source, tokens, value)
+      use tokens <- result.try(parse_nonstarter.parse(source, identifier.tokens))
+
+      parse_lower_identifier_expression(
+        source,
+        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+      )
     }
   }
 }
 
 fn parse_binding_expression(
   source: String,
-  tokens: List(token.Token),
-  alias: String,
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.UpperIdentifier, span: span), ..rest] -> {
-      let node =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
-        )
+  alias: ast.Parsed(String),
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+  case alias.tokens {
+    [token.Token(kind: token.UpperIdentifier, ..) as token, ..tokens] -> {
+      let node = source.slice(source, token.span)
+      let span = source.cover(alias.span, token.span)
 
-      Ok(#(ast.BindingExpression(alias:, node:), rest))
+      Ok(ast.Parsed(
+        node: ast.BindingExpression(span:, alias: alias.node, node: node),
+        span:,
+        tokens:,
+      ))
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_binding_expression(source, tokens, alias)
+      use tokens <- result.try(parse_nonstarter.parse(source, alias.tokens))
+
+      parse_binding_expression(
+        source,
+        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+      )
     }
   }
 }
 
 fn parse_node_port_edge_expression(
   source: String,
-  tokens: List(token.Token),
-  alias: String,
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.LowerIdentifier, span: span), ..rest] -> {
-      let port =
-        string.slice(
-          from: source,
-          at_index: span.start,
-          length: span.end - span.start,
+  alias: ast.Parsed(String),
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+  case alias.tokens {
+    [token.Token(kind: token.LowerIdentifier, ..) as token, ..tokens] -> {
+      let port = source.slice(source, token.span)
+      let span = source.cover(alias.span, token.span)
+
+      let from =
+        ast.Parsed(
+          node: ast.NodePortReference(span:, alias: alias.node, port:),
+          span:,
+          tokens:,
         )
 
-      let from = ast.NodePortReference(alias:, port:)
-      parse_edge_expression_from(source, rest, from)
+      parse_edge_expression_from(source, from)
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_node_port_edge_expression(source, tokens, alias)
+      use tokens <- result.try(parse_nonstarter.parse(source, alias.tokens))
+
+      parse_node_port_edge_expression(
+        source,
+        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+      )
     }
   }
 }
@@ -119,25 +126,35 @@ fn parse_node_port_edge_expression(
 fn parse_edge_expression(
   source: String,
   tokens: List(token.Token),
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
-  use #(from, tokens) <- result.try(parse_reference.parse(source, tokens))
-  parse_edge_expression_from(source, tokens, from)
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+  use from <- result.try(parse_reference.parse(source, tokens))
+  parse_edge_expression_from(source, from)
 }
 
 fn parse_edge_expression_from(
   source: String,
-  tokens: List(token.Token),
-  from: ast.Reference,
-) -> Result(#(ast.Expression, List(token.Token)), diagnostic.Diagnostic) {
-  case tokens {
+  from: ast.Parsed(ast.Reference),
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+  case from.tokens {
     [token.Token(kind: token.RArrow, ..), ..rest] -> {
-      use #(to, rest) <- result.try(parse_reference.parse(source, rest))
-      Ok(#(ast.EdgeExpression(from:, to:), rest))
+      use to <- result.try(parse_reference.parse(source, rest))
+
+      let span = source.cover(from.span, to.span)
+
+      Ok(ast.Parsed(
+        node: ast.EdgeExpression(span:, from: from.node, to: to.node),
+        span:,
+        tokens: to.tokens,
+      ))
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_edge_expression_from(source, tokens, from)
+      use tokens <- result.try(parse_nonstarter.parse(source, from.tokens))
+
+      parse_edge_expression_from(
+        source,
+        ast.Parsed(node: from.node, span: from.span, tokens:),
+      )
     }
   }
 }

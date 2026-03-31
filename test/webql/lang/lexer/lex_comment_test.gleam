@@ -1,7 +1,7 @@
 import gleam/bit_array
 import webql/lang/lexer/lex_comment
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 pub fn lex_comment_stops_at_newline_test() {
   let #(tok, rest) =
@@ -10,7 +10,7 @@ pub fn lex_comment_stops_at_newline_test() {
   assert tok
     == token.Token(
       kind: token.CommentSingle,
-      span: position.Span(start: 0, end: 5),
+      span: source.Span(start: 0, end: 5),
     )
 
   let assert <<"\nworld":utf8>> = rest
@@ -23,7 +23,7 @@ pub fn lex_comment_stops_at_crlf_test() {
   assert tok
     == token.Token(
       kind: token.CommentSingle,
-      span: position.Span(start: 0, end: 5),
+      span: source.Span(start: 0, end: 5),
     )
 
   let assert <<"\r\nworld":utf8>> = rest
@@ -36,7 +36,7 @@ pub fn lex_comment_stops_at_cr_test() {
   assert tok
     == token.Token(
       kind: token.CommentSingle,
-      span: position.Span(start: 0, end: 5),
+      span: source.Span(start: 0, end: 5),
     )
 
   let assert <<"\rworld":utf8>> = rest
@@ -48,7 +48,7 @@ pub fn lex_comment_stops_at_eof_test() {
   assert tok
     == token.Token(
       kind: token.CommentSingle,
-      span: position.Span(start: 0, end: 5),
+      span: source.Span(start: 0, end: 5),
     )
 
   assert rest == bit_array.from_string("")
@@ -61,7 +61,7 @@ pub fn lex_comment_respects_non_zero_start_and_size_test() {
   assert tok
     == token.Token(
       kind: token.CommentSingle,
-      span: position.Span(start: 10, end: 16),
+      span: source.Span(start: 10, end: 16),
     )
 
   let assert <<"\nworld":utf8>> = rest

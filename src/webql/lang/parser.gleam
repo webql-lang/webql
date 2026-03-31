@@ -16,12 +16,12 @@ pub fn new(source: String, tokens: List(token.Token)) -> Parser {
 
 /// Parses tokens into AST.
 pub fn parse(parser: Parser) -> Result(ast.Operation, diagnostic.Diagnostic) {
-  use #(operation, rest) <- result.try(parse_operation.parse(
+  use operation <- result.try(parse_operation.parse(
     parser.source,
     parser.tokens,
   ))
 
-  parse_eof(parser.source, rest, operation)
+  parse_eof(parser.source, operation.tokens, operation.node)
 }
 
 fn parse_eof(

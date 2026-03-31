@@ -1,6 +1,6 @@
 import webql/lang/lexer/diagnostic
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 /// Lexes string values.
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
@@ -18,7 +18,7 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.String,
-          span: position.Span(start: start, end: end),
+          span: source.Span(start: start, end: end),
         ),
         rest,
       )
@@ -39,7 +39,7 @@ fn lex_string(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.Diagnostic(diagnostic.UnterminatedString),
-          span: position.Span(start: start, end: start + size),
+          span: source.Span(start: start, end: start + size),
         ),
         <<>>,
       )
@@ -59,7 +59,7 @@ fn lex_escape_string(bytes: BitArray, start: Int, size: Int) {
       #(
         token.Token(
           kind: token.Diagnostic(diagnostic.UnterminatedString),
-          span: position.Span(start: start, end: end),
+          span: source.Span(start: start, end: end),
         ),
         bytes,
       )

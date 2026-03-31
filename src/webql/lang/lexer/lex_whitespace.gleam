@@ -1,5 +1,5 @@
 import webql/lang/lexer/token
-import webql/lang/source/position
+import webql/lang/source
 
 /// Lexes contiguous whitespace (spaces, tabs, newlines).
 pub fn lex(bytes: BitArray, start: Int, size: Int) -> #(token.Token, BitArray) {
@@ -20,7 +20,7 @@ fn lex_whitespace(bytes: BitArray, start: Int, size: Int) {
     _ -> #(
       token.Token(
         kind: token.Space,
-        span: position.Span(start: start, end: start + size),
+        span: source.Span(start: start, end: start + size),
       ),
       bytes,
     )
