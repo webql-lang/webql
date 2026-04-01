@@ -12,7 +12,7 @@ pub fn parse(
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(ast.Field), diagnostic.Diagnostic) {
   use key <- result.try(parse_key(source, tokens))
-  use tokens <- result.try(parse_separator(source, key.tokens))
+  use tokens <- result.try(parse_separator(key.tokens))
   use ast.Parsed(node: annotation, span: annotation_span, tokens:) <- result.try(
     parse_annotation.parse(source, tokens),
   )
@@ -42,15 +42,21 @@ fn parse_key(
 }
 
 fn parse_separator(
-  source: String,
   tokens: List(token.Token),
 ) -> Result(List(token.Token), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.Colon, ..), ..rest] -> Ok(rest)
 
-    _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_separator(source, tokens)
-    }
+    [token.Token(kind:, span:), ..] ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnexpectedToken(kind:),
+        span:,
+      ))
+
+    [] ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnexpectedEof,
+        span: source.Span(start: 0, end: 0),
+      ))
   }
 }

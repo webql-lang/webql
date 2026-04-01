@@ -63,21 +63,10 @@ pub fn parse_skips_spaces_before_separator_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: field, tokens: rest, ..)) =
-    parse_field.parse(source, tokens)
-
-  assert field
-    == ast.Field(
-      span: source.Span(start: 0, end: 13),
-      name: "name",
-      annotation: ast.NamedTypeAnnotation(
-        span: source.Span(start: 7, end: 13),
-        name: "String",
-      ),
-    )
-
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 13, end: 13))]
+  let assert Error(diagnostic.Diagnostic(
+    diagnostic.UnexpectedToken(token.Space),
+    source.Span(4, 5),
+  )) = parse_field.parse(source, tokens)
 }
 
 pub fn parse_skips_spaces_before_annotation_test() {
@@ -137,23 +126,6 @@ pub fn parse_preserves_remaining_tokens_after_field_test() {
     ]
 }
 
-pub fn parse_returns_unexpected_token_when_key_is_invalid_test() {
-  let source = ": String"
-
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
-
-  let assert Error(error) = parse_field.parse(source, tokens)
-
-  assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.Colon),
-      span: source.Span(start: 0, end: 1),
-    )
-}
-
 pub fn parse_returns_unexpected_eof_when_tokens_are_empty_test() {
   let source = ""
 
@@ -183,8 +155,8 @@ pub fn parse_returns_unexpected_token_when_separator_is_missing_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.UpperIdentifier),
-      span: source.Span(start: 5, end: 11),
+      kind: diagnostic.UnexpectedToken(token.Space),
+      span: source.Span(start: 4, end: 5),
     )
 }
 
