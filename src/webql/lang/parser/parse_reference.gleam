@@ -7,6 +7,13 @@ import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_value
 import webql/lang/source
 
+/// Parses a reference.
+///
+/// ## Examples
+///
+///     m.out
+///     .out
+///     "test"
 pub fn parse(
   source: String,
   tokens: List(token.Token),
