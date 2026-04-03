@@ -23,6 +23,8 @@ pub fn parse(
   }
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn unexpected_eof(source: String) {
   let bytes = bit_array.from_string(source)
   let byte_length = bit_array.byte_size(bytes)

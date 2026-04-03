@@ -52,6 +52,8 @@ pub fn parse(
   }
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn parse_int(
   raw: String,
   span: source.Span,
