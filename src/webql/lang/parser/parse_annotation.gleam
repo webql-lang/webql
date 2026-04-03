@@ -6,6 +6,12 @@ import webql/lang/parser/parse_nonstarter
 import webql/lang/source
 
 /// Parses annotations in a field.
+///
+/// ## Examples
+///
+///     String
+///     Int
+///     [Bool]
 pub fn parse(
   source: String,
   tokens: List(token.Token),

@@ -38,6 +38,8 @@ pub fn parse(
   }
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn parse_lower_identifier_expression(
   source: String,
   identifier: ast.Parsed(String),

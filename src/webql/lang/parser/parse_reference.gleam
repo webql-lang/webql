@@ -43,6 +43,8 @@ pub fn parse(
   }
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn parse_node_port_reference(
   source: String,
   alias: ast.Parsed(String),

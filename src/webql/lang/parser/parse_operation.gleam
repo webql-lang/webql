@@ -31,6 +31,8 @@ pub fn parse(
   }
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn parse_root(
   source: String,
   tokens: List(token.Token),
