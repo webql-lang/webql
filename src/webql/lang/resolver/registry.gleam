@@ -2,19 +2,23 @@ import gleam/dict
 import gleam/list
 import webql/lang/resolver/reference
 
+/// The environment is a key-value store that gets populated as the language resolves foreign references.
 pub type Environment {
   Environment
 }
 
+/// The catalog is a key-value store initialized when the registry is created.
+/// This is designed to hold static records for the type-checker to discover.
 pub type Catalog {
   Catalog(typenames: dict.Dict(String, reference.Type))
 }
 
+/// A incrementing generator designed to store the next unique stable ID.
 pub type Generator {
   Generator(typenames: Int)
 }
 
-/// A registry with a catalog and stable ID generator.
+/// A registry with resolver context and a stable ID generator.
 pub type Registry {
   Registry(generator: Generator, catalog: Catalog, environment: Environment)
 }
