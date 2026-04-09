@@ -53,32 +53,12 @@ pub type Expression {
 
 /// Fully resolved reference.
 pub type Reference {
-  OperationInputPortReference(
-    port: reference.Port,
-    name: String,
-    typename: reference.Type,
-    span: source.Span,
-  )
-  OperationOutputPortReference(
-    port: reference.Port,
-    name: String,
-    typename: reference.Type,
-    span: source.Span,
-  )
-  NodeInputPortReference(
+  OperationPortReference(port: reference.Port, name: String, span: source.Span)
+  NodePortReference(
     node: reference.Node,
     alias: String,
     port: reference.Port,
     name: String,
-    typename: reference.Type,
-    span: source.Span,
-  )
-  NodeOutputPortReference(
-    node: reference.Node,
-    alias: String,
-    port: reference.Port,
-    name: String,
-    typename: reference.Type,
     span: source.Span,
   )
   ValueReference(value: Value, typename: reference.Type, span: source.Span)

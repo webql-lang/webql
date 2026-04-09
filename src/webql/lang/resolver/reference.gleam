@@ -16,5 +16,4 @@ pub type Port {
 /// A reference to a stable type in an operation.
 pub type Type {
   Type(Int)
-  ListType(Type)
 }
