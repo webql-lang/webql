@@ -7,7 +7,7 @@ import webql/lang/resolver/resolve_field
 import webql/lang/source
 
 pub fn resolve_resolves_field_with_named_type_annotation_test() {
-  let registry = registry.new(typenames: ["Int"])
+  let registry = registry.new(typenames: ["Int"], nodes: [])
 
   let field_to_resolve =
     parser_ast.Field(
@@ -36,7 +36,7 @@ pub fn resolve_resolves_field_with_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_field_annotation_test() {
-  let registry = registry.new(typenames: [])
+  let registry = registry.new(typenames: [], nodes: [])
 
   let field_to_resolve =
     parser_ast.Field(

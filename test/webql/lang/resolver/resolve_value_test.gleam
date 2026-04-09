@@ -7,7 +7,7 @@ import webql/lang/resolver/resolve_value
 import webql/lang/source
 
 pub fn resolve_int_value_test() {
-  let registry = registry.new(typenames: ["Int"])
+  let registry = registry.new(typenames: ["Int"], nodes: [])
 
   let value_to_resolve =
     parser_ast.IntValue(value: 123, span: source.Span(start: 0, end: 3))
@@ -23,7 +23,7 @@ pub fn resolve_int_value_test() {
 }
 
 pub fn resolve_float_value_test() {
-  let registry = registry.new(typenames: ["Float"])
+  let registry = registry.new(typenames: ["Float"], nodes: [])
 
   let value_to_resolve =
     parser_ast.FloatValue(value: 1.23, span: source.Span(start: 0, end: 4))
@@ -39,7 +39,7 @@ pub fn resolve_float_value_test() {
 }
 
 pub fn resolve_string_value_test() {
-  let registry = registry.new(typenames: ["String"])
+  let registry = registry.new(typenames: ["String"], nodes: [])
 
   let value_to_resolve =
     parser_ast.StringValue(value: "hello", span: source.Span(start: 0, end: 7))
@@ -58,7 +58,7 @@ pub fn resolve_string_value_test() {
 }
 
 pub fn resolve_int_value_returns_unknown_type_when_int_is_not_registered_test() {
-  let registry = registry.new(typenames: [])
+  let registry = registry.new(typenames: [], nodes: [])
 
   let value_to_resolve =
     parser_ast.IntValue(value: 123, span: source.Span(start: 0, end: 3))
@@ -73,7 +73,7 @@ pub fn resolve_int_value_returns_unknown_type_when_int_is_not_registered_test() 
 }
 
 pub fn resolve_float_value_returns_unknown_type_when_float_is_not_registered_test() {
-  let registry = registry.new(typenames: [])
+  let registry = registry.new(typenames: [], nodes: [])
 
   let value_to_resolve =
     parser_ast.FloatValue(value: 1.23, span: source.Span(start: 0, end: 4))
@@ -88,7 +88,7 @@ pub fn resolve_float_value_returns_unknown_type_when_float_is_not_registered_tes
 }
 
 pub fn resolve_string_value_returns_unknown_type_when_string_is_not_registered_test() {
-  let registry = registry.new(typenames: [])
+  let registry = registry.new(typenames: [], nodes: [])
 
   let value_to_resolve =
     parser_ast.StringValue(value: "hello", span: source.Span(start: 0, end: 7))

@@ -45,7 +45,7 @@ pub type Expression {
   BindingExpression(
     alias: String,
     node: reference.Node,
-    operation: reference.Operation,
+    name: String,
     span: source.Span,
   )
   EdgeExpression(from: Reference, to: Reference, span: source.Span)
@@ -53,12 +53,11 @@ pub type Expression {
 
 /// Fully resolved reference.
 pub type Reference {
-  OperationPortReference(port: reference.Port, name: String, span: source.Span)
+  OperationPortReference(name: String, port: reference.Port, span: source.Span)
   NodePortReference(
-    node: reference.Node,
+    name: String,
     alias: String,
     port: reference.Port,
-    name: String,
     span: source.Span,
   )
   ValueReference(value: Value, typename: reference.Type, span: source.Span)

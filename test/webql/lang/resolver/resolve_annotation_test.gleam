@@ -7,7 +7,7 @@ import webql/lang/resolver/resolve_annotation
 import webql/lang/source
 
 pub fn resolve_named_type_annotation_test() {
-  let registry = registry.new(typenames: ["Int"])
+  let registry = registry.new(typenames: ["Int"], nodes: [])
 
   let annotation_to_resolve =
     parser_ast.NamedTypeAnnotation(
@@ -27,7 +27,7 @@ pub fn resolve_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
-  let registry = registry.new(typenames: [])
+  let registry = registry.new(typenames: [], nodes: [])
 
   let annotation_to_resolve =
     parser_ast.NamedTypeAnnotation(

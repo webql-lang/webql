@@ -3,9 +3,9 @@ import webql/lang/source
 
 pub type DiagnosticKind {
   UnknownType(name: String)
-  UnknownNode(alias: String)
+  UnknownNode(name: String)
   UnknownOperation(name: String)
-  UnknownPort(owner: option.Option(String), name: String)
+  UnknownReference(owner: option.Option(String), name: String)
   DuplicateInput(name: String)
   DuplicateOutput(name: String)
   DuplicateAlias(alias: String)
