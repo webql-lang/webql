@@ -8,10 +8,14 @@ pub fn new_returns_empty_registry_when_typenames_are_empty_test() {
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(inputs:, outputs:, nodes:, operations:) = environment
 
   assert count == 0
   assert typenames == dict.new()
+  assert inputs == dict.new()
+  assert outputs == dict.new()
+  assert nodes == dict.new()
+  assert operations == dict.new()
 }
 
 pub fn new_registers_a_single_typename_test() {
@@ -20,7 +24,7 @@ pub fn new_registers_a_single_typename_test() {
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(..) = environment
 
   assert count == 1
   assert typenames
@@ -30,19 +34,19 @@ pub fn new_registers_a_single_typename_test() {
 }
 
 pub fn new_registers_multiple_typenames_in_order_test() {
-  let registry = registry.new(["Int", "String", "Boolean"])
+  let registry = registry.new(["Int", "String", "Bool"])
 
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(..) = environment
 
   assert count == 3
   assert typenames
     == dict.from_list([
       #("Int", reference.Type(0)),
       #("String", reference.Type(1)),
-      #("Boolean", reference.Type(2)),
+      #("Bool", reference.Type(2)),
     ])
 }
 
@@ -52,7 +56,7 @@ pub fn new_skips_duplicate_typenames_test() {
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(..) = environment
 
   assert count == 2
   assert typenames
@@ -63,37 +67,37 @@ pub fn new_skips_duplicate_typenames_test() {
 }
 
 pub fn new_preserves_first_reference_when_duplicates_are_present_test() {
-  let registry = registry.new(["Int", "String", "Int", "Boolean"])
+  let registry = registry.new(["Int", "String", "Int", "Bool"])
 
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(..) = environment
 
   assert count == 3
   assert typenames
     == dict.from_list([
       #("Int", reference.Type(0)),
       #("String", reference.Type(1)),
-      #("Boolean", reference.Type(2)),
+      #("Bool", reference.Type(2)),
     ])
 }
 
 pub fn new_registers_non_consecutive_duplicates_correctly_test() {
   let registry =
-    registry.new(["Int", "String", "Boolean", "String", "Int", "Float"])
+    registry.new(["Int", "String", "Bool", "String", "Int", "Float"])
 
   let registry.Registry(generator:, catalog:, environment:) = registry
   let registry.Generator(typenames: count) = generator
   let registry.Catalog(typenames: typenames) = catalog
-  let registry.Environment = environment
+  let registry.Environment(..) = environment
 
   assert count == 4
   assert typenames
     == dict.from_list([
       #("Int", reference.Type(0)),
       #("String", reference.Type(1)),
-      #("Boolean", reference.Type(2)),
+      #("Bool", reference.Type(2)),
       #("Float", reference.Type(3)),
     ])
 }

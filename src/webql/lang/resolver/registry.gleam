@@ -1,10 +1,16 @@
 import gleam/dict
 import gleam/list
+import gleam/option
 import webql/lang/resolver/reference
 
 /// The environment is a key-value store that gets populated as the language resolves foreign references.
 pub type Environment {
-  Environment
+  Environment(
+    inputs: dict.Dict(#(option.Option(String), String), reference.Port),
+    outputs: dict.Dict(#(option.Option(String), String), reference.Port),
+    nodes: dict.Dict(String, reference.Node),
+    operations: dict.Dict(String, Environment),
+  )
 }
 
 /// The catalog is a key-value store initialized when the registry is created.
@@ -29,7 +35,12 @@ pub fn new(typenames typenames: List(String)) -> Registry {
     Registry(
       generator: Generator(typenames: 0),
       catalog: Catalog(typenames: dict.new()),
-      environment: Environment,
+      environment: Environment(
+        inputs: dict.new(),
+        outputs: dict.new(),
+        nodes: dict.new(),
+        operations: dict.new(),
+      ),
     )
 
   register_typenames(registry, typenames:)

@@ -8,7 +8,7 @@ pub type Node {
   Node(Int)
 }
 
-/// A reference to a stable port in an operation.
+/// A reference to a stable port in an operation or node.
 pub type Port {
   Port(Int)
 }
