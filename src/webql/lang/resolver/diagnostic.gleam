@@ -1,10 +1,11 @@
+import gleam/option
 import webql/lang/source
 
 pub type DiagnosticKind {
   UnknownType(name: String)
   UnknownNode(alias: String)
   UnknownOperation(name: String)
-  UnknownPort(owner: String, name: String)
+  UnknownPort(owner: option.Option(String), name: String)
   DuplicateInput(name: String)
   DuplicateOutput(name: String)
   DuplicateAlias(alias: String)
