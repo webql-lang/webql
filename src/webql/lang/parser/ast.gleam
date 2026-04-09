@@ -56,7 +56,6 @@ pub type Field {
 ///     [Bool]
 pub type Annotation {
   NamedTypeAnnotation(name: String, span: source.Span)
-  ListTypeAnnotation(of: Annotation, span: source.Span)
 }
 
 /// An executable statement inside an operation body.
