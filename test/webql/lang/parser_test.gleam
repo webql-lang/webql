@@ -33,18 +33,21 @@ pub fn parse_valid_module_test() {
     module,
     ast.Module(
       span: source.Span(start: 0, end: 14),
-      inputs: [],
-      outputs: [
-        ast.Parameter(
-          span: source.Span(start: 3, end: 11),
-          name: "out",
-          typename: ast.Typename(
-            span: source.Span(start: 8, end: 11),
-            name: "Int",
+      operation: ast.Operation(
+        span: source.Span(start: 0, end: 14),
+        inputs: [],
+        outputs: [
+          ast.Parameter(
+            span: source.Span(start: 3, end: 11),
+            name: "out",
+            typename: ast.Typename(
+              span: source.Span(start: 8, end: 11),
+              name: "Int",
+            ),
           ),
-        ),
-      ],
-      expressions: [],
+        ],
+        definitions: [],
+      ),
     ),
   )
 }
@@ -80,18 +83,21 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
     module,
     ast.Module(
       span: source.Span(start: 0, end: 14),
-      inputs: [],
-      outputs: [
-        ast.Parameter(
-          span: source.Span(start: 3, end: 11),
-          name: "out",
-          typename: ast.Typename(
-            span: source.Span(start: 8, end: 11),
-            name: "Int",
+      operation: ast.Operation(
+        span: source.Span(start: 0, end: 14),
+        inputs: [],
+        outputs: [
+          ast.Parameter(
+            span: source.Span(start: 3, end: 11),
+            name: "out",
+            typename: ast.Typename(
+              span: source.Span(start: 8, end: 11),
+              name: "Int",
+            ),
           ),
-        ),
-      ],
-      expressions: [],
+        ],
+        definitions: [],
+      ),
     ),
   )
 }
