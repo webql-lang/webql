@@ -1,4 +1,3 @@
-import gleeunit/should
 import webql/lang/source
 
 pub fn cover_combines_start_and_end_test() {
@@ -7,7 +6,7 @@ pub fn cover_combines_start_and_end_test() {
 
   let result = source.cover(a, b)
 
-  should.equal(result, source.Span(start: 0, end: 10))
+  assert result == source.Span(start: 0, end: 10)
 }
 
 pub fn cover_with_adjacent_sources_test() {
@@ -16,7 +15,7 @@ pub fn cover_with_adjacent_sources_test() {
 
   let result = source.cover(a, b)
 
-  should.equal(result, source.Span(start: 0, end: 6))
+  assert result == source.Span(start: 0, end: 6)
 }
 
 pub fn slice_returns_substring_test() {
@@ -25,7 +24,7 @@ pub fn slice_returns_substring_test() {
 
   let result = source.slice(source, span)
 
-  should.equal(result, "hello")
+  assert result == "hello"
 }
 
 pub fn slice_middle_of_string_test() {
@@ -34,7 +33,7 @@ pub fn slice_middle_of_string_test() {
 
   let result = source.slice(source, span)
 
-  should.equal(result, "world")
+  assert result == "world"
 }
 
 pub fn slice_empty_source_test() {
@@ -43,5 +42,5 @@ pub fn slice_empty_source_test() {
 
   let result = source.slice(source, span)
 
-  should.equal(result, "")
+  assert result == ""
 }
