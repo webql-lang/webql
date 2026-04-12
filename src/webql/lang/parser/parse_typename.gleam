@@ -5,7 +5,7 @@ import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source
 
-/// Parses annotations in a field.
+/// Parses a typename annotation in a parameter.
 ///
 /// ## Examples
 ///
@@ -15,15 +15,11 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Annotation), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Typename), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
-      Ok(ast.Parsed(
-        node: ast.NamedTypeAnnotation(span:, name:),
-        span:,
-        tokens: rest,
-      ))
+      Ok(ast.Parsed(node: ast.Typename(span:, name:), span:, tokens: rest))
     }
 
     _tokens -> {

@@ -4,8 +4,8 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_expression
-import webql/lang/parser/parse_field
 import webql/lang/parser/parse_nonstarter
+import webql/lang/parser/parse_parameter
 import webql/lang/source
 
 /// Parses an operation.
@@ -22,7 +22,7 @@ pub fn parse(
     [token.Token(kind: token.LowerIdentifier, span:), ..]
     | [token.Token(kind: token.Dot, span:), ..]
     | [token.Token(kind: token.RArrow, span:), ..] ->
-      parse_root(source, tokens, span.start)
+      parse_operation(source, tokens, span.start)
 
     _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
@@ -33,7 +33,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_root(
+fn parse_operation(
   source: String,
   tokens: List(token.Token),
   start: Int,
@@ -66,7 +66,7 @@ fn parse_root(
 fn parse_nested(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Operation), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.UpperIdentifier, span: name_span), ..rest] -> {
       let name =
@@ -89,37 +89,31 @@ fn parse_nested(
 fn parse_nested_equal(
   source: String,
   name: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Operation), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case name.tokens {
     [token.Token(kind: token.Equal, ..), ..rest] -> {
-      use operation <- result.try(parse_root(source, rest, name.span.start))
+      use operation <- result.try(parse_operation(source, rest, name.span.start))
 
-      case operation.node {
-        ast.Operation(inputs:, outputs:, operations:, expressions:, ..) -> {
-          let span =
-            source.Span(start: name.span.start, end: operation.span.end)
+      let ast.Operation(inputs:, outputs:, operations:, expressions:, ..) =
+        operation.node
 
-          Ok(ast.Parsed(
-            node: ast.NestedOperation(
-              span:,
-              name: name.node,
-              inputs:,
-              outputs:,
-              operations:,
-              expressions:,
-            ),
+      let span = source.Span(start: name.span.start, end: operation.span.end)
+
+      Ok(ast.Parsed(
+        node: ast.Binding(
+          span:,
+          name: name.node,
+          value: ast.SubOperation(
+            inputs:,
+            outputs:,
+            operations:,
+            expressions:,
             span:,
-            tokens: operation.tokens,
-          ))
-        }
-
-        ast.NestedOperation(..) ->
-          Ok(ast.Parsed(
-            node: operation.node,
-            span: operation.span,
-            tokens: operation.tokens,
-          ))
-      }
+          ),
+        ),
+        span:,
+        tokens: operation.tokens,
+      ))
     }
 
     _tokens -> {
@@ -136,15 +130,15 @@ fn parse_nested_equal(
 fn parse_inputs(
   source: String,
   tokens: List(token.Token),
-  inputs: List(ast.Field),
-) -> Result(ast.Parsed(List(ast.Field)), diagnostic.Diagnostic) {
+  inputs: List(ast.Parameter),
+) -> Result(ast.Parsed(List(ast.Parameter)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use ast.Parsed(node: field, tokens: remaining, ..) <- result.try(
-        parse_field.parse(source, tokens),
+      use ast.Parsed(node: parameter, tokens: remaining, ..) <- result.try(
+        parse_parameter.parse(source, tokens),
       )
 
-      parse_inputs(source, remaining, [field, ..inputs])
+      parse_inputs(source, remaining, [parameter, ..inputs])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->
@@ -163,15 +157,15 @@ fn parse_inputs(
 fn parse_outputs(
   source: String,
   tokens: List(token.Token),
-  outputs: List(ast.Field),
-) -> Result(ast.Parsed(List(ast.Field)), diagnostic.Diagnostic) {
+  outputs: List(ast.Parameter),
+) -> Result(ast.Parsed(List(ast.Parameter)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use ast.Parsed(node: field, tokens: remaining, ..) <- result.try(
-        parse_field.parse(source, tokens),
+      use ast.Parsed(node: parameter, tokens: remaining, ..) <- result.try(
+        parse_parameter.parse(source, tokens),
       )
 
-      parse_outputs(source, remaining, [field, ..outputs])
+      parse_outputs(source, remaining, [parameter, ..outputs])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->
@@ -205,11 +199,11 @@ fn parse_body(
       Ok(ast.Parsed(node: body, span: r_brace_span, tokens: rest))
 
     [token.Token(kind: token.UpperIdentifier, ..), ..] -> {
-      use ast.Parsed(node: operation, tokens: remaining, ..) <- result.try(
+      use ast.Parsed(node: expression, tokens: remaining, ..) <- result.try(
         parse_nested(source, tokens),
       )
 
-      parse_body(source, remaining, #([operation, ..operations], expressions))
+      parse_body(source, remaining, #(operations, [expression, ..expressions]))
     }
 
     [token.Token(kind: token.LowerIdentifier, ..), ..]

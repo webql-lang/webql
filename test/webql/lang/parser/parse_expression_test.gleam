@@ -18,10 +18,10 @@ pub fn parse_binding_expression_test() {
 
   should.equal(
     expression,
-    ast.BindingExpression(
+    ast.Binding(
       span: source.Span(start: 0, end: 8),
-      alias: "m",
-      node: "Math",
+      name: "m",
+      value: ast.Node(name: "Math", span: source.Span(start: 4, end: 8)),
     ),
   )
 
@@ -42,10 +42,10 @@ pub fn parse_binding_expression_without_spaces_test() {
 
   should.equal(
     expression,
-    ast.BindingExpression(
+    ast.Binding(
       span: source.Span(start: 0, end: 6),
-      alias: "m",
-      node: "Math",
+      name: "m",
+      value: ast.Node(name: "Math", span: source.Span(start: 2, end: 6)),
     ),
   )
 
@@ -66,17 +66,10 @@ pub fn parse_node_port_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 13),
-      from: ast.NodePortReference(
-        span: source.Span(start: 0, end: 5),
-        alias: "m",
-        port: "out",
-      ),
-      to: ast.OperationPortReference(
-        span: source.Span(start: 9, end: 13),
-        port: "out",
-      ),
+      from: ast.Access(span: source.Span(start: 0, end: 5), path: ["m", "out"]),
+      to: ast.Access(span: source.Span(start: 9, end: 13), path: ["out"]),
     ),
   )
 
@@ -97,17 +90,10 @@ pub fn parse_operation_port_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 10),
-      from: ast.OperationPortReference(
-        span: source.Span(start: 0, end: 3),
-        port: "in",
-      ),
-      to: ast.NodePortReference(
-        span: source.Span(start: 7, end: 10),
-        alias: "m",
-        port: "l",
-      ),
+      from: ast.Access(span: source.Span(start: 0, end: 3), path: ["in"]),
+      to: ast.Access(span: source.Span(start: 7, end: 10), path: ["m", "l"]),
     ),
   )
 
@@ -128,17 +114,13 @@ pub fn parse_int_value_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 8),
-      from: ast.ValueReference(
+      from: ast.Literal(
         span: source.Span(start: 0, end: 1),
-        value: ast.IntValue(span: source.Span(start: 0, end: 1), value: 1),
+        value: ast.Int(span: source.Span(start: 0, end: 1), value: 1),
       ),
-      to: ast.NodePortReference(
-        span: source.Span(start: 5, end: 8),
-        alias: "m",
-        port: "l",
-      ),
+      to: ast.Access(span: source.Span(start: 5, end: 8), path: ["m", "l"]),
     ),
   )
 
@@ -159,17 +141,13 @@ pub fn parse_float_value_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 11),
-      from: ast.ValueReference(
+      from: ast.Literal(
         span: source.Span(start: 0, end: 4),
-        value: ast.FloatValue(span: source.Span(start: 0, end: 4), value: 1.23),
+        value: ast.Float(span: source.Span(start: 0, end: 4), value: 1.23),
       ),
-      to: ast.NodePortReference(
-        span: source.Span(start: 8, end: 11),
-        alias: "m",
-        port: "l",
-      ),
+      to: ast.Access(span: source.Span(start: 8, end: 11), path: ["m", "l"]),
     ),
   )
 
@@ -190,19 +168,13 @@ pub fn parse_string_value_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 14),
-      from: ast.ValueReference(
+      from: ast.Literal(
         span: source.Span(start: 0, end: 6),
-        value: ast.StringValue(
-          span: source.Span(start: 0, end: 6),
-          value: "test",
-        ),
+        value: ast.String(span: source.Span(start: 0, end: 6), value: "test"),
       ),
-      to: ast.OperationPortReference(
-        span: source.Span(start: 10, end: 14),
-        port: "out",
-      ),
+      to: ast.Access(span: source.Span(start: 10, end: 14), path: ["out"]),
     ),
   )
 
@@ -223,10 +195,10 @@ pub fn parse_skips_leading_spaces_test() {
 
   should.equal(
     expression,
-    ast.BindingExpression(
+    ast.Binding(
       span: source.Span(start: 2, end: 10),
-      alias: "m",
-      node: "Math",
+      name: "m",
+      value: ast.Node(name: "Math", span: source.Span(start: 6, end: 10)),
     ),
   )
 
@@ -247,17 +219,10 @@ pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 15),
-      from: ast.NodePortReference(
-        span: source.Span(start: 0, end: 7),
-        alias: "m",
-        port: "out",
-      ),
-      to: ast.OperationPortReference(
-        span: source.Span(start: 11, end: 15),
-        port: "out",
-      ),
+      from: ast.Access(span: source.Span(start: 0, end: 7), path: ["m", "out"]),
+      to: ast.Access(span: source.Span(start: 11, end: 15), path: ["out"]),
     ),
   )
 
@@ -278,10 +243,10 @@ pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
 
   should.equal(
     expression,
-    ast.BindingExpression(
+    ast.Binding(
       span: source.Span(start: 0, end: 8),
-      alias: "m",
-      node: "Math",
+      name: "m",
+      value: ast.Node(name: "Math", span: source.Span(start: 4, end: 8)),
     ),
   )
 
@@ -308,16 +273,10 @@ pub fn parse_preserves_remaining_tokens_after_edge_expression_test() {
 
   should.equal(
     expression,
-    ast.EdgeExpression(
+    ast.Edge(
       span: source.Span(start: 0, end: 11),
-      from: ast.OperationPortReference(
-        span: source.Span(start: 0, end: 3),
-        port: "in",
-      ),
-      to: ast.OperationPortReference(
-        span: source.Span(start: 7, end: 11),
-        port: "out",
-      ),
+      from: ast.Access(span: source.Span(start: 0, end: 3), path: ["in"]),
+      to: ast.Access(span: source.Span(start: 7, end: 11), path: ["out"]),
     ),
   )
 

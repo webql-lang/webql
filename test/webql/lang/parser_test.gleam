@@ -35,10 +35,10 @@ pub fn parse_valid_operation_test() {
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(
+        ast.Parameter(
           span: source.Span(start: 3, end: 11),
           name: "out",
-          annotation: ast.NamedTypeAnnotation(
+          typename: ast.Typename(
             span: source.Span(start: 8, end: 11),
             name: "Int",
           ),
@@ -83,10 +83,10 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(
+        ast.Parameter(
           span: source.Span(start: 3, end: 11),
           name: "out",
-          annotation: ast.NamedTypeAnnotation(
+          typename: ast.Typename(
             span: source.Span(start: 8, end: 11),
             name: "Int",
           ),

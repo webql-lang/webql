@@ -8,10 +8,10 @@ import webql/lang/source
 /// Resolves annotations in a field.
 pub fn resolve(
   registry: registry.Registry,
-  annotation: parser_ast.Annotation,
+  annotation: parser_ast.Typename,
 ) -> Result(ast.Annotation, diagnostic.Diagnostic) {
   case annotation {
-    parser_ast.NamedTypeAnnotation(name:, span:) ->
+    parser_ast.Typename(name:, span:) ->
       resolve_named_type_annotation(registry, name, span)
   }
 }

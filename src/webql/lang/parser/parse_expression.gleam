@@ -74,11 +74,15 @@ fn parse_binding_expression(
 ) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case alias.tokens {
     [token.Token(kind: token.UpperIdentifier, ..) as token, ..tokens] -> {
-      let node = source.slice(source, token.span)
+      let name = source.slice(source, token.span)
       let span = source.cover(alias.span, token.span)
 
       Ok(ast.Parsed(
-        node: ast.BindingExpression(span:, alias: alias.node, node: node),
+        node: ast.Binding(
+          span:,
+          name: alias.node,
+          value: ast.Node(name:, span: token.span),
+        ),
         span:,
         tokens:,
       ))
@@ -100,13 +104,13 @@ fn parse_node_port_edge_expression(
   alias: ast.Parsed(String),
 ) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case alias.tokens {
-    [token.Token(kind: token.LowerIdentifier, ..) as token, ..tokens] -> {
-      let port = source.slice(source, token.span)
-      let span = source.cover(alias.span, token.span)
+    [token.Token(kind: token.LowerIdentifier, ..) as tok, ..tokens] -> {
+      let port = source.slice(source, tok.span)
+      let span = source.cover(alias.span, tok.span)
 
       let from =
         ast.Parsed(
-          node: ast.NodePortReference(span:, alias: alias.node, port:),
+          node: ast.Access(path: [alias.node, port], span:),
           span:,
           tokens:,
         )
@@ -144,7 +148,7 @@ fn parse_edge_expression_from(
       let span = source.cover(from.span, to.span)
 
       Ok(ast.Parsed(
-        node: ast.EdgeExpression(span:, from: from.node, to: to.node),
+        node: ast.Edge(span:, from: from.node, to: to.node),
         span:,
         tokens: to.tokens,
       ))
