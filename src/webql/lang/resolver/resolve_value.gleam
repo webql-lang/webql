@@ -16,10 +16,10 @@ const string = "String"
 /// Resolves a value and associates primatives with types.
 pub fn resolve(
   registry: registry.Registry,
-  value: parser_ast.Value,
+  value: parser_ast.Primitive,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case value {
-    parser_ast.IntValue(value:, span:) -> {
+    parser_ast.Int(value:, span:) -> {
       use typename <- result.try(resolve_type(registry, int, span))
 
       Ok(ast.ValueReference(
@@ -29,7 +29,7 @@ pub fn resolve(
       ))
     }
 
-    parser_ast.FloatValue(value:, span:) -> {
+    parser_ast.Float(value:, span:) -> {
       use typename <- result.try(resolve_type(registry, float, span))
 
       Ok(ast.ValueReference(
@@ -39,7 +39,7 @@ pub fn resolve(
       ))
     }
 
-    parser_ast.StringValue(value:, span:) -> {
+    parser_ast.String(value:, span:) -> {
       use typename <- result.try(resolve_type(registry, string, span))
 
       Ok(ast.ValueReference(

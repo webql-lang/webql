@@ -4,7 +4,7 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
-import webql/lang/parser/parse_value
+import webql/lang/parser/parse_primitive
 import webql/lang/source
 
 /// Parses a reference.
@@ -34,7 +34,7 @@ pub fn parse(
     [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
     | [token.Token(kind: token.String, ..), ..] ->
-      parse_value_reference(source, tokens)
+      parse_primitive_reference(source, tokens)
 
     _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
@@ -83,7 +83,7 @@ fn parse_node_port_reference_port(
       let span = source.cover(alias.span, name.span)
 
       Ok(ast.Parsed(
-        node: ast.NodePortReference(span:, alias: alias.node, port:),
+        node: ast.Access(path: [alias.node, port], span:),
         span:,
         tokens: rest,
       ))
@@ -112,11 +112,7 @@ fn parse_operation_port_reference(
       let port = source.slice(source, token.span)
       let span = source.cover(dot.span, token.span)
 
-      Ok(ast.Parsed(
-        node: ast.OperationPortReference(span:, port:),
-        span:,
-        tokens:,
-      ))
+      Ok(ast.Parsed(node: ast.Access(path: [port], span:), span:, tokens:))
     }
 
     [token.Token(kind: kind, span:), ..] ->
@@ -133,14 +129,13 @@ fn parse_operation_port_reference(
   }
 }
 
-fn parse_value_reference(
+fn parse_primitive_reference(
   source: String,
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  use ast.Parsed(node: value, span:, tokens:) <- result.try(parse_value.parse(
-    source,
-    tokens,
-  ))
+  use ast.Parsed(node: value, span:, tokens:) <- result.try(
+    parse_primitive.parse(source, tokens),
+  )
 
-  Ok(ast.Parsed(node: ast.ValueReference(span:, value:), span:, tokens:))
+  Ok(ast.Parsed(node: ast.Literal(span:, value:), span:, tokens:))
 }

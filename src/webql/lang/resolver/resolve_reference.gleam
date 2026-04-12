@@ -8,13 +8,13 @@ import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_value
 import webql/lang/source
 
-/// Resolves a input reference.
+/// Resolves an input reference.
 pub fn resolve_input(
   registry: registry.Registry,
   reference: parser_ast.Reference,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case reference {
-    parser_ast.NodePortReference(alias:, port:, span:) ->
+    parser_ast.Access(path: [alias, port], span:) ->
       resolve_node_port_reference(
         registry.environment.inputs,
         alias,
@@ -22,21 +22,41 @@ pub fn resolve_input(
         span,
       )
 
-    parser_ast.OperationPortReference(port:, span:) ->
+    parser_ast.Access(path: [port], span:) ->
       resolve_operation_port_reference(registry.environment.inputs, port, span)
 
-    parser_ast.ValueReference(value:, ..) ->
-      resolve_value.resolve(registry, value)
+    parser_ast.Literal(value:, ..) -> resolve_value.resolve(registry, value)
+
+    parser_ast.Access(path:, span:) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name: case path {
+          [name, ..] -> name
+          [] -> ""
+        }),
+        span:,
+      ))
+
+    parser_ast.Node(name:, span:) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name:),
+        span:,
+      ))
+
+    parser_ast.Operation(span:, ..) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name: ""),
+        span:,
+      ))
   }
 }
 
-/// Resolves a output reference.
+/// Resolves an output reference.
 pub fn resolve_output(
   registry: registry.Registry,
   reference: parser_ast.Reference,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case reference {
-    parser_ast.NodePortReference(alias:, port:, span:) ->
+    parser_ast.Access(path: [alias, port], span:) ->
       resolve_node_port_reference(
         registry.environment.outputs,
         alias,
@@ -44,11 +64,31 @@ pub fn resolve_output(
         span,
       )
 
-    parser_ast.OperationPortReference(port:, span:) ->
+    parser_ast.Access(path: [port], span:) ->
       resolve_operation_port_reference(registry.environment.outputs, port, span)
 
-    parser_ast.ValueReference(value:, ..) ->
-      resolve_value.resolve(registry, value)
+    parser_ast.Literal(value:, ..) -> resolve_value.resolve(registry, value)
+
+    parser_ast.Access(path:, span:) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name: case path {
+          [name, ..] -> name
+          [] -> ""
+        }),
+        span:,
+      ))
+
+    parser_ast.Node(name:, span:) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name:),
+        span:,
+      ))
+
+    parser_ast.Operation(span:, ..) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownReference(owner: option.None, name: ""),
+        span:,
+      ))
   }
 }
 

@@ -3,25 +3,25 @@ import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
-import webql/lang/parser/parse_value
+import webql/lang/parser/parse_primitive
 import webql/lang/source
 
-pub fn parse_values_test() {
+pub fn parse_primitives_test() {
   let values = [
     #(
       "123",
       source.Span(start: 0, end: 3),
-      ast.IntValue(span: source.Span(start: 0, end: 3), value: 123),
+      ast.Int(span: source.Span(start: 0, end: 3), value: 123),
     ),
     #(
       "1.23",
       source.Span(start: 0, end: 4),
-      ast.FloatValue(span: source.Span(start: 0, end: 4), value: 1.23),
+      ast.Float(span: source.Span(start: 0, end: 4), value: 1.23),
     ),
     #(
       "\"test\"",
       source.Span(start: 0, end: 6),
-      ast.StringValue(span: source.Span(start: 0, end: 6), value: "test"),
+      ast.String(span: source.Span(start: 0, end: 6), value: "test"),
     ),
   ]
 
@@ -34,7 +34,7 @@ pub fn parse_values_test() {
       |> lexer.lex()
 
     let assert Ok(ast.Parsed(node: parsed_value, span: span, tokens: rest)) =
-      parse_value.parse(source, tokens)
+      parse_primitive.parse(source, tokens)
 
     assert parsed_value == expected_value
     assert span == expected_span
@@ -58,9 +58,9 @@ pub fn parse_skips_space_test() {
     |> lexer.lex()
 
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
-    parse_value.parse(source, tokens)
+    parse_primitive.parse(source, tokens)
 
-  assert value == ast.IntValue(span: source.Span(start: 2, end: 5), value: 123)
+  assert value == ast.Int(span: source.Span(start: 2, end: 5), value: 123)
 
   assert span == source.Span(start: 2, end: 5)
 
@@ -77,9 +77,9 @@ pub fn parse_preserves_rest_test() {
     |> lexer.lex()
 
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
-    parse_value.parse(source, tokens)
+    parse_primitive.parse(source, tokens)
 
-  assert value == ast.IntValue(span: source.Span(start: 0, end: 3), value: 123)
+  assert value == ast.Int(span: source.Span(start: 0, end: 3), value: 123)
 
   assert span == source.Span(start: 0, end: 3)
 
@@ -102,8 +102,9 @@ pub fn parse_invalid_float_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Error(error) = parse_value.parse(source, tokens)
+  let assert Error(diagnostic.Diagnostic(kind:, span:)) =
+    parse_primitive.parse(source, tokens)
 
-  assert error.kind == diagnostic.UnexpectedToken(token.Float)
-  assert error.span == source.Span(start: 0, end: 5)
+  assert kind == diagnostic.UnexpectedToken(token.Float)
+  assert span == source.Span(start: 0, end: 5)
 }

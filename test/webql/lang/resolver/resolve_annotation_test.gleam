@@ -10,10 +10,7 @@ pub fn resolve_named_type_annotation_test() {
   let registry = registry.new(typenames: ["Int"], nodes: [])
 
   let annotation_to_resolve =
-    parser_ast.NamedTypeAnnotation(
-      name: "Int",
-      span: source.Span(start: 0, end: 3),
-    )
+    parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Ok(annotation) =
     resolve_annotation.resolve(registry, annotation_to_resolve)
@@ -30,10 +27,7 @@ pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
   let registry = registry.new(typenames: [], nodes: [])
 
   let annotation_to_resolve =
-    parser_ast.NamedTypeAnnotation(
-      name: "Int",
-      span: source.Span(start: 0, end: 3),
-    )
+    parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Error(error) =
     resolve_annotation.resolve(registry, annotation_to_resolve)

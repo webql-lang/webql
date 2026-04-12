@@ -6,56 +6,43 @@ pub type Parsed(a) {
   Parsed(node: a, span: source.Span, tokens: List(token.Token))
 }
 
-/// Top-level anonymous operation.
+/// Top-level module.
 ///
 /// Represents an executable graph with inputs, outputs,
 /// nested operations, and expressions that wire data flow.
 ///
 /// ## Examples
 ///
-///     .in -> .out { ... }
-///     -> .out { ... }
-///
-///     in: Int -> out: Int {
-///       Inner = .in: Int -> .out: Int { ... }
-///     }
-pub type Operation {
-  Operation(
-    inputs: List(Field),
-    outputs: List(Field),
-    operations: List(Operation),
-    expressions: List(Expression),
-    span: source.Span,
-  )
-  NestedOperation(
-    name: String,
-    inputs: List(Field),
-    outputs: List(Field),
-    operations: List(Operation),
+///     in: Int -> out: Int { ... }
+///     -> out: Int { ... }
+pub type Module {
+  Module(
+    inputs: List(Parameter),
+    outputs: List(Parameter),
     expressions: List(Expression),
     span: source.Span,
   )
 }
 
-/// A named input or output with a type annotation.
+/// A named input or output with a typename.
 ///
 /// ## Examples
 ///
 ///     in: Int
 ///     out: String
-pub type Field {
-  Field(name: String, annotation: Annotation, span: source.Span)
+pub type Parameter {
+  Parameter(name: String, typename: Typename, span: source.Span)
 }
 
-/// A type annotation describing the shape of a field.
+/// A typename describing the shape of a field.
 ///
 /// ## Examples
 ///
 ///     String
 ///     Int
 ///     [Bool]
-pub type Annotation {
-  NamedTypeAnnotation(name: String, span: source.Span)
+pub type Typename {
+  Typename(name: String, span: source.Span)
 }
 
 /// An executable statement inside an operation body.
@@ -63,11 +50,12 @@ pub type Annotation {
 /// ## Examples
 ///
 ///     m = Math
+///     Inner = in: Int -> out: Int { ... }
 ///     1 -> m.l
 ///     m.out -> .out
 pub type Expression {
-  BindingExpression(alias: String, node: String, span: source.Span)
-  EdgeExpression(from: Reference, to: Reference, span: source.Span)
+  Binding(name: String, value: Reference, span: source.Span)
+  Edge(from: Reference, to: Reference, span: source.Span)
 }
 
 /// A reference used in an expression.
@@ -77,21 +65,29 @@ pub type Expression {
 ///     m.out
 ///     .out
 ///     "test"
+///     Node
+///     in: Int -> out: Int { ... }
 pub type Reference {
-  OperationPortReference(port: String, span: source.Span)
-  NodePortReference(alias: String, port: String, span: source.Span)
-  ValueReference(value: Value, span: source.Span)
+  Access(path: List(String), span: source.Span)
+  Node(name: String, span: source.Span)
+  Literal(value: Primitive, span: source.Span)
+  Operation(
+    inputs: List(Parameter),
+    outputs: List(Parameter),
+    expressions: List(Expression),
+    span: source.Span,
+  )
 }
 
-/// A literal value embedded directly in the graph.
+/// A literal embedded directly in the graph.
 ///
 /// ## Examples
 ///
 ///     3
 ///     3.3
 ///     "hello world"
-pub type Value {
-  IntValue(value: Int, span: source.Span)
-  FloatValue(value: Float, span: source.Span)
-  StringValue(value: String, span: source.Span)
+pub type Primitive {
+  Int(value: Int, span: source.Span)
+  Float(value: Float, span: source.Span)
+  String(value: String, span: source.Span)
 }

@@ -9,11 +9,11 @@ import webql/lang/resolver/resolve_annotation
 /// Resolves a field.
 pub fn resolve(
   registry: registry.Registry,
-  field: parser_ast.Field,
+  field: parser_ast.Parameter,
   port: reference.Port,
 ) -> Result(ast.Field, diagnostic.Diagnostic) {
-  let parser_ast.Field(name:, annotation:, span:) = field
-  use annotation <- result.try(resolve_annotation.resolve(registry, annotation))
+  let parser_ast.Parameter(name:, typename:, span:) = field
+  use annotation <- result.try(resolve_annotation.resolve(registry, typename))
 
   Ok(ast.Field(name:, port:, annotation:, span:))
 }

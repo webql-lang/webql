@@ -29,11 +29,7 @@ pub fn resolve_output_node_port_reference_returns_node_port_reference_test() {
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.NodePortReference(
-        alias: "math",
-        port: "out",
-        span: source.Span(0, 8),
-      ),
+      parser_ast.Access(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -54,11 +50,7 @@ pub fn resolve_output_node_port_reference_returns_unknown_reference_when_node_ou
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.NodePortReference(
-        alias: "math",
-        port: "out",
-        span: source.Span(0, 8),
-      ),
+      parser_ast.Access(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -82,7 +74,7 @@ pub fn resolve_output_operation_port_reference_returns_operation_port_reference_
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.OperationPortReference(port: "out", span: source.Span(0, 3)),
+      parser_ast.Access(path: ["out"], span: source.Span(0, 3)),
     )
 }
 
@@ -103,7 +95,7 @@ pub fn resolve_output_operation_port_reference_returns_unknown_reference_when_ou
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.OperationPortReference(port: "out", span: source.Span(0, 3)),
+      parser_ast.Access(path: ["out"], span: source.Span(0, 3)),
     )
 }
 
@@ -117,8 +109,8 @@ pub fn resolve_output_value_reference_delegates_to_resolve_value_test() {
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.ValueReference(
-        value: parser_ast.IntValue(value: 42, span: source.Span(0, 2)),
+      parser_ast.Literal(
+        value: parser_ast.Int(value: 42, span: source.Span(0, 2)),
         span: source.Span(0, 2),
       ),
     )
@@ -145,11 +137,7 @@ pub fn resolve_input_node_port_reference_returns_node_port_reference_test() {
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.NodePortReference(
-        alias: "math",
-        port: "value",
-        span: source.Span(0, 10),
-      ),
+      parser_ast.Access(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
@@ -170,11 +158,7 @@ pub fn resolve_input_node_port_reference_returns_unknown_reference_when_node_inp
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.NodePortReference(
-        alias: "math",
-        port: "value",
-        span: source.Span(0, 10),
-      ),
+      parser_ast.Access(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
@@ -198,7 +182,7 @@ pub fn resolve_input_operation_port_reference_returns_operation_port_reference_t
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.OperationPortReference(port: "value", span: source.Span(0, 5)),
+      parser_ast.Access(path: ["value"], span: source.Span(0, 5)),
     )
 }
 
@@ -219,7 +203,7 @@ pub fn resolve_input_operation_port_reference_returns_unknown_reference_when_inp
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.OperationPortReference(port: "value", span: source.Span(0, 5)),
+      parser_ast.Access(path: ["value"], span: source.Span(0, 5)),
     )
 }
 
@@ -233,8 +217,8 @@ pub fn resolve_input_value_reference_delegates_to_resolve_value_test() {
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.ValueReference(
-        value: parser_ast.IntValue(value: 42, span: source.Span(0, 2)),
+      parser_ast.Literal(
+        value: parser_ast.Int(value: 42, span: source.Span(0, 2)),
         span: source.Span(0, 2),
       ),
     )

@@ -6,13 +6,13 @@ import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_field
 import webql/lang/source
 
-pub fn resolve_resolves_field_with_named_type_annotation_test() {
+pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
   let registry = registry.new(typenames: ["Int"], nodes: [])
 
-  let field_to_resolve =
-    parser_ast.Field(
+  let parameter_to_resolve =
+    parser_ast.Parameter(
       name: "value",
-      annotation: parser_ast.NamedTypeAnnotation(
+      typename: parser_ast.Typename(
         name: "Int",
         span: source.Span(start: 7, end: 10),
       ),
@@ -20,7 +20,7 @@ pub fn resolve_resolves_field_with_named_type_annotation_test() {
     )
 
   let assert Ok(field) =
-    resolve_field.resolve(registry, field_to_resolve, reference.Port(0))
+    resolve_field.resolve(registry, parameter_to_resolve, reference.Port(0))
 
   assert field
     == ast.Field(
@@ -35,13 +35,13 @@ pub fn resolve_resolves_field_with_named_type_annotation_test() {
     )
 }
 
-pub fn resolve_returns_unknown_type_for_missing_field_annotation_test() {
+pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
   let registry = registry.new(typenames: [], nodes: [])
 
-  let field_to_resolve =
-    parser_ast.Field(
+  let parameter_to_resolve =
+    parser_ast.Parameter(
       name: "value",
-      annotation: parser_ast.NamedTypeAnnotation(
+      typename: parser_ast.Typename(
         name: "Int",
         span: source.Span(start: 7, end: 10),
       ),
@@ -49,7 +49,7 @@ pub fn resolve_returns_unknown_type_for_missing_field_annotation_test() {
     )
 
   let assert Error(error) =
-    resolve_field.resolve(registry, field_to_resolve, reference.Port(0))
+    resolve_field.resolve(registry, parameter_to_resolve, reference.Port(0))
 
   assert error
     == diagnostic.Diagnostic(

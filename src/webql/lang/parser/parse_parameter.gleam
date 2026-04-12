@@ -2,25 +2,25 @@ import gleam/result
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
-import webql/lang/parser/parse_annotation
 import webql/lang/parser/parse_nonstarter
+import webql/lang/parser/parse_typename
 import webql/lang/source
 
-/// Parses a field or single key/value (type) pair.
+/// Parses a parameter or single key/value (type) pair.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Field), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Parameter), diagnostic.Diagnostic) {
   use key <- result.try(parse_key(source, tokens))
   use tokens <- result.try(parse_separator(key.tokens))
-  use ast.Parsed(node: annotation, span: annotation_span, tokens:) <- result.try(
-    parse_annotation.parse(source, tokens),
+  use ast.Parsed(node: typename, span: typename_span, tokens:) <- result.try(
+    parse_typename.parse(source, tokens),
   )
 
-  let span = source.cover(key.span, annotation_span)
+  let span = source.cover(key.span, typename_span)
 
   Ok(ast.Parsed(
-    node: ast.Field(span:, name: key.node, annotation: annotation),
+    node: ast.Parameter(span:, name: key.node, typename:),
     span:,
     tokens:,
   ))

@@ -5,7 +5,7 @@ import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/source
 
-pub fn parse_valid_operation_test() {
+pub fn parse_valid_module_test() {
   let source = "-> out: Int {}"
 
   let tokens = [
@@ -27,24 +27,23 @@ pub fn parse_valid_operation_test() {
     token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14)),
   ]
 
-  let assert Ok(operation) = parser.parse(parser.new(source, tokens))
+  let assert Ok(module) = parser.parse(parser.new(source, tokens))
 
   should.equal(
-    operation,
-    ast.Operation(
+    module,
+    ast.Module(
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(
+        ast.Parameter(
           span: source.Span(start: 3, end: 11),
           name: "out",
-          annotation: ast.NamedTypeAnnotation(
+          typename: ast.Typename(
             span: source.Span(start: 8, end: 11),
             name: "Int",
           ),
         ),
       ],
-      operations: [],
       expressions: [],
     ),
   )
@@ -75,30 +74,29 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
     token.Token(kind: token.EOF, span: source.Span(start: 17, end: 17)),
   ]
 
-  let assert Ok(operation) = parser.parse(parser.new(source, tokens))
+  let assert Ok(module) = parser.parse(parser.new(source, tokens))
 
   should.equal(
-    operation,
-    ast.Operation(
+    module,
+    ast.Module(
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Field(
+        ast.Parameter(
           span: source.Span(start: 3, end: 11),
           name: "out",
-          annotation: ast.NamedTypeAnnotation(
+          typename: ast.Typename(
             span: source.Span(start: 8, end: 11),
             name: "Int",
           ),
         ),
       ],
-      operations: [],
       expressions: [],
     ),
   )
 }
 
-pub fn parse_errors_when_meaningful_tokens_remain_after_operation_test() {
+pub fn parse_errors_when_meaningful_tokens_remain_after_module_test() {
   let source = "-> out: Int {} next"
 
   let tokens = [
