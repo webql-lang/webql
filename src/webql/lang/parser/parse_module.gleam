@@ -65,6 +65,7 @@ fn parse_module(
 fn parse_operation(
   source: String,
   tokens: List(token.Token),
+  start: Int,
 ) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
   use ast.Parsed(node: inputs, tokens:, ..) <- result.try(
     parse_inputs(source, tokens, []),
@@ -76,24 +77,13 @@ fn parse_operation(
     parse_body(source, tokens, []),
   )
 
-  let reversed_inputs = list.reverse(inputs)
-  let reversed_outputs = list.reverse(outputs)
-
-  let start = case reversed_inputs {
-    [first, ..] -> first.span.start
-    [] ->
-      case reversed_outputs {
-        [first, ..] -> first.span.start
-        [] -> body.span.start
-      }
-  }
   let span = source.Span(start: start, end: body.span.end)
 
   Ok(ast.Parsed(
     node: ast.Operation(
       span:,
-      inputs: reversed_inputs,
-      outputs: reversed_outputs,
+      inputs: list.reverse(inputs),
+      outputs: list.reverse(outputs),
       expressions: list.reverse(expressions),
     ),
     span:,
@@ -130,7 +120,9 @@ fn parse_nested_equal(
 ) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case name.tokens {
     [token.Token(kind: token.Equal, ..), ..rest] -> {
-      use operation <- result.try(parse_operation(source, rest))
+      use tokens <- result.try(parse_nonstarter.parse(source, rest))
+      let assert [token.Token(span:, ..), ..] = tokens
+      use operation <- result.try(parse_operation(source, tokens, span.start))
 
       let span = source.Span(start: name.span.start, end: operation.span.end)
 
