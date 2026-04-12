@@ -1,19 +1,25 @@
 import webql/lang/source
 
-/// Top-level module.
+/// The top (or root) level operation.
 ///
-/// Represents an executable graph with inputs, outputs,
-/// nested operations, and expressions that wire data flow.
+/// ## Examples
+///
+///     in: Int -> out: Int { ... }
+pub type Module {
+  Module(operation: Operation, span: source.Span)
+}
+
+/// A operation with inputs, outputs, and definitions that wire data flow.
 ///
 /// ## Examples
 ///
 ///     in: Int -> out: Int { ... }
 ///     -> out: Int { ... }
-pub type Module {
-  Module(
+pub type Operation {
+  Operation(
     inputs: List(Parameter),
     outputs: List(Parameter),
-    expressions: List(Expression),
+    definitions: List(Definition),
     span: source.Span,
   )
 }
@@ -39,7 +45,7 @@ pub type Typename {
   Typename(name: String, span: source.Span)
 }
 
-/// An executable statement inside an operation body.
+/// An statement inside an operation body.
 ///
 /// ## Examples
 ///
@@ -47,30 +53,25 @@ pub type Typename {
 ///     Inner = in: Int -> out: Int { ... }
 ///     1 -> m.l
 ///     m.out -> .out
-pub type Expression {
+pub type Definition {
   Binding(name: String, value: Reference, span: source.Span)
   Edge(from: Reference, to: Reference, span: source.Span)
 }
 
-/// A reference used in an expression.
+/// A reference used in an definition.
 ///
 /// ## Examples
 ///
 ///     m.out
 ///     .out
 ///     "test"
-///     Node
+///     Math
 ///     in: Int -> out: Int { ... }
 pub type Reference {
   Access(path: List(String), span: source.Span)
   Node(name: String, span: source.Span)
   Literal(value: Primitive, span: source.Span)
-  Operation(
-    inputs: List(Parameter),
-    outputs: List(Parameter),
-    expressions: List(Expression),
-    span: source.Span,
-  )
+  SubOperation(name: String, operation: Operation, span: source.Span)
 }
 
 /// A literal embedded directly in the graph.
