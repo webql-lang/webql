@@ -16,7 +16,7 @@ const string = "String"
 /// Resolves a value and associates primatives with types.
 pub fn resolve(
   registry: registry.Registry,
-  value: parser_ast.Primative,
+  value: parser_ast.Primitive,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case value {
     parser_ast.Int(value:, span:) -> {

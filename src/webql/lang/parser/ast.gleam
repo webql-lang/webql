@@ -6,7 +6,7 @@ pub type Parsed(a) {
   Parsed(node: a, span: source.Span, tokens: List(token.Token))
 }
 
-/// Top-level anonymous operation.
+/// Top-level module.
 ///
 /// Represents an executable graph with inputs, outputs,
 /// nested operations, and expressions that wire data flow.
@@ -15,11 +15,10 @@ pub type Parsed(a) {
 ///
 ///     in: Int -> out: Int { ... }
 ///     -> out: Int { ... }
-pub type Operation {
-  Operation(
+pub type Module {
+  Module(
     inputs: List(Parameter),
     outputs: List(Parameter),
-    operations: List(Operation),
     expressions: List(Expression),
     span: source.Span,
   )
@@ -71,11 +70,10 @@ pub type Expression {
 pub type Reference {
   Access(path: List(String), span: source.Span)
   Node(name: String, span: source.Span)
-  Literal(value: Primative, span: source.Span)
-  SubOperation(
+  Literal(value: Primitive, span: source.Span)
+  Operation(
     inputs: List(Parameter),
     outputs: List(Parameter),
-    operations: List(Operation),
     expressions: List(Expression),
     span: source.Span,
   )
@@ -88,7 +86,7 @@ pub type Reference {
 ///     3
 ///     3.3
 ///     "hello world"
-pub type Primative {
+pub type Primitive {
   Int(value: Int, span: source.Span)
   Float(value: Float, span: source.Span)
   String(value: String, span: source.Span)

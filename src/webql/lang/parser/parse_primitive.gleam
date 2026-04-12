@@ -18,7 +18,7 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Primative), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Primitive), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.Int, span:), ..rest] -> {
       let literal = source.slice(source, span)
@@ -57,7 +57,7 @@ pub fn parse(
 fn parse_int(
   raw: String,
   span: source.Span,
-) -> Result(ast.Primative, diagnostic.Diagnostic) {
+) -> Result(ast.Primitive, diagnostic.Diagnostic) {
   case int.parse(raw) {
     Ok(value) -> Ok(ast.Int(value:, span:))
 
@@ -72,7 +72,7 @@ fn parse_int(
 fn parse_float(
   raw: String,
   span: source.Span,
-) -> Result(ast.Primative, diagnostic.Diagnostic) {
+) -> Result(ast.Primitive, diagnostic.Diagnostic) {
   case float.parse(raw) {
     Ok(value) -> Ok(ast.Float(value:, span:))
 

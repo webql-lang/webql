@@ -8,7 +8,7 @@ import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_parameter
 import webql/lang/source
 
-/// Parses an operation.
+/// Parses a module.
 ///
 /// ## Examples
 ///
@@ -17,12 +17,12 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Operation), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Module), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..]
     | [token.Token(kind: token.Dot, span:), ..]
     | [token.Token(kind: token.RArrow, span:), ..] ->
-      parse_operation(source, tokens, span.start)
+      parse_module(source, tokens, span.start)
 
     _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
@@ -33,29 +33,67 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_operation(
+fn parse_module(
   source: String,
   tokens: List(token.Token),
   start: Int,
-) -> Result(ast.Parsed(ast.Operation), diagnostic.Diagnostic) {
+) -> Result(ast.Parsed(ast.Module), diagnostic.Diagnostic) {
   use ast.Parsed(node: inputs, tokens:, ..) <- result.try(
     parse_inputs(source, tokens, []),
   )
   use ast.Parsed(node: outputs, tokens:, ..) <- result.try(
     parse_outputs(source, tokens, []),
   )
-  use ast.Parsed(node: #(operations, expressions), tokens:, ..) as body <- result.try(
-    parse_body(source, tokens, #([], [])),
+  use ast.Parsed(node: expressions, tokens:, ..) as body <- result.try(
+    parse_body(source, tokens, []),
   )
 
   let span = source.Span(start: start, end: body.span.end)
 
   Ok(ast.Parsed(
-    node: ast.Operation(
+    node: ast.Module(
       span:,
       inputs: list.reverse(inputs),
       outputs: list.reverse(outputs),
-      operations: list.reverse(operations),
+      expressions: list.reverse(expressions),
+    ),
+    span:,
+    tokens:,
+  ))
+}
+
+fn parse_operation(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+  use ast.Parsed(node: inputs, tokens:, ..) <- result.try(
+    parse_inputs(source, tokens, []),
+  )
+  use ast.Parsed(node: outputs, tokens:, ..) <- result.try(
+    parse_outputs(source, tokens, []),
+  )
+  use ast.Parsed(node: expressions, tokens:, ..) as body <- result.try(
+    parse_body(source, tokens, []),
+  )
+
+  let reversed_inputs = list.reverse(inputs)
+  let reversed_outputs = list.reverse(outputs)
+
+  let start = case reversed_inputs {
+    [first, ..] -> first.span.start
+    [] ->
+      case reversed_outputs {
+        [first, ..] -> first.span.start
+        [] -> body.span.start
+      }
+  }
+  let span = source.Span(start: start, end: body.span.end)
+
+  Ok(ast.Parsed(
+    node: ast.Operation(
+      span:,
+      inputs: reversed_inputs,
+      outputs: reversed_outputs,
       expressions: list.reverse(expressions),
     ),
     span:,
@@ -92,25 +130,12 @@ fn parse_nested_equal(
 ) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
   case name.tokens {
     [token.Token(kind: token.Equal, ..), ..rest] -> {
-      use operation <- result.try(parse_operation(source, rest, name.span.start))
-
-      let ast.Operation(inputs:, outputs:, operations:, expressions:, ..) =
-        operation.node
+      use operation <- result.try(parse_operation(source, rest))
 
       let span = source.Span(start: name.span.start, end: operation.span.end)
 
       Ok(ast.Parsed(
-        node: ast.Binding(
-          span:,
-          name: name.node,
-          value: ast.SubOperation(
-            inputs:,
-            outputs:,
-            operations:,
-            expressions:,
-            span:,
-          ),
-        ),
+        node: ast.Binding(span:, name: name.node, value: operation.node),
         span:,
         tokens: operation.tokens,
       ))
@@ -184,26 +209,21 @@ fn parse_outputs(
 fn parse_body(
   source: String,
   tokens: List(token.Token),
-  body: #(List(ast.Operation), List(ast.Expression)),
-) -> Result(
-  ast.Parsed(#(List(ast.Operation), List(ast.Expression))),
-  diagnostic.Diagnostic,
-) {
-  let #(operations, expressions) = body
-
+  expressions: List(ast.Expression),
+) -> Result(ast.Parsed(List(ast.Expression)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LBrace, ..), ..rest] ->
-      parse_body(source, rest, body)
+      parse_body(source, rest, expressions)
 
     [token.Token(kind: token.RBrace, span: r_brace_span), ..rest] ->
-      Ok(ast.Parsed(node: body, span: r_brace_span, tokens: rest))
+      Ok(ast.Parsed(node: expressions, span: r_brace_span, tokens: rest))
 
     [token.Token(kind: token.UpperIdentifier, ..), ..] -> {
       use ast.Parsed(node: expression, tokens: remaining, ..) <- result.try(
         parse_nested(source, tokens),
       )
 
-      parse_body(source, remaining, #(operations, [expression, ..expressions]))
+      parse_body(source, remaining, [expression, ..expressions])
     }
 
     [token.Token(kind: token.LowerIdentifier, ..), ..]
@@ -215,12 +235,12 @@ fn parse_body(
         parse_expression.parse(source, tokens),
       )
 
-      parse_body(source, remaining, #(operations, [expression, ..expressions]))
+      parse_body(source, remaining, [expression, ..expressions])
     }
 
     _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_body(source, remaining, body)
+      parse_body(source, remaining, expressions)
     }
   }
 }

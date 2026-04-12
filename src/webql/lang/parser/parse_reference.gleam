@@ -4,7 +4,7 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
-import webql/lang/parser/parse_primative
+import webql/lang/parser/parse_primitive
 import webql/lang/source
 
 /// Parses a reference.
@@ -34,7 +34,7 @@ pub fn parse(
     [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
     | [token.Token(kind: token.String, ..), ..] ->
-      parse_primative_reference(source, tokens)
+      parse_primitive_reference(source, tokens)
 
     _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
@@ -129,12 +129,12 @@ fn parse_operation_port_reference(
   }
 }
 
-fn parse_primative_reference(
+fn parse_primitive_reference(
   source: String,
   tokens: List(token.Token),
 ) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
   use ast.Parsed(node: value, span:, tokens:) <- result.try(
-    parse_primative.parse(source, tokens),
+    parse_primitive.parse(source, tokens),
   )
 
   Ok(ast.Parsed(node: ast.Literal(span:, value:), span:, tokens:))

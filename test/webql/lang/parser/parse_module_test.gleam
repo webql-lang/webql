@@ -1,10 +1,10 @@
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
-import webql/lang/parser/parse_operation
+import webql/lang/parser/parse_module
 import webql/lang/source
 
-pub fn parse_parses_operation_with_nested_operation_and_expression_test() {
+pub fn parse_parses_module_with_nested_operation_and_expression_test() {
   let source =
     "a: Int, b: String -> c: Float, d: Bool { Inner = x: Int -> y: Int {} .a -> .c }"
 
@@ -13,11 +13,11 @@ pub fn parse_parses_operation_with_nested_operation_and_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: operation, tokens: rest, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+    parse_module.parse(source, tokens)
 
-  assert operation
-    == ast.Operation(
+  assert module
+    == ast.Module(
       span: source.Span(start: 0, end: 79),
       inputs: [
         ast.Parameter(
@@ -55,13 +55,12 @@ pub fn parse_parses_operation_with_nested_operation_and_expression_test() {
           ),
         ),
       ],
-      operations: [],
       expressions: [
         ast.Binding(
           span: source.Span(start: 41, end: 68),
           name: "Inner",
-          value: ast.SubOperation(
-            span: source.Span(start: 41, end: 68),
+          value: ast.Operation(
+            span: source.Span(start: 49, end: 68),
             inputs: [
               ast.Parameter(
                 span: source.Span(start: 49, end: 55),
@@ -82,7 +81,6 @@ pub fn parse_parses_operation_with_nested_operation_and_expression_test() {
                 ),
               ),
             ],
-            operations: [],
             expressions: [],
           ),
         ),
@@ -98,7 +96,7 @@ pub fn parse_parses_operation_with_nested_operation_and_expression_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 79, end: 79))]
 }
 
-pub fn parse_skips_spaces_throughout_operation_test() {
+pub fn parse_skips_spaces_throughout_module_test() {
   let source =
     "  a: Int , b: String   ->   c: Float , d: Bool {   Inner   =   x: Int -> y: Int { }   .a   ->   .c   }"
 
@@ -107,11 +105,11 @@ pub fn parse_skips_spaces_throughout_operation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: operation, tokens: rest, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+    parse_module.parse(source, tokens)
 
-  assert operation
-    == ast.Operation(
+  assert module
+    == ast.Module(
       span: source.Span(start: 2, end: 102),
       inputs: [
         ast.Parameter(
@@ -149,13 +147,12 @@ pub fn parse_skips_spaces_throughout_operation_test() {
           ),
         ),
       ],
-      operations: [],
       expressions: [
         ast.Binding(
           span: source.Span(start: 51, end: 83),
           name: "Inner",
-          value: ast.SubOperation(
-            span: source.Span(start: 51, end: 83),
+          value: ast.Operation(
+            span: source.Span(start: 63, end: 83),
             inputs: [
               ast.Parameter(
                 span: source.Span(start: 63, end: 69),
@@ -176,7 +173,6 @@ pub fn parse_skips_spaces_throughout_operation_test() {
                 ),
               ),
             ],
-            operations: [],
             expressions: [],
           ),
         ),
@@ -192,7 +188,7 @@ pub fn parse_skips_spaces_throughout_operation_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 102, end: 102))]
 }
 
-pub fn parse_preserves_remaining_tokens_after_operation_test() {
+pub fn parse_preserves_remaining_tokens_after_module_test() {
   let source = "-> out: Int {} tail"
 
   let assert Ok(tokens) =
@@ -200,11 +196,11 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: operation, tokens: rest, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+    parse_module.parse(source, tokens)
 
-  assert operation
-    == ast.Operation(
+  assert module
+    == ast.Module(
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
@@ -217,7 +213,6 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
           ),
         ),
       ],
-      operations: [],
       expressions: [],
     )
 

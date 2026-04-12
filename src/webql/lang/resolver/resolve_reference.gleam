@@ -42,7 +42,7 @@ pub fn resolve_input(
         span:,
       ))
 
-    parser_ast.SubOperation(span:, ..) ->
+    parser_ast.Operation(span:, ..) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnknownReference(owner: option.None, name: ""),
         span:,
@@ -84,7 +84,7 @@ pub fn resolve_output(
         span:,
       ))
 
-    parser_ast.SubOperation(span:, ..) ->
+    parser_ast.Operation(span:, ..) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnknownReference(owner: option.None, name: ""),
         span:,

@@ -3,10 +3,10 @@ import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/diagnostic
-import webql/lang/parser/parse_primative
+import webql/lang/parser/parse_primitive
 import webql/lang/source
 
-pub fn parse_primatives_test() {
+pub fn parse_primitives_test() {
   let values = [
     #(
       "123",
@@ -34,7 +34,7 @@ pub fn parse_primatives_test() {
       |> lexer.lex()
 
     let assert Ok(ast.Parsed(node: parsed_value, span: span, tokens: rest)) =
-      parse_primative.parse(source, tokens)
+      parse_primitive.parse(source, tokens)
 
     assert parsed_value == expected_value
     assert span == expected_span
@@ -58,7 +58,7 @@ pub fn parse_skips_space_test() {
     |> lexer.lex()
 
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
-    parse_primative.parse(source, tokens)
+    parse_primitive.parse(source, tokens)
 
   assert value == ast.Int(span: source.Span(start: 2, end: 5), value: 123)
 
@@ -77,7 +77,7 @@ pub fn parse_preserves_rest_test() {
     |> lexer.lex()
 
   let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
-    parse_primative.parse(source, tokens)
+    parse_primitive.parse(source, tokens)
 
   assert value == ast.Int(span: source.Span(start: 0, end: 3), value: 123)
 
@@ -102,8 +102,9 @@ pub fn parse_invalid_float_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Error(error) = parse_primative.parse(source, tokens)
+  let assert Error(diagnostic.Diagnostic(kind:, span:)) =
+    parse_primitive.parse(source, tokens)
 
-  assert error.kind == diagnostic.UnexpectedToken(token.Float)
-  assert error.span == source.Span(start: 0, end: 5)
+  assert kind == diagnostic.UnexpectedToken(token.Float)
+  assert span == source.Span(start: 0, end: 5)
 }
