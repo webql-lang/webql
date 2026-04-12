@@ -1,10 +1,4 @@
-import webql/lang/lexer/token
 import webql/lang/source
-
-/// Represents a AST relative to a span and the next available tokens.
-pub type Parsed(a) {
-  Parsed(node: a, span: source.Span, tokens: List(token.Token))
-}
 
 /// Top-level module.
 ///

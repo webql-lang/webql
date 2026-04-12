@@ -1,6 +1,7 @@
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_reference
 import webql/lang/source
@@ -13,7 +14,7 @@ pub fn parse_node_port_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 5)
@@ -33,7 +34,7 @@ pub fn parse_operation_port_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 4)
@@ -53,7 +54,7 @@ pub fn parse_int_value_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 3)
@@ -76,7 +77,7 @@ pub fn parse_float_value_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 4)
@@ -99,7 +100,7 @@ pub fn parse_string_value_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 6)
@@ -122,7 +123,7 @@ pub fn parse_skips_leading_spaces_before_operation_port_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 1, end: 5)
@@ -159,7 +160,7 @@ pub fn parse_preserves_remaining_tokens_after_reference_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: reference, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: reference, span:, rest:)) =
     parse_reference.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 5)

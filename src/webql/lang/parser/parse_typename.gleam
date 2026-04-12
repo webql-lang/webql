@@ -1,6 +1,7 @@
 import gleam/result
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/source
@@ -15,11 +16,11 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Typename), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Typename), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
-      Ok(ast.Parsed(node: ast.Typename(span:, name:), span:, tokens: rest))
+      Ok(cursor.Cursor(current: ast.Typename(span:, name:), span:, rest:))
     }
 
     _tokens -> {

@@ -2,6 +2,7 @@ import gleam/list
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_primitive
 import webql/lang/source
@@ -33,7 +34,7 @@ pub fn parse_primitives_test() {
       |> lexer.new()
       |> lexer.lex()
 
-    let assert Ok(ast.Parsed(node: parsed_value, span: span, tokens: rest)) =
+    let assert Ok(cursor.Cursor(current: parsed_value, span:, rest:)) =
       parse_primitive.parse(source, tokens)
 
     assert parsed_value == expected_value
@@ -57,7 +58,7 @@ pub fn parse_skips_space_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: value, span:, rest:)) =
     parse_primitive.parse(source, tokens)
 
   assert value == ast.Int(span: source.Span(start: 2, end: 5), value: 123)
@@ -76,7 +77,7 @@ pub fn parse_preserves_rest_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: value, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: value, span:, rest:)) =
     parse_primitive.parse(source, tokens)
 
   assert value == ast.Int(span: source.Span(start: 0, end: 3), value: 123)
