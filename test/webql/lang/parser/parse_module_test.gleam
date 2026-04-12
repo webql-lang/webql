@@ -21,10 +21,9 @@ pub fn parse_wraps_operation_test() {
 
   should.equal(module.operation, operation)
   should.equal(module.span, operation.span)
-  should.equal(
-    rest,
-    [token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14))],
-  )
+  should.equal(rest, [
+    token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14)),
+  ])
 }
 
 pub fn parse_skips_leading_spaces_before_module_test() {
