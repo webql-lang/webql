@@ -1,6 +1,7 @@
 import gleam/result
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_reference
@@ -16,11 +17,11 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let identifier =
-        ast.Parsed(node: source.slice(source, span), span:, tokens: rest)
+        cursor.Cursor(current: source.slice(source, span), span:, rest:)
 
       parse_lower_identifier_expression(source, identifier)
     }
@@ -42,27 +43,27 @@ pub fn parse(
 // =================
 fn parse_lower_identifier_expression(
   source: String,
-  identifier: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
-  case identifier.tokens {
-    [token.Token(kind: token.Equal, ..), ..tokens] ->
+  identifier: cursor.Cursor(String),
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
+  case identifier.rest {
+    [token.Token(kind: token.Equal, ..), ..rest] ->
       parse_binding_expression(
         source,
-        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+        cursor.Cursor(current: identifier.current, span: identifier.span, rest:),
       )
 
-    [token.Token(kind: token.Dot, ..), ..tokens] ->
+    [token.Token(kind: token.Dot, ..), ..rest] ->
       parse_node_port_edge_expression(
         source,
-        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+        cursor.Cursor(current: identifier.current, span: identifier.span, rest:),
       )
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, identifier.tokens))
+      use rest <- result.try(parse_nonstarter.parse(source, identifier.rest))
 
       parse_lower_identifier_expression(
         source,
-        ast.Parsed(node: identifier.node, span: identifier.span, tokens:),
+        cursor.Cursor(current: identifier.current, span: identifier.span, rest:),
       )
     }
   }
@@ -70,30 +71,30 @@ fn parse_lower_identifier_expression(
 
 fn parse_binding_expression(
   source: String,
-  alias: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
-  case alias.tokens {
-    [token.Token(kind: token.UpperIdentifier, ..) as token, ..tokens] -> {
-      let name = source.slice(source, token.span)
-      let span = source.cover(alias.span, token.span)
+  alias: cursor.Cursor(String),
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
+  case alias.rest {
+    [token.Token(kind: token.UpperIdentifier, ..) as tok, ..rest] -> {
+      let name = source.slice(source, tok.span)
+      let span = source.cover(alias.span, tok.span)
 
-      Ok(ast.Parsed(
-        node: ast.Binding(
+      Ok(cursor.Cursor(
+        current: ast.Binding(
           span:,
-          name: alias.node,
-          value: ast.Node(name:, span: token.span),
+          name: alias.current,
+          value: ast.Node(name:, span: tok.span),
         ),
         span:,
-        tokens:,
+        rest:,
       ))
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, alias.tokens))
+      use rest <- result.try(parse_nonstarter.parse(source, alias.rest))
 
       parse_binding_expression(
         source,
-        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+        cursor.Cursor(current: alias.current, span: alias.span, rest:),
       )
     }
   }
@@ -101,29 +102,29 @@ fn parse_binding_expression(
 
 fn parse_node_port_edge_expression(
   source: String,
-  alias: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
-  case alias.tokens {
-    [token.Token(kind: token.LowerIdentifier, ..) as tok, ..tokens] -> {
+  alias: cursor.Cursor(String),
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
+  case alias.rest {
+    [token.Token(kind: token.LowerIdentifier, ..) as tok, ..rest] -> {
       let port = source.slice(source, tok.span)
       let span = source.cover(alias.span, tok.span)
 
       let from =
-        ast.Parsed(
-          node: ast.Access(path: [alias.node, port], span:),
+        cursor.Cursor(
+          current: ast.Access(path: [alias.current, port], span:),
           span:,
-          tokens:,
+          rest:,
         )
 
       parse_edge_expression_from(source, from)
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, alias.tokens))
+      use rest <- result.try(parse_nonstarter.parse(source, alias.rest))
 
       parse_node_port_edge_expression(
         source,
-        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+        cursor.Cursor(current: alias.current, span: alias.span, rest:),
       )
     }
   }
@@ -132,34 +133,34 @@ fn parse_node_port_edge_expression(
 fn parse_edge_expression(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
   use from <- result.try(parse_reference.parse(source, tokens))
   parse_edge_expression_from(source, from)
 }
 
 fn parse_edge_expression_from(
   source: String,
-  from: ast.Parsed(ast.Reference),
-) -> Result(ast.Parsed(ast.Expression), diagnostic.Diagnostic) {
-  case from.tokens {
+  from: cursor.Cursor(ast.Reference),
+) -> Result(cursor.Cursor(ast.Expression), diagnostic.Diagnostic) {
+  case from.rest {
     [token.Token(kind: token.RArrow, ..), ..rest] -> {
       use to <- result.try(parse_reference.parse(source, rest))
 
       let span = source.cover(from.span, to.span)
 
-      Ok(ast.Parsed(
-        node: ast.Edge(span:, from: from.node, to: to.node),
+      Ok(cursor.Cursor(
+        current: ast.Edge(span:, from: from.current, to: to.current),
         span:,
-        tokens: to.tokens,
+        rest: to.rest,
       ))
     }
 
     _tokens -> {
-      use tokens <- result.try(parse_nonstarter.parse(source, from.tokens))
+      use rest <- result.try(parse_nonstarter.parse(source, from.rest))
 
       parse_edge_expression_from(
         source,
-        ast.Parsed(node: from.node, span: from.span, tokens:),
+        cursor.Cursor(current: from.current, span: from.span, rest:),
       )
     }
   }

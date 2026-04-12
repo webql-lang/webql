@@ -1,6 +1,7 @@
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/parse_module
 import webql/lang/source
 
@@ -13,7 +14,7 @@ pub fn parse_parses_module_with_nested_operation_and_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: module, rest:, ..)) =
     parse_module.parse(source, tokens)
 
   assert module
@@ -105,7 +106,7 @@ pub fn parse_skips_spaces_throughout_module_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: module, rest:, ..)) =
     parse_module.parse(source, tokens)
 
   assert module
@@ -196,7 +197,7 @@ pub fn parse_preserves_remaining_tokens_after_module_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: module, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: module, rest:, ..)) =
     parse_module.parse(source, tokens)
 
   assert module

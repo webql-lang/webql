@@ -1,6 +1,7 @@
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_parameter
 import webql/lang/source
@@ -13,7 +14,7 @@ pub fn parse_returns_parameter_for_simple_key_value_pair_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: parameter, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
     parse_parameter.parse(source, tokens)
 
   assert parameter
@@ -38,7 +39,7 @@ pub fn parse_skips_leading_spaces_before_key_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: parameter, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
     parse_parameter.parse(source, tokens)
 
   assert parameter
@@ -77,7 +78,7 @@ pub fn parse_skips_spaces_before_annotation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: parameter, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
     parse_parameter.parse(source, tokens)
 
   assert parameter
@@ -102,7 +103,7 @@ pub fn parse_preserves_remaining_tokens_after_parameter_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: parameter, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
     parse_parameter.parse(source, tokens)
 
   assert parameter

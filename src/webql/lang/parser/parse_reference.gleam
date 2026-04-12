@@ -2,6 +2,7 @@ import gleam/result
 import gleam/string
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_primitive
@@ -17,17 +18,17 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let alias =
-        ast.Parsed(node: source.slice(source, span), span:, tokens: rest)
+        cursor.Cursor(current: source.slice(source, span), span:, rest:)
 
       parse_node_port_reference(source, alias)
     }
 
     [token.Token(kind: token.Dot, span:), ..rest] -> {
-      let dot = ast.Parsed(node: Nil, span:, tokens: rest)
+      let dot = cursor.Cursor(current: Nil, span:, rest:)
       parse_operation_port_reference(source, dot)
     }
 
@@ -47,13 +48,13 @@ pub fn parse(
 // =================
 fn parse_node_port_reference(
   source: String,
-  alias: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  case alias.tokens {
-    [token.Token(kind: token.Dot, ..), ..tokens] ->
+  alias: cursor.Cursor(String),
+) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
+  case alias.rest {
+    [token.Token(kind: token.Dot, ..), ..rest] ->
       parse_node_port_reference_port(
         source,
-        ast.Parsed(node: alias.node, span: alias.span, tokens:),
+        cursor.Cursor(current: alias.current, span: alias.span, rest:),
       )
 
     [token.Token(kind: kind, span:), ..] ->
@@ -75,17 +76,17 @@ fn parse_node_port_reference(
 
 fn parse_node_port_reference_port(
   source: String,
-  alias: ast.Parsed(String),
-) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  case alias.tokens {
+  alias: cursor.Cursor(String),
+) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
+  case alias.rest {
     [token.Token(kind: token.LowerIdentifier, ..) as name, ..rest] -> {
       let port = source.slice(source, name.span)
       let span = source.cover(alias.span, name.span)
 
-      Ok(ast.Parsed(
-        node: ast.Access(path: [alias.node, port], span:),
+      Ok(cursor.Cursor(
+        current: ast.Access(path: [alias.current, port], span:),
         span:,
-        tokens: rest,
+        rest:,
       ))
     }
 
@@ -105,14 +106,14 @@ fn parse_node_port_reference_port(
 
 fn parse_operation_port_reference(
   source: String,
-  dot: ast.Parsed(Nil),
-) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  case dot.tokens {
-    [token.Token(kind: token.LowerIdentifier, ..) as token, ..tokens] -> {
-      let port = source.slice(source, token.span)
-      let span = source.cover(dot.span, token.span)
+  dot: cursor.Cursor(Nil),
+) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
+  case dot.rest {
+    [token.Token(kind: token.LowerIdentifier, ..) as tok, ..rest] -> {
+      let port = source.slice(source, tok.span)
+      let span = source.cover(dot.span, tok.span)
 
-      Ok(ast.Parsed(node: ast.Access(path: [port], span:), span:, tokens:))
+      Ok(cursor.Cursor(current: ast.Access(path: [port], span:), span:, rest:))
     }
 
     [token.Token(kind: kind, span:), ..] ->
@@ -132,10 +133,10 @@ fn parse_operation_port_reference(
 fn parse_primitive_reference(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Reference), diagnostic.Diagnostic) {
-  use ast.Parsed(node: value, span:, tokens:) <- result.try(
+) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
+  use cursor.Cursor(current: value, span:, rest:) <- result.try(
     parse_primitive.parse(source, tokens),
   )
 
-  Ok(ast.Parsed(node: ast.Literal(span:, value:), span:, tokens:))
+  Ok(cursor.Cursor(current: ast.Literal(span:, value:), span:, rest:))
 }

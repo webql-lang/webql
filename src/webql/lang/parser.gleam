@@ -18,7 +18,7 @@ pub fn new(source: String, tokens: List(token.Token)) -> Parser {
 pub fn parse(parser: Parser) -> Result(ast.Module, diagnostic.Diagnostic) {
   use module <- result.try(parse_module.parse(parser.source, parser.tokens))
 
-  parse_eof(parser.source, module.tokens, module.node)
+  parse_eof(parser.source, module.rest, module.current)
 }
 
 fn parse_eof(

@@ -1,6 +1,7 @@
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/parse_typename
 import webql/lang/source
 
@@ -12,7 +13,7 @@ pub fn parse_returns_named_type_annotation_for_upper_identifier_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: annotation, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
     parse_typename.parse(source, tokens)
 
   assert annotation
@@ -32,7 +33,7 @@ pub fn parse_preserves_remaining_tokens_after_annotation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: annotation, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
     parse_typename.parse(source, tokens)
 
   assert annotation
@@ -59,7 +60,7 @@ pub fn parse_skips_leading_space_before_annotation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: annotation, span: span, tokens: rest)) =
+  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
     parse_typename.parse(source, tokens)
 
   assert annotation

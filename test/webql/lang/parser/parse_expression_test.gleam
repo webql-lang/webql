@@ -2,6 +2,7 @@ import gleeunit/should
 import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/parse_expression
 import webql/lang/source
 
@@ -13,7 +14,7 @@ pub fn parse_binding_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -37,7 +38,7 @@ pub fn parse_binding_expression_without_spaces_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -61,7 +62,7 @@ pub fn parse_node_port_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -85,7 +86,7 @@ pub fn parse_operation_port_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -109,7 +110,7 @@ pub fn parse_int_value_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -136,7 +137,7 @@ pub fn parse_float_value_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -163,7 +164,7 @@ pub fn parse_string_value_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -190,7 +191,7 @@ pub fn parse_skips_leading_spaces_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -214,7 +215,7 @@ pub fn parse_skips_spaces_inside_node_port_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -238,7 +239,7 @@ pub fn parse_preserves_remaining_tokens_after_binding_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(
@@ -268,7 +269,7 @@ pub fn parse_preserves_remaining_tokens_after_edge_expression_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(ast.Parsed(node: expression, tokens: rest, ..)) =
+  let assert Ok(cursor.Cursor(current: expression, rest:, ..)) =
     parse_expression.parse(source, tokens)
 
   should.equal(

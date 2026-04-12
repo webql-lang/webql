@@ -1,6 +1,7 @@
 import gleam/result
 import webql/lang/lexer/token
 import webql/lang/parser/ast
+import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_typename
@@ -10,19 +11,19 @@ import webql/lang/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(ast.Parameter), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Parameter), diagnostic.Diagnostic) {
   use key <- result.try(parse_key(source, tokens))
-  use tokens <- result.try(parse_separator(key.tokens))
-  use ast.Parsed(node: typename, span: typename_span, tokens:) <- result.try(
-    parse_typename.parse(source, tokens),
+  use rest <- result.try(parse_separator(key.rest))
+  use cursor.Cursor(current: typename, span: typename_span, rest:) <- result.try(
+    parse_typename.parse(source, rest),
   )
 
   let span = source.cover(key.span, typename_span)
 
-  Ok(ast.Parsed(
-    node: ast.Parameter(span:, name: key.node, typename:),
+  Ok(cursor.Cursor(
+    current: ast.Parameter(span:, name: key.current, typename:),
     span:,
-    tokens:,
+    rest:,
   ))
 }
 
@@ -31,10 +32,10 @@ pub fn parse(
 fn parse_key(
   source: String,
   tokens: List(token.Token),
-) -> Result(ast.Parsed(String), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(String), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] ->
-      Ok(ast.Parsed(node: source.slice(source, span), span:, tokens: rest))
+      Ok(cursor.Cursor(current: source.slice(source, span), span:, rest:))
 
     _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))
