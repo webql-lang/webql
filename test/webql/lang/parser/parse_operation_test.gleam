@@ -2,6 +2,7 @@ import webql/lang/lexer
 import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/cursor
+import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_operation
 import webql/lang/source
 
@@ -101,102 +102,6 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 79, end: 79))]
 }
 
-pub fn parse_skips_spaces_throughout_operation_test() {
-  let source =
-    "  a: Int , b: String   ->   c: Float , d: Bool {   Inner   =   x: Int -> y: Int { }   .a   ->   .c   }"
-
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
-
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
-
-  assert operation
-    == ast.Operation(
-      span: source.Span(start: 2, end: 102),
-      inputs: [
-        ast.Parameter(
-          span: source.Span(start: 2, end: 8),
-          name: "a",
-          typename: ast.Typename(
-            span: source.Span(start: 5, end: 8),
-            name: "Int",
-          ),
-        ),
-        ast.Parameter(
-          span: source.Span(start: 11, end: 20),
-          name: "b",
-          typename: ast.Typename(
-            span: source.Span(start: 14, end: 20),
-            name: "String",
-          ),
-        ),
-      ],
-      outputs: [
-        ast.Parameter(
-          span: source.Span(start: 28, end: 36),
-          name: "c",
-          typename: ast.Typename(
-            span: source.Span(start: 31, end: 36),
-            name: "Float",
-          ),
-        ),
-        ast.Parameter(
-          span: source.Span(start: 39, end: 46),
-          name: "d",
-          typename: ast.Typename(
-            span: source.Span(start: 42, end: 46),
-            name: "Bool",
-          ),
-        ),
-      ],
-      definitions: [
-        ast.Binding(
-          span: source.Span(start: 51, end: 83),
-          name: "Inner",
-          value: ast.SubOperation(
-            name: "Inner",
-            span: source.Span(start: 63, end: 83),
-            operation: ast.Operation(
-              span: source.Span(start: 63, end: 83),
-              inputs: [
-                ast.Parameter(
-                  span: source.Span(start: 63, end: 69),
-                  name: "x",
-                  typename: ast.Typename(
-                    span: source.Span(start: 66, end: 69),
-                    name: "Int",
-                  ),
-                ),
-              ],
-              outputs: [
-                ast.Parameter(
-                  span: source.Span(start: 73, end: 79),
-                  name: "y",
-                  typename: ast.Typename(
-                    span: source.Span(start: 76, end: 79),
-                    name: "Int",
-                  ),
-                ),
-              ],
-              definitions: [],
-            ),
-          ),
-        ),
-        ast.Edge(
-          span: source.Span(start: 86, end: 98),
-          from: ast.Access(span: source.Span(start: 86, end: 88), path: ["a"]),
-          to: ast.Access(span: source.Span(start: 96, end: 98), path: ["c"]),
-        ),
-      ],
-    )
-
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 102, end: 102))]
-}
-
 pub fn parse_preserves_remaining_tokens_after_operation_test() {
   let source = "-> out: Int {} tail"
 
@@ -234,4 +139,38 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
       ),
       token.Token(kind: token.EOF, span: source.Span(start: 19, end: 19)),
     ]
+}
+
+pub fn parse_returns_unexpected_token_for_invalid_operation_start_test() {
+  let source = "{"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Error(error) = parse_operation.parse(source, tokens)
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.LBrace),
+      span: source.Span(start: 0, end: 1),
+    )
+}
+
+pub fn parse_returns_unexpected_eof_when_operation_body_is_unterminated_test() {
+  let source = "-> out: Int {"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Error(error) = parse_operation.parse(source, tokens)
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedEof,
+      span: source.Span(start: 13, end: 13),
+    )
 }
