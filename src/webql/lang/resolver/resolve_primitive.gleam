@@ -20,47 +20,32 @@ pub fn resolve(
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case value {
     parser_ast.Int(value:, span:) -> {
-      use typename <- result.try(resolve_type(registry, int, span))
-
-      Ok(ast.ValueReference(
-        value: ast.IntValue(value:, span:),
-        typename:,
-        span:,
-      ))
+      use reference <- result.try(resolve_typename(registry, int, span))
+      Ok(ast.Literal(value: ast.Int(value:, span:), reference:, span:))
     }
 
     parser_ast.Float(value:, span:) -> {
-      use typename <- result.try(resolve_type(registry, float, span))
-
-      Ok(ast.ValueReference(
-        value: ast.FloatValue(value:, span:),
-        typename:,
-        span:,
-      ))
+      use reference <- result.try(resolve_typename(registry, float, span))
+      Ok(ast.Literal(value: ast.Float(value:, span:), reference:, span:))
     }
 
     parser_ast.String(value:, span:) -> {
-      use typename <- result.try(resolve_type(registry, string, span))
-
-      Ok(ast.ValueReference(
-        value: ast.StringValue(value:, span:),
-        typename:,
-        span:,
-      ))
+      use reference <- result.try(resolve_typename(registry, string, span))
+      Ok(ast.Literal(value: ast.String(value:, span:), reference:, span:))
     }
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn resolve_type(
+fn resolve_typename(
   registry: registry.Registry,
   name: String,
   span: source.Span,
-) -> Result(reference.Type, diagnostic.Diagnostic) {
+) -> Result(reference.Typename, diagnostic.Diagnostic) {
   case dict.get(registry.catalog.typenames, name) {
     Ok(typename) -> Ok(typename)
     Error(_nil) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownType(name), span:))
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownTypename(name), span:))
   }
 }

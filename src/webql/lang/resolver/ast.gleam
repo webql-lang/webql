@@ -1,71 +1,104 @@
 import webql/lang/resolver/reference
 import webql/lang/source
 
-/// Resolved operation with all names and types bound.
+/// The top (or root) level operation.
+///
+/// ## Examples
+///
+///     in: Int -> out: Int { ... }
+pub type Module {
+  Module(operation: Operation, span: source.Span)
+}
+
+/// A operation with inputs, outputs, and definitions that wire data flow.
+///
+/// ## Examples
+///
+///     in: Int -> out: Int { ... }
+///     -> out: Int { ... }
 pub type Operation {
   Operation(
-    inputs: List(Field),
-    outputs: List(Field),
-    operations: List(Operation),
-    expressions: List(Expression),
+    reference: reference.Operation,
+    inputs: List(Parameter),
+    outputs: List(Parameter),
+    definitions: List(Definition),
     span: source.Span,
   )
-  NestedOperation(
+}
+
+/// A named input or output with a typename.
+///
+/// ## Examples
+///
+///     in: Int
+///     out: String
+pub type Parameter {
+  Parameter(
     name: String,
-    inputs: List(Field),
-    outputs: List(Field),
-    operations: List(Operation),
-    expressions: List(Expression),
+    typename: Typename,
+    reference: reference.Access,
     span: source.Span,
   )
 }
 
-/// Resolved input or output field.
-pub type Field {
-  Field(
+/// A typename describing the shape of a field.
+///
+/// ## Examples
+///
+///     String
+///     Int
+pub type Typename {
+  Typename(name: String, reference: reference.Typename, span: source.Span)
+}
+
+/// An statement inside an operation body.
+///
+/// ## Examples
+///
+///     m = Math
+///     Inner = in: Int -> out: Int { ... }
+///     1 -> m.l
+///     m.out -> .out
+pub type Definition {
+  Binding(
     name: String,
-    port: reference.Port,
-    annotation: Annotation,
+    reference: reference.Binding,
+    value: Reference,
     span: source.Span,
   )
+  Edge(from: Reference, to: Reference, span: source.Span)
 }
 
-/// Resolved type annotation.
-pub type Annotation {
-  NamedTypeAnnotation(typename: reference.Type, name: String, span: source.Span)
-  ListTypeAnnotation(
-    typename: reference.Type,
-    of: Annotation,
-    span: source.Span,
-  )
-}
-
-/// Resolved executable statement.
-pub type Expression {
-  BindingExpression(
-    alias: String,
-    node: reference.Node,
-    name: String,
-    span: source.Span,
-  )
-  EdgeExpression(from: Reference, to: Reference, span: source.Span)
-}
-
-/// Fully resolved reference.
+/// A reference used in an definition.
+///
+/// ## Examples
+///
+///     m.out
+///     .out
+///     "test"
+///     Math
+///     in: Int -> out: Int { ... }
 pub type Reference {
-  OperationPortReference(name: String, port: reference.Port, span: source.Span)
-  NodePortReference(
+  Access(path: List(String), reference: reference.Access, span: source.Span)
+  Node(name: String, reference: reference.Node, span: source.Span)
+  Literal(value: Primitive, reference: reference.Typename, span: source.Span)
+  SubOperation(
     name: String,
-    alias: String,
-    port: reference.Port,
+    reference: reference.Operation,
+    operation: Operation,
     span: source.Span,
   )
-  ValueReference(value: Value, typename: reference.Type, span: source.Span)
 }
 
-/// Literal value with known type.
-pub type Value {
-  IntValue(value: Int, span: source.Span)
-  FloatValue(value: Float, span: source.Span)
-  StringValue(value: String, span: source.Span)
+/// A literal embedded directly in the graph.
+///
+/// ## Examples
+///
+///     3
+///     3.3
+///     "hello world"
+pub type Primitive {
+  Int(value: Int, span: source.Span)
+  Float(value: Float, span: source.Span)
+  String(value: String, span: source.Span)
 }

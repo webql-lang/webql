@@ -9,16 +9,18 @@ pub fn new_returns_empty_registry_when_typenames_and_nodes_are_empty_test() {
   let registry.Generator(
     typenames: typenames_count,
     nodes: nodes_count,
-    ports: ports_count,
+    accesses: accesses_count,
     operations: operations_count,
+    bindings: bindings_count,
   ) = generator
   let registry.Catalog(typenames:, nodes:) = catalog
   let registry.Environment(inputs:, outputs:, operations:) = environment
 
   assert typenames_count == 0
   assert nodes_count == 0
-  assert ports_count == 0
+  assert accesses_count == 0
   assert operations_count == 0
+  assert bindings_count == 0
   assert typenames == dict.new()
   assert nodes == dict.new()
   assert inputs == dict.new()
@@ -37,7 +39,7 @@ pub fn new_registers_a_single_typename_test() {
   assert count == 1
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
+      #("Int", reference.Typename(0)),
     ])
   assert nodes == dict.new()
 }
@@ -53,9 +55,9 @@ pub fn new_registers_multiple_typenames_in_order_test() {
   assert count == 3
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
-      #("String", reference.Type(1)),
-      #("Bool", reference.Type(2)),
+      #("Int", reference.Typename(0)),
+      #("String", reference.Typename(1)),
+      #("Bool", reference.Typename(2)),
     ])
   assert nodes == dict.new()
 }
@@ -71,8 +73,8 @@ pub fn new_skips_duplicate_typenames_test() {
   assert count == 2
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
-      #("String", reference.Type(1)),
+      #("Int", reference.Typename(0)),
+      #("String", reference.Typename(1)),
     ])
   assert nodes == dict.new()
 }
@@ -88,9 +90,9 @@ pub fn new_preserves_first_reference_when_duplicates_are_present_test() {
   assert count == 3
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
-      #("String", reference.Type(1)),
-      #("Bool", reference.Type(2)),
+      #("Int", reference.Typename(0)),
+      #("String", reference.Typename(1)),
+      #("Bool", reference.Typename(2)),
     ])
   assert nodes == dict.new()
 }
@@ -107,10 +109,10 @@ pub fn new_registers_non_consecutive_duplicates_correctly_test() {
   assert count == 4
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
-      #("String", reference.Type(1)),
-      #("Bool", reference.Type(2)),
-      #("Float", reference.Type(3)),
+      #("Int", reference.Typename(0)),
+      #("String", reference.Typename(1)),
+      #("Bool", reference.Typename(2)),
+      #("Float", reference.Typename(3)),
     ])
   assert nodes == dict.new()
 }
@@ -179,8 +181,8 @@ pub fn new_registers_typenames_and_nodes_together_test() {
   assert nodes_count == 2
   assert typenames
     == dict.from_list([
-      #("Int", reference.Type(0)),
-      #("String", reference.Type(1)),
+      #("Int", reference.Typename(0)),
+      #("String", reference.Typename(1)),
     ])
   assert nodes
     == dict.from_list([

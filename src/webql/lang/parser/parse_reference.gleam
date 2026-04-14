@@ -109,9 +109,9 @@ fn parse_operation_port_reference(
   dot: cursor.Cursor(Nil),
 ) -> Result(cursor.Cursor(ast.Reference), diagnostic.Diagnostic) {
   case dot.rest {
-    [token.Token(kind: token.LowerIdentifier, ..) as tok, ..rest] -> {
-      let port = source.slice(source, tok.span)
-      let span = source.cover(dot.span, tok.span)
+    [token.Token(kind: token.LowerIdentifier, ..) as token, ..rest] -> {
+      let port = source.slice(source, token.span)
+      let span = source.cover(dot.span, token.span)
 
       Ok(cursor.Cursor(current: ast.Access(path: [port], span:), span:, rest:))
     }

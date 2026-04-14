@@ -3,7 +3,7 @@ import webql/lang/resolver/ast
 import webql/lang/resolver/diagnostic
 import webql/lang/resolver/reference
 import webql/lang/resolver/registry
-import webql/lang/resolver/resolve_annotation
+import webql/lang/resolver/resolve_typename
 import webql/lang/source
 
 pub fn resolve_named_type_annotation_test() {
@@ -13,12 +13,12 @@ pub fn resolve_named_type_annotation_test() {
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Ok(annotation) =
-    resolve_annotation.resolve(registry, annotation_to_resolve)
+    resolve_typename.resolve(registry, annotation_to_resolve)
 
   assert annotation
-    == ast.NamedTypeAnnotation(
-      typename: reference.Type(0),
+    == ast.Typename(
       name: "Int",
+      reference: reference.Typename(0),
       span: source.Span(start: 0, end: 3),
     )
 }
@@ -30,11 +30,11 @@ pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Error(error) =
-    resolve_annotation.resolve(registry, annotation_to_resolve)
+    resolve_typename.resolve(registry, annotation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnknownType("Int"),
+      kind: diagnostic.UnknownTypename("Int"),
       span: source.Span(start: 0, end: 3),
     )
 }
