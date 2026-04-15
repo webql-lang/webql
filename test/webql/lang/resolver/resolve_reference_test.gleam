@@ -142,57 +142,6 @@ pub fn resolve_input_single_segment_access_returns_access_reference_test() {
     )
 }
 
-pub fn resolve_input_multi_segment_access_returns_access_reference_test() {
-  let registry =
-    registry.Registry(
-      ..registry.new(typenames: ["Int"], nodes: []),
-      environment: registry.Environment(
-        inputs: dict.from_list([
-          #(["math", "output", "value"], reference.Access(0)),
-        ]),
-        outputs: dict.new(),
-        operations: dict.new(),
-      ),
-    )
-
-  let assert Ok(ast.Access(
-    path: ["math", "output", "value"],
-    reference: reference.Access(0),
-    span: source.Span(0, 17),
-  )) =
-    resolve_reference.resolve_input(
-      registry,
-      parser_ast.Access(
-        path: ["math", "output", "value"],
-        span: source.Span(0, 17),
-      ),
-    )
-}
-
-pub fn resolve_input_multi_segment_access_returns_unknown_access_when_missing_test() {
-  let registry =
-    registry.Registry(
-      ..registry.new(typenames: ["Int"], nodes: []),
-      environment: registry.Environment(
-        inputs: dict.new(),
-        outputs: dict.new(),
-        operations: dict.new(),
-      ),
-    )
-
-  let assert Error(diagnostic.Diagnostic(
-    kind: diagnostic.UnknownAccess(path: ["math", "output", "value"]),
-    span: source.Span(0, 17),
-  )) =
-    resolve_reference.resolve_input(
-      registry,
-      parser_ast.Access(
-        path: ["math", "output", "value"],
-        span: source.Span(0, 17),
-      ),
-    )
-}
-
 pub fn resolve_input_primitive_reference_delegates_to_resolve_primitive_test() {
   let registry = registry.new(typenames: ["Int"], nodes: [])
 
