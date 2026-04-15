@@ -7,7 +7,7 @@ import webql/lang/source
 ///
 ///     in: Int -> out: Int { ... }
 pub type Module {
-  Module(operation: Operation, span: source.Span)
+  Module(operation: Operation, reference: reference.Module, span: source.Span)
 }
 
 /// A operation with inputs, outputs, and definitions that wire data flow.
@@ -18,7 +18,6 @@ pub type Module {
 ///     -> out: Int { ... }
 pub type Operation {
   Operation(
-    reference: reference.Operation,
     inputs: List(Parameter),
     outputs: List(Parameter),
     definitions: List(Definition),

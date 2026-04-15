@@ -9,7 +9,7 @@ pub fn resolve(
   registry: registry.Registry,
   annotation: parser_ast.Typename,
 ) -> Result(ast.Typename, diagnostic.Diagnostic) {
-  case dict.get(registry.catalog.typenames, annotation.name) {
+  case dict.get(registry.typenames, annotation.name) {
     Ok(reference) ->
       Ok(ast.Typename(name: annotation.name, reference:, span: annotation.span))
 
