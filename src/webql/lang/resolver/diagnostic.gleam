@@ -1,18 +1,16 @@
-import gleam/option
 import webql/lang/source
 
 pub type DiagnosticKind {
-  UnknownType(name: String)
+  UnknownTypename(name: String)
   UnknownNode(name: String)
   UnknownOperation(name: String)
-  UnknownReference(owner: option.Option(String), name: String)
+  UnknownAccess(path: List(String))
   DuplicateInput(name: String)
   DuplicateOutput(name: String)
-  DuplicateAlias(alias: String)
-  DuplicateNestedOperation(name: String)
+  DuplicateBinding(name: String)
+  DuplicateEdge(name: String)
   TypeMismatch(expected: String, found: String)
   InvalidEdge(from: String, to: String)
-  InvalidLiteral(message: String)
 }
 
 pub type Diagnostic {

@@ -4,16 +4,16 @@ import webql/lang/resolver/ast
 import webql/lang/resolver/diagnostic
 import webql/lang/resolver/reference
 import webql/lang/resolver/registry
-import webql/lang/resolver/resolve_annotation
+import webql/lang/resolver/resolve_typename
 
 /// Resolves a field.
 pub fn resolve(
   registry: registry.Registry,
   field: parser_ast.Parameter,
-  port: reference.Port,
-) -> Result(ast.Field, diagnostic.Diagnostic) {
+  reference: reference.Access,
+) -> Result(ast.Parameter, diagnostic.Diagnostic) {
   let parser_ast.Parameter(name:, typename:, span:) = field
-  use annotation <- result.try(resolve_annotation.resolve(registry, typename))
+  use typename <- result.try(resolve_typename.resolve(registry, typename))
 
-  Ok(ast.Field(name:, port:, annotation:, span:))
+  Ok(ast.Parameter(name:, typename:, reference:, span:))
 }

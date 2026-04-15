@@ -3,7 +3,7 @@ import webql/lang/resolver/ast
 import webql/lang/resolver/diagnostic
 import webql/lang/resolver/reference
 import webql/lang/resolver/registry
-import webql/lang/resolver/resolve_field
+import webql/lang/resolver/resolve_parameter
 import webql/lang/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
@@ -19,18 +19,22 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
       span: source.Span(start: 0, end: 10),
     )
 
-  let assert Ok(field) =
-    resolve_field.resolve(registry, parameter_to_resolve, reference.Port(0))
+  let assert Ok(parameter) =
+    resolve_parameter.resolve(
+      registry,
+      parameter_to_resolve,
+      reference.Access(0),
+    )
 
-  assert field
-    == ast.Field(
+  assert parameter
+    == ast.Parameter(
       name: "value",
-      port: reference.Port(0),
-      annotation: ast.NamedTypeAnnotation(
-        typename: reference.Type(0),
+      typename: ast.Typename(
         name: "Int",
+        reference: reference.Typename(0),
         span: source.Span(start: 7, end: 10),
       ),
+      reference: reference.Access(0),
       span: source.Span(start: 0, end: 10),
     )
 }
@@ -49,11 +53,15 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
     )
 
   let assert Error(error) =
-    resolve_field.resolve(registry, parameter_to_resolve, reference.Port(0))
+    resolve_parameter.resolve(
+      registry,
+      parameter_to_resolve,
+      reference.Access(0),
+    )
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnknownType("Int"),
+      kind: diagnostic.UnknownTypename("Int"),
       span: source.Span(start: 7, end: 10),
     )
 }

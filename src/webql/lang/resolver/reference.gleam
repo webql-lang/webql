@@ -3,17 +3,22 @@ pub type Operation {
   Operation(Int)
 }
 
-/// A reference to a stable node in an operation.
+/// A stable binding reference.
+pub type Binding {
+  Binding(Int)
+}
+
+/// A accessible reference path.
+pub type Access {
+  Access(Int)
+}
+
+/// A reference to a stable node.
 pub type Node {
   Node(Int)
 }
 
-/// A reference to a stable port in an operation or node.
-pub type Port {
-  Port(Int)
-}
-
 /// A reference to a stable type in an operation.
-pub type Type {
-  Type(Int)
+pub type Typename {
+  Typename(Int)
 }

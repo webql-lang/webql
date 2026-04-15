@@ -1,13 +1,12 @@
 import gleam/dict
 import gleam/list
-import gleam/option
 import webql/lang/resolver/reference
 
 /// The environment is a key-value store that gets populated as the language resolves foreign references.
 pub type Environment {
   Environment(
-    inputs: dict.Dict(#(option.Option(String), String), reference.Port),
-    outputs: dict.Dict(#(option.Option(String), String), reference.Port),
+    inputs: dict.Dict(List(String), reference.Access),
+    outputs: dict.Dict(List(String), reference.Access),
     operations: dict.Dict(String, #(reference.Operation, Environment)),
   )
 }
@@ -16,14 +15,20 @@ pub type Environment {
 /// This is designed to hold static records for the type-checker to discover.
 pub type Catalog {
   Catalog(
-    typenames: dict.Dict(String, reference.Type),
+    typenames: dict.Dict(String, reference.Typename),
     nodes: dict.Dict(String, reference.Node),
   )
 }
 
 /// A incrementing generator designed to store the next unique stable ID.
 pub type Generator {
-  Generator(typenames: Int, nodes: Int, ports: Int, operations: Int)
+  Generator(
+    typenames: Int,
+    nodes: Int,
+    accesses: Int,
+    operations: Int,
+    bindings: Int,
+  )
 }
 
 /// A registry with resolver context and a stable ID generator.
@@ -39,7 +44,13 @@ pub fn new(
   let registry =
     Registry(
       catalog: Catalog(typenames: dict.new(), nodes: dict.new()),
-      generator: Generator(typenames: 0, nodes: 0, ports: 0, operations: 0),
+      generator: Generator(
+        typenames: 0,
+        nodes: 0,
+        accesses: 0,
+        operations: 0,
+        bindings: 0,
+      ),
       environment: Environment(
         inputs: dict.new(),
         outputs: dict.new(),
@@ -70,7 +81,7 @@ fn register_typenames(registry: Registry, typenames: List(String)) {
             typenames: dict.insert(
               catalog.typenames,
               typename,
-              reference.Type(count),
+              reference.Typename(count),
             ),
           ),
         )
