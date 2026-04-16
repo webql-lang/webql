@@ -1,11 +1,11 @@
-/// A accessible reference path.
-pub type Access {
-  Access(Int)
-}
-
 /// A stable binding reference.
 pub type Binding {
   Binding(Int)
+}
+
+/// A input reference path.
+pub type Input {
+  Input(Int)
 }
 
 /// A reference to a stable module.
@@ -16,6 +16,11 @@ pub type Module {
 /// A reference to a stable node.
 pub type Node {
   Node(Int)
+}
+
+/// A output reference path.
+pub type Output {
+  Output(Int)
 }
 
 /// A stable operation reference.

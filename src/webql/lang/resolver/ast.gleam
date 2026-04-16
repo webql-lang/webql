@@ -18,24 +18,37 @@ pub type Module {
 ///     -> out: Int { ... }
 pub type Operation {
   Operation(
-    inputs: List(Parameter),
-    outputs: List(Parameter),
+    inputs: List(Input),
+    outputs: List(Output),
     definitions: List(Definition),
     span: source.Span,
   )
 }
 
-/// A named input or output with a typename.
+/// A named input with a typename.
 ///
 /// ## Examples
 ///
 ///     in: Int
-///     out: String
-pub type Parameter {
-  Parameter(
+pub type Input {
+  Input(
     name: String,
     typename: Typename,
-    reference: reference.Access,
+    reference: reference.Input,
+    span: source.Span,
+  )
+}
+
+/// A named output with a typename.
+///
+/// ## Examples
+///
+///     out: String
+pub type Output {
+  Output(
+    name: String,
+    typename: Typename,
+    reference: reference.Output,
     span: source.Span,
   )
 }
@@ -78,7 +91,12 @@ pub type Definition {
 ///     Math
 ///     in: Int -> out: Int { ... }
 pub type Reference {
-  Access(path: List(String), reference: reference.Access, span: source.Span)
+  InputAccess(path: List(String), reference: reference.Input, span: source.Span)
+  OutputAccess(
+    path: List(String),
+    reference: reference.Output,
+    span: source.Span,
+  )
   Node(name: String, reference: reference.Node, span: source.Span)
   Literal(value: Primitive, reference: reference.Typename, span: source.Span)
   SubOperation(

@@ -111,7 +111,7 @@ fn parse_node_port_edge_definition(
 
       let from =
         cursor.Cursor(
-          current: ast.Access(path: [alias.current, port], span:),
+          current: ast.OutputAccess(path: [alias.current, port], span:),
           span:,
           rest:,
         )

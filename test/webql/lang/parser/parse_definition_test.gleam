@@ -42,8 +42,11 @@ pub fn parse_node_port_edge_definition_test() {
   assert definition
     == ast.Edge(
       span: source.Span(start: 0, end: 13),
-      from: ast.Access(span: source.Span(start: 0, end: 5), path: ["m", "out"]),
-      to: ast.Access(span: source.Span(start: 9, end: 13), path: ["out"]),
+      from: ast.OutputAccess(span: source.Span(start: 0, end: 5), path: [
+        "m",
+        "out",
+      ]),
+      to: ast.InputAccess(span: source.Span(start: 9, end: 13), path: ["out"]),
     )
 
   assert rest
@@ -68,7 +71,7 @@ pub fn parse_literal_edge_definition_test() {
         span: source.Span(start: 0, end: 6),
         value: ast.String(span: source.Span(start: 0, end: 6), value: "test"),
       ),
-      to: ast.Access(span: source.Span(start: 10, end: 14), path: ["out"]),
+      to: ast.InputAccess(span: source.Span(start: 10, end: 14), path: ["out"]),
     )
 
   assert rest
@@ -89,8 +92,8 @@ pub fn parse_preserves_remaining_tokens_after_definition_test() {
   assert definition
     == ast.Edge(
       span: source.Span(start: 0, end: 11),
-      from: ast.Access(span: source.Span(start: 0, end: 3), path: ["in"]),
-      to: ast.Access(span: source.Span(start: 7, end: 11), path: ["out"]),
+      from: ast.InputAccess(span: source.Span(start: 0, end: 3), path: ["in"]),
+      to: ast.InputAccess(span: source.Span(start: 7, end: 11), path: ["out"]),
     )
 
   assert rest

@@ -84,7 +84,7 @@ fn parse_node_port_reference_port(
       let span = source.cover(alias.span, name.span)
 
       Ok(cursor.Cursor(
-        current: ast.Access(path: [alias.current, port], span:),
+        current: ast.OutputAccess(path: [alias.current, port], span:),
         span:,
         rest:,
       ))
@@ -113,7 +113,11 @@ fn parse_operation_port_reference(
       let port = source.slice(source, token.span)
       let span = source.cover(dot.span, token.span)
 
-      Ok(cursor.Cursor(current: ast.Access(path: [port], span:), span:, rest:))
+      Ok(cursor.Cursor(
+        current: ast.InputAccess(path: [port], span:),
+        span:,
+        rest:,
+      ))
     }
 
     [token.Token(kind: kind, span:), ..] ->

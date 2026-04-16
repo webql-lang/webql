@@ -7,11 +7,11 @@ import webql/lang/parser/parse_nonstarter
 import webql/lang/parser/parse_typename
 import webql/lang/source
 
-/// Parses a parameter or single key/value (type) pair.
+/// Parses an output parameter.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Parameter), diagnostic.Diagnostic) {
+) -> Result(cursor.Cursor(ast.Output), diagnostic.Diagnostic) {
   use key <- result.try(parse_key(source, tokens))
   use rest <- result.try(parse_separator(key.rest))
   use cursor.Cursor(current: typename, span: typename_span, rest:) <- result.try(
@@ -21,14 +21,12 @@ pub fn parse(
   let span = source.cover(key.span, typename_span)
 
   Ok(cursor.Cursor(
-    current: ast.Parameter(span:, name: key.current, typename:),
+    current: ast.Output(span:, name: key.current, typename:),
     span:,
     rest:,
   ))
 }
 
-// PRIVATE FUNCTIONS
-// =================
 fn parse_key(
   source: String,
   tokens: List(token.Token),
