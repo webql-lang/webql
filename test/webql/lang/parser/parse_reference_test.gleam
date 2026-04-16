@@ -19,7 +19,7 @@ pub fn parse_node_port_reference_test() {
 
   assert span == source.Span(start: 0, end: 5)
   assert reference
-    == ast.Access(span: source.Span(start: 0, end: 5), path: ["m", "out"])
+    == ast.OutputAccess(span: source.Span(start: 0, end: 5), path: ["m", "out"])
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
 }
@@ -37,7 +37,7 @@ pub fn parse_operation_port_reference_test() {
 
   assert span == source.Span(start: 0, end: 4)
   assert reference
-    == ast.Access(span: source.Span(start: 0, end: 4), path: ["out"])
+    == ast.InputAccess(span: source.Span(start: 0, end: 4), path: ["out"])
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
 }
@@ -76,7 +76,7 @@ pub fn parse_preserves_remaining_tokens_after_reference_test() {
 
   assert span == source.Span(start: 0, end: 5)
   assert reference
-    == ast.Access(span: source.Span(start: 0, end: 5), path: ["m", "out"])
+    == ast.OutputAccess(span: source.Span(start: 0, end: 5), path: ["m", "out"])
   assert rest
     == [
       token.Token(kind: token.Space, span: source.Span(start: 5, end: 6)),

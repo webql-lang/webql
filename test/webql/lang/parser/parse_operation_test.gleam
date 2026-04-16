@@ -22,7 +22,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
     == ast.Operation(
       span: source.Span(start: 0, end: 79),
       inputs: [
-        ast.Parameter(
+        ast.Input(
           span: source.Span(start: 0, end: 6),
           name: "a",
           typename: ast.Typename(
@@ -30,7 +30,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
             name: "Int",
           ),
         ),
-        ast.Parameter(
+        ast.Input(
           span: source.Span(start: 8, end: 17),
           name: "b",
           typename: ast.Typename(
@@ -40,7 +40,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
         ),
       ],
       outputs: [
-        ast.Parameter(
+        ast.Output(
           span: source.Span(start: 21, end: 29),
           name: "c",
           typename: ast.Typename(
@@ -48,7 +48,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
             name: "Float",
           ),
         ),
-        ast.Parameter(
+        ast.Output(
           span: source.Span(start: 31, end: 38),
           name: "d",
           typename: ast.Typename(
@@ -67,7 +67,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
             operation: ast.Operation(
               span: source.Span(start: 49, end: 68),
               inputs: [
-                ast.Parameter(
+                ast.Input(
                   span: source.Span(start: 49, end: 55),
                   name: "x",
                   typename: ast.Typename(
@@ -77,7 +77,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
                 ),
               ],
               outputs: [
-                ast.Parameter(
+                ast.Output(
                   span: source.Span(start: 59, end: 65),
                   name: "y",
                   typename: ast.Typename(
@@ -92,8 +92,10 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
         ),
         ast.Edge(
           span: source.Span(start: 69, end: 77),
-          from: ast.Access(span: source.Span(start: 69, end: 71), path: ["a"]),
-          to: ast.Access(span: source.Span(start: 75, end: 77), path: ["c"]),
+          from: ast.InputAccess(span: source.Span(start: 69, end: 71), path: [
+            "a",
+          ]),
+          to: ast.InputAccess(span: source.Span(start: 75, end: 77), path: ["c"]),
         ),
       ],
     )
@@ -118,7 +120,7 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
       span: source.Span(start: 0, end: 14),
       inputs: [],
       outputs: [
-        ast.Parameter(
+        ast.Output(
           span: source.Span(start: 3, end: 11),
           name: "out",
           typename: ast.Typename(

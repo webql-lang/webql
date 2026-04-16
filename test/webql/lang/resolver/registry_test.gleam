@@ -27,16 +27,29 @@ pub fn add_node_assigns_stable_reference_test() {
     ])
 }
 
-pub fn add_access_assigns_stable_reference_test() {
+pub fn add_input_assigns_stable_reference_test() {
   let registry =
-    registry.add_accesses(registry.new(), [["in"], ["math", "out"], ["in"]])
+    registry.add_inputs(registry.new(), [["in"], ["math", "in"], ["in"]])
 
-  let registry.Registry(accesses:, ..) = registry
+  let registry.Registry(inputs:, ..) = registry
 
-  assert accesses
+  assert inputs
     == dict.from_list([
-      #(["in"], reference.Access(0)),
-      #(["math", "out"], reference.Access(1)),
+      #(["in"], reference.Input(0)),
+      #(["math", "in"], reference.Input(1)),
+    ])
+}
+
+pub fn add_output_assigns_stable_reference_test() {
+  let registry =
+    registry.add_outputs(registry.new(), [["out"], ["math", "out"], ["out"]])
+
+  let registry.Registry(outputs:, ..) = registry
+
+  assert outputs
+    == dict.from_list([
+      #(["out"], reference.Output(0)),
+      #(["math", "out"], reference.Output(1)),
     ])
 }
 

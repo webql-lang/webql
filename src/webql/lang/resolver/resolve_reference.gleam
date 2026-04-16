@@ -19,7 +19,7 @@ pub fn resolve_input(
   registry: registry.Registry,
   reference: parser_ast.Reference,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
-  resolve_reference(registry, reference)
+  resolve_input_reference(registry, reference)
 }
 
 /// Resolves an output reference.
@@ -27,17 +27,20 @@ pub fn resolve_output(
   registry: registry.Registry,
   reference: parser_ast.Reference,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
-  resolve_reference(registry, reference)
+  resolve_output_reference(registry, reference)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn resolve_reference(
+fn resolve_input_reference(
   registry: registry.Registry,
   reference: parser_ast.Reference,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
   case reference {
-    parser_ast.Access(path:, span:) -> resolve_access(registry, path, span)
+    parser_ast.InputAccess(path:, span:) ->
+      resolve_input_access(registry, path, span)
+    parser_ast.OutputAccess(path:, span:) ->
+      resolve_output_access(registry, path, span)
     parser_ast.Literal(value:, span:) -> resolve_literal(registry, value, span)
     parser_ast.Node(name:, span:) -> resolve_node(registry, name, span)
     parser_ast.SubOperation(name:, operation:, span:) ->
@@ -45,13 +48,42 @@ fn resolve_reference(
   }
 }
 
-fn resolve_access(
+fn resolve_output_reference(
+  registry: registry.Registry,
+  reference: parser_ast.Reference,
+) -> Result(ast.Reference, diagnostic.Diagnostic) {
+  case reference {
+    parser_ast.InputAccess(path:, span:) ->
+      resolve_input_access(registry, path, span)
+    parser_ast.OutputAccess(path:, span:) ->
+      resolve_output_access(registry, path, span)
+    parser_ast.Literal(value:, span:) -> resolve_literal(registry, value, span)
+    parser_ast.Node(name:, span:) -> resolve_node(registry, name, span)
+    parser_ast.SubOperation(name:, operation:, span:) ->
+      resolve_operation(registry, name, operation, span)
+  }
+}
+
+fn resolve_input_access(
   registry: registry.Registry,
   path: List(String),
   span: source.Span,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
-  case dict.get(registry.accesses, path) {
-    Ok(reference) -> Ok(ast.Access(path:, reference:, span:))
+  case dict.get(registry.inputs, path) {
+    Ok(reference) -> Ok(ast.InputAccess(path:, reference:, span:))
+
+    Error(_missing) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownAccess(path:), span:))
+  }
+}
+
+fn resolve_output_access(
+  registry: registry.Registry,
+  path: List(String),
+  span: source.Span,
+) -> Result(ast.Reference, diagnostic.Diagnostic) {
+  case dict.get(registry.outputs, path) {
+    Ok(reference) -> Ok(ast.OutputAccess(path:, reference:, span:))
 
     Error(_missing) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownAccess(path:), span:))

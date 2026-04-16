@@ -10,16 +10,16 @@ pub fn resolve_output_access_reference_returns_access_reference_test() {
   let registry =
     registry.new()
     |> registry.add_typename("Int")
-    |> registry.add_access(["math", "out"])
+    |> registry.add_output(["math", "out"])
 
-  let assert Ok(ast.Access(
+  let assert Ok(ast.OutputAccess(
     path: ["math", "out"],
-    reference: reference.Access(0),
+    reference: reference.Output(0),
     span: source.Span(0, 8),
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.Access(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -32,7 +32,7 @@ pub fn resolve_output_access_returns_unknown_access_when_output_is_missing_test(
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.Access(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -45,7 +45,7 @@ pub fn resolve_output_access_returns_unknown_access_when_path_is_missing_test() 
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.Access(path: ["out"], span: source.Span(0, 3)),
+      parser_ast.InputAccess(path: ["out"], span: source.Span(0, 3)),
     )
 }
 
@@ -53,16 +53,16 @@ pub fn resolve_input_access_reference_returns_access_reference_test() {
   let registry =
     registry.new()
     |> registry.add_typename("Int")
-    |> registry.add_access(["math", "value"])
+    |> registry.add_input(["math", "value"])
 
-  let assert Ok(ast.Access(
+  let assert Ok(ast.InputAccess(
     path: ["math", "value"],
-    reference: reference.Access(0),
+    reference: reference.Input(0),
     span: source.Span(0, 10),
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.Access(path: ["math", "value"], span: source.Span(0, 10)),
+      parser_ast.InputAccess(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
@@ -75,7 +75,7 @@ pub fn resolve_input_access_returns_unknown_access_when_input_is_missing_test() 
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.Access(path: ["math", "value"], span: source.Span(0, 10)),
+      parser_ast.OutputAccess(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
@@ -83,16 +83,16 @@ pub fn resolve_input_single_segment_access_returns_access_reference_test() {
   let registry =
     registry.new()
     |> registry.add_typename("Int")
-    |> registry.add_access(["value"])
+    |> registry.add_input(["value"])
 
-  let assert Ok(ast.Access(
+  let assert Ok(ast.InputAccess(
     path: ["value"],
-    reference: reference.Access(0),
+    reference: reference.Input(0),
     span: source.Span(0, 5),
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.Access(path: ["value"], span: source.Span(0, 5)),
+      parser_ast.InputAccess(path: ["value"], span: source.Span(0, 5)),
     )
 }
 

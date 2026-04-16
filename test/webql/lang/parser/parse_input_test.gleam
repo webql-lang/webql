@@ -3,10 +3,10 @@ import webql/lang/lexer/token
 import webql/lang/parser/ast
 import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
-import webql/lang/parser/parse_parameter
+import webql/lang/parser/parse_input
 import webql/lang/source
 
-pub fn parse_returns_parameter_test() {
+pub fn parse_returns_input_test() {
   let source = "  name:   String"
 
   let assert Ok(tokens) =
@@ -14,11 +14,11 @@ pub fn parse_returns_parameter_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
-    parse_parameter.parse(source, tokens)
+  let assert Ok(cursor.Cursor(current: input, rest:, ..)) =
+    parse_input.parse(source, tokens)
 
-  assert parameter
-    == ast.Parameter(
+  assert input
+    == ast.Input(
       span: source.Span(start: 2, end: 16),
       name: "name",
       typename: ast.Typename(
@@ -31,7 +31,7 @@ pub fn parse_returns_parameter_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 16, end: 16))]
 }
 
-pub fn parse_preserves_remaining_tokens_after_parameter_test() {
+pub fn parse_preserves_remaining_tokens_after_input_test() {
   let source = "name: String other"
 
   let assert Ok(tokens) =
@@ -39,11 +39,11 @@ pub fn parse_preserves_remaining_tokens_after_parameter_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
-    parse_parameter.parse(source, tokens)
+  let assert Ok(cursor.Cursor(current: input, rest:, ..)) =
+    parse_input.parse(source, tokens)
 
-  assert parameter
-    == ast.Parameter(
+  assert input
+    == ast.Input(
       span: source.Span(start: 0, end: 12),
       name: "name",
       typename: ast.Typename(
@@ -71,7 +71,7 @@ pub fn parse_returns_unexpected_eof_when_tokens_are_empty_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Error(error) = parse_parameter.parse(source, tokens)
+  let assert Error(error) = parse_input.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
@@ -88,7 +88,7 @@ pub fn parse_returns_unexpected_token_when_separator_is_missing_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Error(error) = parse_parameter.parse(source, tokens)
+  let assert Error(error) = parse_input.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
@@ -105,7 +105,7 @@ pub fn parse_returns_unexpected_eof_when_annotation_is_missing_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Error(error) = parse_parameter.parse(source, tokens)
+  let assert Error(error) = parse_input.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(

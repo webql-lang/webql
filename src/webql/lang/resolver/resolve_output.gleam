@@ -6,14 +6,14 @@ import webql/lang/resolver/reference
 import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_typename
 
-/// Resolves a field.
+/// Resolves an output field.
 pub fn resolve(
   registry: registry.Registry,
-  field: parser_ast.Parameter,
-  reference: reference.Access,
-) -> Result(ast.Parameter, diagnostic.Diagnostic) {
-  let parser_ast.Parameter(name:, typename:, span:) = field
+  field: parser_ast.Output,
+  reference: reference.Output,
+) -> Result(ast.Output, diagnostic.Diagnostic) {
+  let parser_ast.Output(name:, typename:, span:) = field
   use typename <- result.try(resolve_typename.resolve(registry, typename))
 
-  Ok(ast.Parameter(name:, typename:, reference:, span:))
+  Ok(ast.Output(name:, typename:, reference:, span:))
 }

@@ -5,8 +5,9 @@ import webql/lang/parser/ast
 import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_definition
+import webql/lang/parser/parse_input
 import webql/lang/parser/parse_nonstarter
-import webql/lang/parser/parse_parameter
+import webql/lang/parser/parse_output
 import webql/lang/source
 
 /// Parses an operation.
@@ -125,15 +126,15 @@ fn parse_declaration_equal(
 fn parse_inputs(
   source: String,
   tokens: List(token.Token),
-  inputs: List(ast.Parameter),
-) -> Result(cursor.Cursor(List(ast.Parameter)), diagnostic.Diagnostic) {
+  inputs: List(ast.Input),
+) -> Result(cursor.Cursor(List(ast.Input)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: parameter, rest: remaining, ..) <- result.try(
-        parse_parameter.parse(source, tokens),
+      use cursor.Cursor(current: input, rest: remaining, ..) <- result.try(
+        parse_input.parse(source, tokens),
       )
 
-      parse_inputs(source, remaining, [parameter, ..inputs])
+      parse_inputs(source, remaining, [input, ..inputs])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->
@@ -152,15 +153,15 @@ fn parse_inputs(
 fn parse_outputs(
   source: String,
   tokens: List(token.Token),
-  outputs: List(ast.Parameter),
-) -> Result(cursor.Cursor(List(ast.Parameter)), diagnostic.Diagnostic) {
+  outputs: List(ast.Output),
+) -> Result(cursor.Cursor(List(ast.Output)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: parameter, rest: remaining, ..) <- result.try(
-        parse_parameter.parse(source, tokens),
+      use cursor.Cursor(current: output, rest: remaining, ..) <- result.try(
+        parse_output.parse(source, tokens),
       )
 
-      parse_outputs(source, remaining, [parameter, ..outputs])
+      parse_outputs(source, remaining, [output, ..outputs])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->

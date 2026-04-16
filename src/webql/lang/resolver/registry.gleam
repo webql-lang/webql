@@ -6,7 +6,8 @@ import webql/lang/resolver/reference
 /// A registry with resolver context.
 pub type Registry {
   Registry(
-    accesses: dict.Dict(List(String), reference.Access),
+    inputs: dict.Dict(List(String), reference.Input),
+    outputs: dict.Dict(List(String), reference.Output),
     bindings: dict.Dict(List(String), reference.Binding),
     nodes: dict.Dict(String, reference.Node),
     operations: dict.Dict(String, #(reference.Operation, Registry)),
@@ -19,7 +20,8 @@ pub fn new() -> Registry {
   Registry(
     typenames: dict.new(),
     nodes: dict.new(),
-    accesses: dict.new(),
+    inputs: dict.new(),
+    outputs: dict.new(),
     operations: dict.new(),
     bindings: dict.new(),
   )
@@ -65,27 +67,44 @@ pub fn add_nodes(registry: Registry, nodes: List(String)) -> Registry {
   list.fold(nodes, registry, add_node)
 }
 
-/// Adds an access to the current registry instance.
-pub fn add_access(registry: Registry, access: List(String)) -> Registry {
-  let Registry(accesses:, ..) = registry
+/// Adds an input to the current registry instance.
+pub fn add_input(registry: Registry, input: List(String)) -> Registry {
+  let Registry(inputs:, ..) = registry
 
   Registry(
     ..registry,
-    accesses: dict.upsert(accesses, access, fn(access) {
-      case access {
-        option.Some(access) -> access
-        option.None -> next_access(registry)
+    inputs: dict.upsert(inputs, input, fn(input) {
+      case input {
+        option.Some(input) -> input
+        option.None -> next_input(registry)
       }
     }),
   )
 }
 
-/// Adds accesses to the current registry instance.
-pub fn add_accesses(
-  registry: Registry,
-  accesses: List(List(String)),
-) -> Registry {
-  list.fold(accesses, registry, add_access)
+/// Adds inputs to the current registry instance.
+pub fn add_inputs(registry: Registry, inputs: List(List(String))) -> Registry {
+  list.fold(inputs, registry, add_input)
+}
+
+/// Adds an output to the current registry instance.
+pub fn add_output(registry: Registry, output: List(String)) -> Registry {
+  let Registry(outputs:, ..) = registry
+
+  Registry(
+    ..registry,
+    outputs: dict.upsert(outputs, output, fn(output) {
+      case output {
+        option.Some(output) -> output
+        option.None -> next_output(registry)
+      }
+    }),
+  )
+}
+
+/// Adds outputs to the current registry instance.
+pub fn add_outputs(registry: Registry, outputs: List(List(String))) -> Registry {
+  list.fold(outputs, registry, add_output)
 }
 
 /// Adds a binding to the current registry instance.
@@ -132,12 +151,16 @@ pub fn add_operation(
 
 // PRIVATE FUNCTIONS
 // =================
-fn next_access(registry: Registry) -> reference.Access {
-  reference.Access(dict.size(registry.accesses))
-}
-
 fn next_binding(registry: Registry) -> reference.Binding {
   reference.Binding(dict.size(registry.bindings))
+}
+
+fn next_input(registry: Registry) -> reference.Input {
+  reference.Input(dict.size(registry.inputs))
+}
+
+fn next_output(registry: Registry) -> reference.Output {
+  reference.Output(dict.size(registry.outputs))
 }
 
 fn next_operation(registry: Registry) -> reference.Operation {
