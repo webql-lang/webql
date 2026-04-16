@@ -60,11 +60,7 @@ pub fn add_operation_keeps_existing_registration_test() {
 
   let registry =
     registry.add_operation(
-      registry.add_operation(
-        registry.new(),
-        "Math",
-        first_operation_registry,
-      ),
+      registry.add_operation(registry.new(), "Math", first_operation_registry),
       "Math",
       second_operation_registry,
     )
