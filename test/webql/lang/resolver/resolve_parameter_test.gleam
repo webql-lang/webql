@@ -7,7 +7,7 @@ import webql/lang/resolver/resolve_parameter
 import webql/lang/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
-  let registry = registry.new(typenames: ["Int"], nodes: [])
+  let registry = registry.add_typename(registry.new(), "Int")
 
   let parameter_to_resolve =
     parser_ast.Parameter(
@@ -40,7 +40,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
-  let registry = registry.new(typenames: [], nodes: [])
+  let registry = registry.new()
 
   let parameter_to_resolve =
     parser_ast.Parameter(
