@@ -9,6 +9,7 @@ pub type Registry {
     inputs: dict.Dict(List(String), reference.Input),
     outputs: dict.Dict(List(String), reference.Output),
     bindings: dict.Dict(List(String), reference.Binding),
+    edges: dict.Dict(#(List(String), List(String)), reference.Edge),
     nodes: dict.Dict(String, reference.Node),
     operations: dict.Dict(String, #(reference.Operation, Registry)),
     typenames: dict.Dict(String, reference.Typename),
@@ -24,6 +25,7 @@ pub fn new() -> Registry {
     outputs: dict.new(),
     operations: dict.new(),
     bindings: dict.new(),
+    edges: dict.new(),
   )
 }
 
@@ -130,6 +132,32 @@ pub fn add_bindings(
   list.fold(bindings, registry, add_binding)
 }
 
+/// Adds a edge to the current registry instance.
+pub fn add_edge(
+  registry: Registry,
+  edge: #(List(String), List(String)),
+) -> Registry {
+  let Registry(edges:, ..) = registry
+
+  Registry(
+    ..registry,
+    edges: dict.upsert(edges, edge, fn(edge) {
+      case edge {
+        option.Some(edge) -> edge
+        option.None -> next_edge(registry)
+      }
+    }),
+  )
+}
+
+/// Adds edges to the current registry instance.
+pub fn add_edges(
+  registry: Registry,
+  edges: List(#(List(String), List(String))),
+) -> Registry {
+  list.fold(edges, registry, add_edge)
+}
+
 /// Adds an operation to the current registry instance.
 pub fn add_operation(
   registry: Registry,
@@ -153,6 +181,10 @@ pub fn add_operation(
 // =================
 fn next_binding(registry: Registry) -> reference.Binding {
   reference.Binding(dict.size(registry.bindings))
+}
+
+fn next_edge(registry: Registry) -> reference.Edge {
+  reference.Edge(dict.size(registry.edges))
 }
 
 fn next_input(registry: Registry) -> reference.Input {

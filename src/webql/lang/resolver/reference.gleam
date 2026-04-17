@@ -3,6 +3,11 @@ pub type Binding {
   Binding(Int)
 }
 
+// A stable edge reference.
+pub type Edge {
+  Edge(Int)
+}
+
 /// A input reference path.
 pub type Input {
   Input(Int)

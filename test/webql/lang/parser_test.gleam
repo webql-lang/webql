@@ -47,7 +47,8 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
             ),
           ),
         ],
-        definitions: [],
+        bindings: [],
+        edges: [],
       ),
     )
 }

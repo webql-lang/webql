@@ -57,7 +57,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
           ),
         ),
       ],
-      definitions: [
+      bindings: [
         ast.Binding(
           span: source.Span(start: 41, end: 68),
           name: "Inner",
@@ -86,10 +86,13 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
                   ),
                 ),
               ],
-              definitions: [],
+              bindings: [],
+              edges: [],
             ),
           ),
         ),
+      ],
+      edges: [
         ast.Edge(
           span: source.Span(start: 69, end: 77),
           from: ast.InputAccess(span: source.Span(start: 69, end: 71), path: [
@@ -129,7 +132,8 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
           ),
         ),
       ],
-      definitions: [],
+      bindings: [],
+      edges: [],
     )
 
   assert rest

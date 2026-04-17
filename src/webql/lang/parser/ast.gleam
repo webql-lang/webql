@@ -19,7 +19,8 @@ pub type Operation {
   Operation(
     inputs: List(Input),
     outputs: List(Output),
-    definitions: List(Definition),
+    bindings: List(Binding),
+    edges: List(Edge),
     span: source.Span,
   )
 }
@@ -53,16 +54,23 @@ pub type Typename {
   Typename(name: String, span: source.Span)
 }
 
-/// An statement inside an operation body.
+/// An binding inside an operation body.
 ///
 /// ## Examples
 ///
 ///     m = Math
 ///     Inner = in: Int -> out: Int { ... }
+pub type Binding {
+  Binding(name: String, value: Reference, span: source.Span)
+}
+
+/// An edge inside an operation body.
+///
+/// ## Examples
+///
 ///     1 -> m.l
 ///     m.out -> .out
-pub type Definition {
-  Binding(name: String, value: Reference, span: source.Span)
+pub type Edge {
   Edge(from: Reference, to: Reference, span: source.Span)
 }
 
