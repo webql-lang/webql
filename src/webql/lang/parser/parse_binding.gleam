@@ -56,7 +56,7 @@ fn parse_binding_value(
   let cursor.Cursor(rest:, span:, current:) = binding
   case rest {
     [token.Token(kind: token.UpperIdentifier, ..) as token, ..rest] -> {
-      let name = source.slice(source, span)
+      let name = source.slice(source, token.span)
       let span = source.cover(span, token.span)
 
       Ok(cursor.Cursor(
