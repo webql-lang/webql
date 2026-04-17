@@ -27,6 +27,8 @@ pub fn parse(
   ))
 }
 
+// PRIVATE FUNCTIONS
+// =================
 fn parse_key(
   source: String,
   tokens: List(token.Token),
