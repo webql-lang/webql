@@ -98,12 +98,7 @@ pub type Binding {
 ///
 ///     m.out -> .out
 pub type Edge {
-  Edge(
-    from: Output,
-    to: Input,
-    reference: reference.Edge,
-    span: source.Span,
-  )
+  Edge(from: Output, to: Input, reference: reference.Edge, span: source.Span)
 }
 
 /// A value used in a binding.
@@ -143,11 +138,7 @@ pub type Input {
 ///     m.out
 ///     1
 pub type Output {
-  PortOutput(
-    path: List(String),
-    reference: reference.Return,
-    span: source.Span,
-  )
+  PortOutput(path: List(String), reference: reference.Return, span: source.Span)
   PrimitiveOutput(
     value: Primitive,
     typename: reference.Typename,

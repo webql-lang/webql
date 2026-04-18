@@ -61,10 +61,7 @@ pub fn resolve_float_primitive_value_test() {
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
-      value: parser_ast.Float(
-        value: 1.23,
-        span: source.Span(start: 0, end: 4),
-      ),
+      value: parser_ast.Float(value: 1.23, span: source.Span(start: 0, end: 4)),
       span: source.Span(start: 0, end: 4),
     )
 
