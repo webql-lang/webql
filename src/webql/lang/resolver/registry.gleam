@@ -8,6 +8,8 @@ pub type Registry {
   Registry(
     parameters: dict.Dict(List(String), reference.Parameter),
     returns: dict.Dict(List(String), reference.Return),
+    inputs: dict.Dict(List(String), reference.Input),
+    outputs: dict.Dict(List(String), reference.Output),
     definitions: dict.Dict(String, #(reference.Definition, Registry)),
     bindings: dict.Dict(List(String), reference.Binding),
     edges: dict.Dict(#(List(String), List(String)), reference.Edge),
@@ -23,6 +25,8 @@ pub fn new() -> Registry {
     nodes: dict.new(),
     parameters: dict.new(),
     returns: dict.new(),
+    inputs: dict.new(),
+    outputs: dict.new(),
     definitions: dict.new(),
     bindings: dict.new(),
     edges: dict.new(),
@@ -110,6 +114,46 @@ pub fn add_return(registry: Registry, return: List(String)) -> Registry {
 /// Adds returns to the current registry instance.
 pub fn add_returns(registry: Registry, returns: List(List(String))) -> Registry {
   list.fold(returns, registry, add_return)
+}
+
+/// Adds a input to the current registry instance.
+pub fn add_input(registry: Registry, input: List(String)) -> Registry {
+  let Registry(inputs:, ..) = registry
+
+  Registry(
+    ..registry,
+    inputs: dict.upsert(inputs, input, fn(input) {
+      case input {
+        option.Some(input) -> input
+        option.None -> next_input(registry)
+      }
+    }),
+  )
+}
+
+/// Adds inputs to the current registry instance.
+pub fn add_inputs(registry: Registry, inputs: List(List(String))) -> Registry {
+  list.fold(inputs, registry, add_input)
+}
+
+/// Adds a output to the current registry instance.
+pub fn add_output(registry: Registry, output: List(String)) -> Registry {
+  let Registry(outputs:, ..) = registry
+
+  Registry(
+    ..registry,
+    outputs: dict.upsert(outputs, output, fn(output) {
+      case output {
+        option.Some(output) -> output
+        option.None -> next_output(registry)
+      }
+    }),
+  )
+}
+
+/// Adds outputs to the current registry instance.
+pub fn add_outputs(registry: Registry, outputs: List(List(String))) -> Registry {
+  list.fold(outputs, registry, add_output)
 }
 
 /// Adds a binding to the current registry instance.
@@ -211,6 +255,14 @@ fn next_parameter(registry: Registry) -> reference.Parameter {
 
 fn next_return(registry: Registry) -> reference.Return {
   reference.Return(dict.size(registry.returns))
+}
+
+fn next_input(registry: Registry) -> reference.Input {
+  reference.Input(dict.size(registry.inputs))
+}
+
+fn next_output(registry: Registry) -> reference.Output {
+  reference.Output(dict.size(registry.outputs))
 }
 
 fn next_typename(registry: Registry) -> reference.Typename {

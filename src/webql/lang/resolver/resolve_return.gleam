@@ -1,3 +1,5 @@
+import gleam/bool
+import gleam/dict
 import gleam/result
 import webql/lang/parser/ast as parser_ast
 import webql/lang/resolver/ast
@@ -13,6 +15,15 @@ pub fn resolve(
   reference: reference.Return,
 ) -> Result(ast.Return, diagnostic.Diagnostic) {
   let parser_ast.Return(name:, typename:, span:) = field
+
+  use <- bool.guard(
+    when: dict.has_key(registry.returns, [name]),
+    return: Error(diagnostic.Diagnostic(
+      kind: diagnostic.DuplicateReturn(name),
+      span:,
+    )),
+  )
+
   use typename <- result.try(resolve_typename.resolve(registry, typename))
 
   Ok(ast.Return(name:, typename:, reference:, span:))

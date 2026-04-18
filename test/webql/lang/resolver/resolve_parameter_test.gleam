@@ -65,3 +65,30 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
       span: source.Span(start: 7, end: 10),
     )
 }
+
+pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
+  let registry = registry.add_parameter(registry.new(), ["value"])
+
+  let parameter_to_resolve =
+    parser_ast.Parameter(
+      name: "value",
+      typename: parser_ast.Typename(
+        name: "Int",
+        span: source.Span(start: 7, end: 10),
+      ),
+      span: source.Span(start: 0, end: 10),
+    )
+
+  let assert Error(error) =
+    resolve_parameter.resolve(
+      registry,
+      parameter_to_resolve,
+      reference.Parameter(1),
+    )
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.DuplicateParameter("value"),
+      span: source.Span(start: 0, end: 10),
+    )
+}

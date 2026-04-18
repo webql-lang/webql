@@ -8,36 +8,36 @@ import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_primitive
 import webql/lang/source
 
-/// Resolves a binding value.
+/// Resolves an edge output.
 pub fn resolve(
   registry: registry.Registry,
-  value: parser_ast.Value,
-) -> Result(ast.Value, diagnostic.Diagnostic) {
-  case value {
-    parser_ast.NodeValue(name:, span:) ->
-      resolve_node_value(registry, name, span)
+  output: parser_ast.Output,
+) -> Result(ast.Output, diagnostic.Diagnostic) {
+  case output {
+    parser_ast.PortOutput(path:, span:) ->
+      resolve_port_output(registry, path, span)
 
-    parser_ast.PrimitiveValue(value:, span:) ->
-      resolve_primitive_value(registry, value, span)
+    parser_ast.PrimitiveOutput(value:, span:) ->
+      resolve_primitive_output(registry, value, span)
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn resolve_node_value(
+fn resolve_port_output(
   registry: registry.Registry,
-  name: String,
+  path: List(String),
   span: source.Span,
 ) {
-  case dict.get(registry.nodes, name) {
-    Ok(reference) -> Ok(ast.NodeValue(name:, reference:, span:))
+  case dict.get(registry.outputs, path) {
+    Ok(reference) -> Ok(ast.PortOutput(path:, reference:, span:))
 
     Error(_nil) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownNode(name), span:))
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOutput(path), span:))
   }
 }
 
-fn resolve_primitive_value(
+fn resolve_primitive_output(
   registry: registry.Registry,
   value: parser_ast.Primitive,
   span: source.Span,
@@ -45,7 +45,7 @@ fn resolve_primitive_value(
   use typename <- result.try(resolve_primitive_typename(registry, value, span))
   let value = resolve_primitive.resolve(value)
 
-  Ok(ast.PrimitiveValue(value:, typename:, span:))
+  Ok(ast.PrimitiveOutput(value:, typename:, span:))
 }
 
 fn resolve_primitive_typename(
