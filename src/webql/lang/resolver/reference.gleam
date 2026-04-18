@@ -1,9 +1,9 @@
-/// A stable binding reference.
+/// A stable binding declaration reference.
 pub type Binding {
   Binding(Int)
 }
 
-/// A stable definition reference.
+/// A stable definition declaration reference.
 pub type Definition {
   Definition(Int)
 }
@@ -23,14 +23,24 @@ pub type Node {
   Node(Int)
 }
 
-/// A stable parameter reference.
+/// A stable operation parameter declaration reference.
 pub type Parameter {
   Parameter(Int)
 }
 
-/// A stable return reference.
+/// A stable operation return declaration reference.
 pub type Return {
   Return(Int)
+}
+
+/// A stable edge input endpoint reference.
+pub type Input {
+  Input(Int)
+}
+
+/// A stable edge output endpoint reference.
+pub type Output {
+  Output(Int)
 }
 
 /// A stable type reference.

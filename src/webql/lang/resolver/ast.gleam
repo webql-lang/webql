@@ -123,11 +123,7 @@ pub type Value {
 ///     .in
 ///     m.l
 pub type Input {
-  PortInput(
-    path: List(String),
-    reference: reference.Parameter,
-    span: source.Span,
-  )
+  PortInput(path: List(String), reference: reference.Input, span: source.Span)
 }
 
 /// A value that can produce data into an edge.
@@ -138,7 +134,7 @@ pub type Input {
 ///     m.out
 ///     1
 pub type Output {
-  PortOutput(path: List(String), reference: reference.Return, span: source.Span)
+  PortOutput(path: List(String), reference: reference.Output, span: source.Span)
   PrimitiveOutput(
     value: Primitive,
     typename: reference.Typename,

@@ -27,29 +27,29 @@ pub fn add_node_assigns_stable_reference_test() {
     ])
 }
 
-pub fn add_parameter_assigns_stable_reference_test() {
+pub fn add_input_assigns_stable_reference_test() {
   let registry =
-    registry.add_parameters(registry.new(), [["in"], ["math", "in"], ["in"]])
+    registry.add_inputs(registry.new(), [["in"], ["math", "in"], ["in"]])
 
-  let registry.Registry(parameters:, ..) = registry
+  let registry.Registry(inputs:, ..) = registry
 
-  assert parameters
+  assert inputs
     == dict.from_list([
-      #(["in"], reference.Parameter(0)),
-      #(["math", "in"], reference.Parameter(1)),
+      #(["in"], reference.Input(0)),
+      #(["math", "in"], reference.Input(1)),
     ])
 }
 
-pub fn add_return_assigns_stable_reference_test() {
+pub fn add_output_assigns_stable_reference_test() {
   let registry =
-    registry.add_returns(registry.new(), [["out"], ["math", "out"], ["out"]])
+    registry.add_outputs(registry.new(), [["out"], ["math", "out"], ["out"]])
 
-  let registry.Registry(returns:, ..) = registry
+  let registry.Registry(outputs:, ..) = registry
 
-  assert returns
+  assert outputs
     == dict.from_list([
-      #(["out"], reference.Return(0)),
-      #(["math", "out"], reference.Return(1)),
+      #(["out"], reference.Output(0)),
+      #(["math", "out"], reference.Output(1)),
     ])
 }
 
