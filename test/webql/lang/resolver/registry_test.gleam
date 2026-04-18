@@ -27,29 +27,29 @@ pub fn add_node_assigns_stable_reference_test() {
     ])
 }
 
-pub fn add_input_assigns_stable_reference_test() {
+pub fn add_parameter_assigns_stable_reference_test() {
   let registry =
-    registry.add_inputs(registry.new(), [["in"], ["math", "in"], ["in"]])
+    registry.add_parameters(registry.new(), [["in"], ["math", "in"], ["in"]])
 
-  let registry.Registry(inputs:, ..) = registry
+  let registry.Registry(parameters:, ..) = registry
 
-  assert inputs
+  assert parameters
     == dict.from_list([
-      #(["in"], reference.Input(0)),
-      #(["math", "in"], reference.Input(1)),
+      #(["in"], reference.Parameter(0)),
+      #(["math", "in"], reference.Parameter(1)),
     ])
 }
 
-pub fn add_output_assigns_stable_reference_test() {
+pub fn add_return_assigns_stable_reference_test() {
   let registry =
-    registry.add_outputs(registry.new(), [["out"], ["math", "out"], ["out"]])
+    registry.add_returns(registry.new(), [["out"], ["math", "out"], ["out"]])
 
-  let registry.Registry(outputs:, ..) = registry
+  let registry.Registry(returns:, ..) = registry
 
-  assert outputs
+  assert returns
     == dict.from_list([
-      #(["out"], reference.Output(0)),
-      #(["math", "out"], reference.Output(1)),
+      #(["out"], reference.Return(0)),
+      #(["math", "out"], reference.Return(1)),
     ])
 }
 
@@ -66,22 +66,43 @@ pub fn add_binding_assigns_stable_reference_test() {
     ])
 }
 
-pub fn add_operation_keeps_existing_registration_test() {
-  let first_operation_registry = registry.add_typename(registry.new(), "Int")
-  let second_operation_registry =
+pub fn add_definition_keeps_existing_registration_test() {
+  let first_definition_registry = registry.add_typename(registry.new(), "Int")
+  let second_definition_registry =
     registry.add_typename(registry.new(), "String")
 
   let registry =
-    registry.add_operation(
-      registry.add_operation(registry.new(), "Math", first_operation_registry),
+    registry.add_definition(
+      registry.add_definition(registry.new(), "Math", first_definition_registry),
       "Math",
-      second_operation_registry,
+      second_definition_registry,
     )
 
-  let registry.Registry(operations:, ..) = registry
+  let registry.Registry(definitions:, ..) = registry
 
-  assert operations
+  assert definitions
     == dict.from_list([
-      #("Math", #(reference.Operation(0), first_operation_registry)),
+      #("Math", #(reference.Definition(0), first_definition_registry)),
+    ])
+}
+
+pub fn add_definitions_assigns_stable_references_test() {
+  let math_registry = registry.add_typename(registry.new(), "Int")
+  let text_registry = registry.add_typename(registry.new(), "String")
+  let ignored_registry = registry.add_typename(registry.new(), "Boolean")
+
+  let registry =
+    registry.add_definitions(registry.new(), [
+      #("Math", math_registry),
+      #("Text", text_registry),
+      #("Math", ignored_registry),
+    ])
+
+  let registry.Registry(definitions:, ..) = registry
+
+  assert definitions
+    == dict.from_list([
+      #("Math", #(reference.Definition(0), math_registry)),
+      #("Text", #(reference.Definition(1), text_registry)),
     ])
 }

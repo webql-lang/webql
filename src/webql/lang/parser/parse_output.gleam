@@ -40,10 +40,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_node_output(
-  source: String,
-  alias: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Output), diagnostic.Diagnostic) {
+fn parse_node_output(source: String, alias: cursor.Cursor(String)) {
   case alias.rest {
     [token.Token(kind: token.Dot, ..), ..rest] ->
       parse_node_port_output(
@@ -68,10 +65,7 @@ fn parse_node_output(
   }
 }
 
-fn parse_node_port_output(
-  source: String,
-  alias: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Output), diagnostic.Diagnostic) {
+fn parse_node_port_output(source: String, alias: cursor.Cursor(String)) {
   case alias.rest {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
@@ -101,10 +95,7 @@ fn parse_node_port_output(
   }
 }
 
-fn parse_operation_output(
-  source: String,
-  dot: cursor.Cursor(Nil),
-) -> Result(cursor.Cursor(ast.Output), diagnostic.Diagnostic) {
+fn parse_operation_output(source: String, dot: cursor.Cursor(Nil)) {
   case dot.rest {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
@@ -134,10 +125,7 @@ fn parse_operation_output(
   }
 }
 
-fn parse_primitive_output(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Output), diagnostic.Diagnostic) {
+fn parse_primitive_output(source: String, tokens: List(token.Token)) {
   use cursor.Cursor(current: value, span:, rest:) <- result.try(
     parse_primitive.parse(source, tokens),
   )

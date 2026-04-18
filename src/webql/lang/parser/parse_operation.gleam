@@ -32,17 +32,15 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_operation(
-  source: String,
-  tokens: List(token.Token),
-  start: Int,
-) -> Result(cursor.Cursor(ast.Operation), diagnostic.Diagnostic) {
+fn parse_operation(source: String, tokens: List(token.Token), start: Int) {
   use cursor.Cursor(current: parameters, rest:, ..) <- result.try(
     parse_parameters(source, tokens, []),
   )
+
   use cursor.Cursor(current: returns, rest:, ..) <- result.try(
     parse_returns(source, rest, []),
   )
+
   use cursor.Cursor(current: #(definitions, bindings, edges), rest:, span:) <- result.try(
     parse_body(source, rest, [], [], []),
   )
@@ -67,7 +65,7 @@ fn parse_parameters(
   source: String,
   tokens: List(token.Token),
   parameters: List(ast.Parameter),
-) -> Result(cursor.Cursor(List(ast.Parameter)), diagnostic.Diagnostic) {
+) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
       use cursor.Cursor(current: parameter, rest:, ..) <- result.try(
@@ -94,7 +92,7 @@ fn parse_returns(
   source: String,
   tokens: List(token.Token),
   returns: List(ast.Return),
-) -> Result(cursor.Cursor(List(ast.Return)), diagnostic.Diagnostic) {
+) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
       use cursor.Cursor(current: return, rest:, ..) <- result.try(
@@ -123,18 +121,12 @@ fn parse_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
-) -> Result(
-  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
-  diagnostic.Diagnostic,
 ) {
   use tokens <- result.try(parse_left_brace(source, tokens))
   parse_block_body(source, tokens, definitions, bindings, edges)
 }
 
-fn parse_left_brace(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+fn parse_left_brace(source: String, tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.LBrace, ..), ..rest] -> Ok(rest)
 
@@ -151,9 +143,6 @@ fn parse_block_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
-) -> Result(
-  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
-  diagnostic.Diagnostic,
 ) {
   case tokens {
     [token.Token(kind: token.RBrace, span:), ..rest] ->
@@ -200,9 +189,6 @@ fn parse_lower_block_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
-) -> Result(
-  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
-  diagnostic.Diagnostic,
 ) {
   case tokens {
     [

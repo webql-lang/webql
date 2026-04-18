@@ -3,7 +3,7 @@ import webql/lang/resolver/ast
 import webql/lang/resolver/diagnostic
 import webql/lang/resolver/reference
 import webql/lang/resolver/registry
-import webql/lang/resolver/resolve_input
+import webql/lang/resolver/resolve_parameter
 import webql/lang/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
@@ -20,17 +20,21 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
     )
 
   let assert Ok(parameter) =
-    resolve_input.resolve(registry, parameter_to_resolve, reference.Input(0))
+    resolve_parameter.resolve(
+      registry,
+      parameter_to_resolve,
+      reference.Parameter(0),
+    )
 
   assert parameter
-    == ast.Input(
+    == ast.Parameter(
       name: "value",
       typename: ast.Typename(
         name: "Int",
         reference: reference.Typename(0),
         span: source.Span(start: 7, end: 10),
       ),
-      reference: reference.Input(0),
+      reference: reference.Parameter(0),
       span: source.Span(start: 0, end: 10),
     )
 }
@@ -49,7 +53,11 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
     )
 
   let assert Error(error) =
-    resolve_input.resolve(registry, parameter_to_resolve, reference.Input(0))
+    resolve_parameter.resolve(
+      registry,
+      parameter_to_resolve,
+      reference.Parameter(0),
+    )
 
   assert error
     == diagnostic.Diagnostic(

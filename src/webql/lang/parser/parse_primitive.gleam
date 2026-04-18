@@ -55,10 +55,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_int(
-  raw: String,
-  span: source.Span,
-) -> Result(ast.Primitive, diagnostic.Diagnostic) {
+fn parse_int(raw: String, span: source.Span) {
   case int.parse(raw) {
     Ok(value) -> Ok(ast.Int(value:, span:))
 
@@ -70,10 +67,7 @@ fn parse_int(
   }
 }
 
-fn parse_float(
-  raw: String,
-  span: source.Span,
-) -> Result(ast.Primitive, diagnostic.Diagnostic) {
+fn parse_float(raw: String, span: source.Span) {
   case float.parse(raw) {
     Ok(value) -> Ok(ast.Float(value:, span:))
 

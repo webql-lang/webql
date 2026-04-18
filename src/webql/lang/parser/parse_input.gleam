@@ -34,10 +34,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_node_input(
-  source: String,
-  alias: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Input), diagnostic.Diagnostic) {
+fn parse_node_input(source: String, alias: cursor.Cursor(String)) {
   case alias.rest {
     [token.Token(kind: token.Dot, ..), ..rest] ->
       parse_node_port_input(
@@ -62,10 +59,7 @@ fn parse_node_input(
   }
 }
 
-fn parse_node_port_input(
-  source: String,
-  alias: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Input), diagnostic.Diagnostic) {
+fn parse_node_port_input(source: String, alias: cursor.Cursor(String)) {
   case alias.rest {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
@@ -95,10 +89,7 @@ fn parse_node_port_input(
   }
 }
 
-fn parse_operation_input(
-  source: String,
-  dot: cursor.Cursor(Nil),
-) -> Result(cursor.Cursor(ast.Input), diagnostic.Diagnostic) {
+fn parse_operation_input(source: String, dot: cursor.Cursor(Nil)) {
   case dot.rest {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
