@@ -29,10 +29,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_key(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(String), diagnostic.Diagnostic) {
+fn parse_key(source: String, tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] ->
       Ok(cursor.Cursor(current: source.slice(source, span), span:, rest:))
@@ -44,9 +41,7 @@ fn parse_key(
   }
 }
 
-fn parse_separator(
-  tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+fn parse_separator(tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.Colon, ..), ..rest] -> Ok(rest)
 

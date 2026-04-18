@@ -48,10 +48,7 @@ fn parse_definition_name(
   ))
 }
 
-fn parse_equal(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+fn parse_equal(source: String, tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.Equal, ..), ..rest] -> Ok(rest)
 

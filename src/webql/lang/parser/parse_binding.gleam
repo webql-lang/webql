@@ -25,18 +25,15 @@ pub fn parse(
     }
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, rest)
     }
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_binding_name(
-  source: String,
-  name: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
+fn parse_binding_name(source: String, name: cursor.Cursor(String)) {
   use rest <- result.try(parse_equal(source, name.rest))
   use cursor.Cursor(current: value, span:, rest:) <- result.try(
     parse_value.parse(source, rest),
@@ -51,10 +48,7 @@ fn parse_binding_name(
   ))
 }
 
-fn parse_equal(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+fn parse_equal(source: String, tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.Equal, ..), ..rest] -> Ok(rest)
 

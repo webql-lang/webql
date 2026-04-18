@@ -30,18 +30,12 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_edge_from(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Edge), diagnostic.Diagnostic) {
+fn parse_edge_from(source: String, tokens: List(token.Token)) {
   use from <- result.try(parse_output.parse(source, tokens))
   parse_arrow(source, from)
 }
 
-fn parse_arrow(
-  source: String,
-  from: cursor.Cursor(ast.Output),
-) -> Result(cursor.Cursor(ast.Edge), diagnostic.Diagnostic) {
+fn parse_arrow(source: String, from: cursor.Cursor(ast.Output)) {
   case from.rest {
     [token.Token(kind: token.RArrow, ..), ..rest] -> {
       use to <- result.try(parse_input.parse(source, rest))

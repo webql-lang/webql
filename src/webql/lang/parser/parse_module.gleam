@@ -30,10 +30,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_module(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Module), diagnostic.Diagnostic) {
+fn parse_module(source: String, tokens: List(token.Token)) {
   use cursor.Cursor(current: operation, span:, rest:) <- result.try(
     parse_operation.parse(source, tokens),
   )

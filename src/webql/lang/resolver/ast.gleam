@@ -1,132 +1,156 @@
 import webql/lang/resolver/reference
 import webql/lang/source
 
-/// The top (or root) level operation.
+/// The root container for a single top-level operation.
 ///
 /// ## Examples
 ///
-///     in: Int -> out: Int { ... }
+///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Module {
   Module(operation: Operation, reference: reference.Module, span: source.Span)
 }
 
-/// A operation with inputs, outputs, and definitions that wire data flow.
+/// An executable graph with declared interfaces and a body of nested
+/// definitions, local bindings, and edges.
 ///
 /// ## Examples
 ///
-///     in: Int -> out: Int { ... }
-///     -> out: Int { ... }
+///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Operation {
   Operation(
-    inputs: List(Input),
-    outputs: List(Output),
+    parameters: List(Parameter),
+    returns: List(Return),
+    definitions: List(Definition),
     bindings: List(Binding),
     edges: List(Edge),
     span: source.Span,
   )
 }
 
-/// A named input with a typename.
+/// A declared incoming interface on an operation.
 ///
 /// ## Examples
 ///
 ///     in: Int
-pub type Input {
-  Input(
+pub type Parameter {
+  Parameter(
     name: String,
     typename: Typename,
-    reference: reference.Input,
+    reference: reference.Parameter,
     span: source.Span,
   )
 }
 
-/// A named output with a typename.
+/// A declared outgoing interface on an operation.
 ///
 /// ## Examples
 ///
-///     out: String
-pub type Output {
-  Output(
+///     out: Int
+pub type Return {
+  Return(
     name: String,
     typename: Typename,
-    reference: reference.Output,
+    reference: reference.Return,
     span: source.Span,
   )
 }
 
-/// A typename describing the shape of a field.
+/// A type annotation describing a value.
 ///
 /// ## Examples
 ///
-///     String
 ///     Int
 pub type Typename {
   Typename(name: String, reference: reference.Typename, span: source.Span)
 }
 
-/// An binding inside an operation body.
+/// A named nested operation defined inside another operation.
+///
+/// ## Examples
+///
+///     Inner = in: Int -> out: Int { .in -> .out }
+pub type Definition {
+  Definition(
+    name: String,
+    operation: Operation,
+    reference: reference.Definition,
+    span: source.Span,
+  )
+}
+
+/// A named binding that assigns a value to a local name.
 ///
 /// ## Examples
 ///
 ///     m = Math
-///     Inner = in: Int -> out: Int { ... }
 pub type Binding {
   Binding(
     name: String,
+    value: Value,
     reference: reference.Binding,
-    value: Reference,
     span: source.Span,
   )
 }
 
-/// An edge inside an operation body.
+/// A directed connection from a producing value to a receiving location.
 ///
 /// ## Examples
 ///
-///     1 -> m.l
 ///     m.out -> .out
 pub type Edge {
-  Edge(
-    reference: reference.Edge,
-    from: Reference,
-    to: Reference,
-    span: source.Span,
-  )
+  Edge(from: Output, to: Input, reference: reference.Edge, span: source.Span)
 }
 
-/// A reference used in an definition.
+/// A value used in a binding.
 ///
 /// ## Examples
 ///
-///     m.out
-///     .out
-///     "test"
 ///     Math
-///     in: Int -> out: Int { ... }
-pub type Reference {
-  InputAccess(path: List(String), reference: reference.Input, span: source.Span)
-  OutputAccess(
-    path: List(String),
-    reference: reference.Output,
-    span: source.Span,
-  )
-  Node(name: String, reference: reference.Node, span: source.Span)
-  Literal(value: Primitive, reference: reference.Typename, span: source.Span)
-  SubOperation(
-    name: String,
-    reference: reference.Operation,
-    operation: Operation,
+///     "hello"
+pub type Value {
+  NodeValue(name: String, reference: reference.Node, span: source.Span)
+  PrimitiveValue(
+    value: Primitive,
+    typename: reference.Typename,
     span: source.Span,
   )
 }
 
-/// A literal embedded directly in the graph.
+/// A location that can receive data from an edge.
 ///
 /// ## Examples
 ///
-///     3
-///     3.3
-///     "hello world"
+///     .in
+///     m.l
+pub type Input {
+  PortInput(
+    path: List(String),
+    reference: reference.Parameter,
+    span: source.Span,
+  )
+}
+
+/// A value that can produce data into an edge.
+///
+/// ## Examples
+///
+///     .out
+///     m.out
+///     1
+pub type Output {
+  PortOutput(path: List(String), reference: reference.Return, span: source.Span)
+  PrimitiveOutput(
+    value: Primitive,
+    typename: reference.Typename,
+    span: source.Span,
+  )
+}
+
+/// A literal value embedded in the graph.
+///
+/// ## Examples
+///
+///     123
 pub type Primitive {
   Int(value: Int, span: source.Span)
   Float(value: Float, span: source.Span)

@@ -2,7 +2,7 @@ import webql/lang/source
 
 /// The root container for a single top-level operation.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Module {
@@ -12,7 +12,7 @@ pub type Module {
 /// An executable graph with declared interfaces and a body of nested
 /// definitions, local bindings, and edges.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Operation {
@@ -28,7 +28,7 @@ pub type Operation {
 
 /// A declared incoming interface on an operation.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     in: Int
 pub type Parameter {
@@ -37,7 +37,7 @@ pub type Parameter {
 
 /// A declared outgoing interface on an operation.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     out: Int
 pub type Return {
@@ -46,7 +46,7 @@ pub type Return {
 
 /// A type annotation describing a value.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     Int
 pub type Typename {
@@ -55,7 +55,7 @@ pub type Typename {
 
 /// A named nested operation defined inside another operation.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     Inner = in: Int -> out: Int { .in -> .out }
 pub type Definition {
@@ -64,7 +64,7 @@ pub type Definition {
 
 /// A named binding that assigns a value to a local name.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     m = Math
 pub type Binding {
@@ -73,7 +73,7 @@ pub type Binding {
 
 /// A directed connection from a producing value to a receiving location.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     m.out -> .out
 pub type Edge {
@@ -82,7 +82,7 @@ pub type Edge {
 
 /// A value used in a binding.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     Math
 ///     "hello"
@@ -93,7 +93,7 @@ pub type Value {
 
 /// A location that can receive data from an edge.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     .in
 ///     m.l
@@ -103,7 +103,7 @@ pub type Input {
 
 /// A value that can produce data into an edge.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     .out
 ///     m.out
@@ -115,7 +115,7 @@ pub type Output {
 
 /// A literal value embedded in the graph.
 ///
-/// ## Example
+/// ## Examples
 ///
 ///     123
 pub type Primitive {

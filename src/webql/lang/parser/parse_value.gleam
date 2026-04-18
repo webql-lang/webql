@@ -34,10 +34,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_primitive_value(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Value), diagnostic.Diagnostic) {
+fn parse_primitive_value(source: String, tokens: List(token.Token)) {
   use cursor.Cursor(current: value, span:, rest:) <- result.try(
     parse_primitive.parse(source, tokens),
   )
