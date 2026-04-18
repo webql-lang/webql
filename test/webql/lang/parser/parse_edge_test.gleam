@@ -20,11 +20,11 @@ pub fn parse_node_port_edge_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 13),
-      from: ast.OutputAccess(span: source.Span(start: 0, end: 5), path: [
+      from: ast.PortOutput(span: source.Span(start: 0, end: 5), path: [
         "m",
         "out",
       ]),
-      to: ast.InputAccess(span: source.Span(start: 9, end: 13), path: ["out"]),
+      to: ast.PortInput(span: source.Span(start: 9, end: 13), path: ["out"]),
     )
 
   assert rest
@@ -45,11 +45,11 @@ pub fn parse_literal_edge_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 14),
-      from: ast.Literal(
+      from: ast.PrimitiveOutput(
         span: source.Span(start: 0, end: 6),
         value: ast.String(span: source.Span(start: 0, end: 6), value: "test"),
       ),
-      to: ast.InputAccess(span: source.Span(start: 10, end: 14), path: ["out"]),
+      to: ast.PortInput(span: source.Span(start: 10, end: 14), path: ["out"]),
     )
 
   assert rest
@@ -70,8 +70,8 @@ pub fn parse_preserves_remaining_tokens_after_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 11),
-      from: ast.InputAccess(span: source.Span(start: 0, end: 3), path: ["in"]),
-      to: ast.InputAccess(span: source.Span(start: 7, end: 11), path: ["out"]),
+      from: ast.PortOutput(span: source.Span(start: 0, end: 3), path: ["in"]),
+      to: ast.PortInput(span: source.Span(start: 7, end: 11), path: ["out"]),
     )
 
   assert rest
@@ -102,6 +102,23 @@ pub fn parse_returns_unexpected_token_for_invalid_definition_start_test() {
     )
 }
 
+pub fn parse_returns_unexpected_token_for_upper_identifier_edge_source_test() {
+  let source = "Math -> .out"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Error(error) = parse_edge.parse(source, tokens)
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.UpperIdentifier),
+      span: source.Span(start: 0, end: 4),
+    )
+}
+
 pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
   let source = ".in -> "
 
@@ -116,5 +133,22 @@ pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
     == diagnostic.Diagnostic(
       kind: diagnostic.UnexpectedEof,
       span: source.Span(start: 7, end: 7),
+    )
+}
+
+pub fn parse_returns_unexpected_token_for_primitive_edge_target_test() {
+  let source = ".in -> \"out\""
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Error(error) = parse_edge.parse(source, tokens)
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.String),
+      span: source.Span(start: 7, end: 12),
     )
 }

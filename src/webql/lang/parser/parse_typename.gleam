@@ -12,7 +12,6 @@ import webql/lang/source
 ///
 ///     String
 ///     Int
-///     [Bool]
 pub fn parse(
   source: String,
   tokens: List(token.Token),

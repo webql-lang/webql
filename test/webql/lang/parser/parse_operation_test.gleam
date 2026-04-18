@@ -21,8 +21,8 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
   assert operation
     == ast.Operation(
       span: source.Span(start: 0, end: 79),
-      inputs: [
-        ast.Input(
+      parameters: [
+        ast.Parameter(
           span: source.Span(start: 0, end: 6),
           name: "a",
           typename: ast.Typename(
@@ -30,7 +30,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
             name: "Int",
           ),
         ),
-        ast.Input(
+        ast.Parameter(
           span: source.Span(start: 8, end: 17),
           name: "b",
           typename: ast.Typename(
@@ -39,8 +39,8 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
           ),
         ),
       ],
-      outputs: [
-        ast.Output(
+      returns: [
+        ast.Return(
           span: source.Span(start: 21, end: 29),
           name: "c",
           typename: ast.Typename(
@@ -48,7 +48,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
             name: "Float",
           ),
         ),
-        ast.Output(
+        ast.Return(
           span: source.Span(start: 31, end: 38),
           name: "d",
           typename: ast.Typename(
@@ -57,54 +57,200 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
           ),
         ),
       ],
-      bindings: [
-        ast.Binding(
+      definitions: [
+        ast.Definition(
           span: source.Span(start: 41, end: 68),
           name: "Inner",
-          value: ast.SubOperation(
-            name: "Inner",
+          operation: ast.Operation(
             span: source.Span(start: 49, end: 68),
-            operation: ast.Operation(
-              span: source.Span(start: 49, end: 68),
-              inputs: [
-                ast.Input(
-                  span: source.Span(start: 49, end: 55),
-                  name: "x",
-                  typename: ast.Typename(
-                    span: source.Span(start: 52, end: 55),
-                    name: "Int",
-                  ),
+            parameters: [
+              ast.Parameter(
+                span: source.Span(start: 49, end: 55),
+                name: "x",
+                typename: ast.Typename(
+                  span: source.Span(start: 52, end: 55),
+                  name: "Int",
                 ),
-              ],
-              outputs: [
-                ast.Output(
-                  span: source.Span(start: 59, end: 65),
-                  name: "y",
-                  typename: ast.Typename(
-                    span: source.Span(start: 62, end: 65),
-                    name: "Int",
-                  ),
+              ),
+            ],
+            returns: [
+              ast.Return(
+                span: source.Span(start: 59, end: 65),
+                name: "y",
+                typename: ast.Typename(
+                  span: source.Span(start: 62, end: 65),
+                  name: "Int",
                 ),
-              ],
-              bindings: [],
-              edges: [],
-            ),
+              ),
+            ],
+            definitions: [],
+            bindings: [],
+            edges: [],
           ),
         ),
       ],
+      bindings: [],
       edges: [
         ast.Edge(
           span: source.Span(start: 69, end: 77),
-          from: ast.InputAccess(span: source.Span(start: 69, end: 71), path: [
+          from: ast.PortOutput(span: source.Span(start: 69, end: 71), path: [
             "a",
           ]),
-          to: ast.InputAccess(span: source.Span(start: 75, end: 77), path: ["c"]),
+          to: ast.PortInput(span: source.Span(start: 75, end: 77), path: ["c"]),
         ),
       ],
     )
 
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 79, end: 79))]
+}
+
+pub fn parse_skips_leading_and_internal_spaces_test() {
+  let source = "  a: Int , b: String -> c: Bool { }"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
+    parse_operation.parse(source, tokens)
+
+  assert operation
+    == ast.Operation(
+      span: source.Span(start: 2, end: 35),
+      parameters: [
+        ast.Parameter(
+          span: source.Span(start: 2, end: 8),
+          name: "a",
+          typename: ast.Typename(
+            span: source.Span(start: 5, end: 8),
+            name: "Int",
+          ),
+        ),
+        ast.Parameter(
+          span: source.Span(start: 11, end: 20),
+          name: "b",
+          typename: ast.Typename(
+            span: source.Span(start: 14, end: 20),
+            name: "String",
+          ),
+        ),
+      ],
+      returns: [
+        ast.Return(
+          span: source.Span(start: 24, end: 31),
+          name: "c",
+          typename: ast.Typename(
+            span: source.Span(start: 27, end: 31),
+            name: "Bool",
+          ),
+        ),
+      ],
+      definitions: [],
+      bindings: [],
+      edges: [],
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 35, end: 35))]
+}
+
+pub fn parse_parses_operation_body_with_lowercase_binding_and_edge_test() {
+  let source = "-> out: Int { m = Math m.out -> .out }"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
+    parse_operation.parse(source, tokens)
+
+  assert operation
+    == ast.Operation(
+      span: source.Span(start: 0, end: 38),
+      parameters: [],
+      returns: [
+        ast.Return(
+          span: source.Span(start: 3, end: 11),
+          name: "out",
+          typename: ast.Typename(
+            span: source.Span(start: 8, end: 11),
+            name: "Int",
+          ),
+        ),
+      ],
+      definitions: [],
+      bindings: [
+        ast.Binding(
+          span: source.Span(start: 14, end: 22),
+          name: "m",
+          value: ast.NodeValue(
+            name: "Math",
+            span: source.Span(start: 18, end: 22),
+          ),
+        ),
+      ],
+      edges: [
+        ast.Edge(
+          span: source.Span(start: 23, end: 36),
+          from: ast.PortOutput(span: source.Span(start: 23, end: 28), path: [
+            "m",
+            "out",
+          ]),
+          to: ast.PortInput(span: source.Span(start: 32, end: 36), path: [
+            "out",
+          ]),
+        ),
+      ],
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 38, end: 38))]
+}
+
+pub fn parse_parses_binding_when_spaces_exist_before_equal_test() {
+  let source = "-> out: Int { value   = 123 }"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
+    parse_operation.parse(source, tokens)
+
+  assert operation
+    == ast.Operation(
+      span: source.Span(start: 0, end: 29),
+      parameters: [],
+      returns: [
+        ast.Return(
+          span: source.Span(start: 3, end: 11),
+          name: "out",
+          typename: ast.Typename(
+            span: source.Span(start: 8, end: 11),
+            name: "Int",
+          ),
+        ),
+      ],
+      definitions: [],
+      bindings: [
+        ast.Binding(
+          span: source.Span(start: 14, end: 27),
+          name: "value",
+          value: ast.PrimitiveValue(
+            span: source.Span(start: 24, end: 27),
+            value: ast.Int(span: source.Span(start: 24, end: 27), value: 123),
+          ),
+        ),
+      ],
+      edges: [],
+    )
+
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 29, end: 29))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_operation_test() {
@@ -121,9 +267,9 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
   assert operation
     == ast.Operation(
       span: source.Span(start: 0, end: 14),
-      inputs: [],
-      outputs: [
-        ast.Output(
+      parameters: [],
+      returns: [
+        ast.Return(
           span: source.Span(start: 3, end: 11),
           name: "out",
           typename: ast.Typename(
@@ -132,6 +278,7 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
           ),
         ),
       ],
+      definitions: [],
       bindings: [],
       edges: [],
     )

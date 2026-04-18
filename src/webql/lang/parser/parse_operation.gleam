@@ -5,18 +5,14 @@ import webql/lang/parser/ast
 import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_binding
+import webql/lang/parser/parse_definition
 import webql/lang/parser/parse_edge
-import webql/lang/parser/parse_input
 import webql/lang/parser/parse_nonstarter
-import webql/lang/parser/parse_output
+import webql/lang/parser/parse_parameter
+import webql/lang/parser/parse_return
 import webql/lang/source
 
 /// Parses an operation.
-///
-/// ## Examples
-///
-///     x: Int -> y: Int { ... }
-///     -> y: Int { ... }
 pub fn parse(
   source: String,
   tokens: List(token.Token),
@@ -28,8 +24,8 @@ pub fn parse(
       parse_operation(source, tokens, span.start)
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, rest)
     }
   }
 }
@@ -41,140 +37,82 @@ fn parse_operation(
   tokens: List(token.Token),
   start: Int,
 ) -> Result(cursor.Cursor(ast.Operation), diagnostic.Diagnostic) {
-  use cursor.Cursor(current: inputs, rest:, ..) <- result.try(
-    parse_inputs(source, tokens, []),
+  use cursor.Cursor(current: parameters, rest:, ..) <- result.try(
+    parse_parameters(source, tokens, []),
   )
-  use cursor.Cursor(current: outputs, rest:, ..) <- result.try(
-    parse_outputs(source, rest, []),
+  use cursor.Cursor(current: returns, rest:, ..) <- result.try(
+    parse_returns(source, rest, []),
   )
-  use cursor.Cursor(current: #(bindings, edges), rest:, ..) as body <- result.try(
-    parse_body(source, rest, [], []),
+  use cursor.Cursor(current: #(definitions, bindings, edges), rest:, span:) <- result.try(
+    parse_body(source, rest, [], [], []),
   )
 
-  let span = source.Span(start: start, end: body.span.end)
+  let span = source.Span(start: start, end: span.end)
 
   Ok(cursor.Cursor(
     current: ast.Operation(
-      span:,
-      inputs: list.reverse(inputs),
-      outputs: list.reverse(outputs),
+      parameters: list.reverse(parameters),
+      returns: list.reverse(returns),
+      definitions: list.reverse(definitions),
       bindings: list.reverse(bindings),
       edges: list.reverse(edges),
+      span:,
     ),
     span:,
     rest:,
   ))
 }
 
-fn parse_inputs(
+fn parse_parameters(
   source: String,
   tokens: List(token.Token),
-  inputs: List(ast.Input),
-) -> Result(cursor.Cursor(List(ast.Input)), diagnostic.Diagnostic) {
+  parameters: List(ast.Parameter),
+) -> Result(cursor.Cursor(List(ast.Parameter)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: input, rest: remaining, ..) <- result.try(
-        parse_input.parse(source, tokens),
+      use cursor.Cursor(current: parameter, rest:, ..) <- result.try(
+        parse_parameter.parse(source, tokens),
       )
 
-      parse_inputs(source, remaining, [input, ..inputs])
+      parse_parameters(source, rest, [parameter, ..parameters])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->
-      parse_inputs(source, rest, inputs)
+      parse_parameters(source, rest, parameters)
 
     [token.Token(kind: token.RArrow, span:), ..rest] ->
-      Ok(cursor.Cursor(current: inputs, span:, rest:))
+      Ok(cursor.Cursor(current: parameters, span:, rest:))
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_inputs(source, remaining, inputs)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse_parameters(source, rest, parameters)
     }
   }
 }
 
-fn parse_outputs(
+fn parse_returns(
   source: String,
   tokens: List(token.Token),
-  outputs: List(ast.Output),
-) -> Result(cursor.Cursor(List(ast.Output)), diagnostic.Diagnostic) {
+  returns: List(ast.Return),
+) -> Result(cursor.Cursor(List(ast.Return)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: output, rest: remaining, ..) <- result.try(
-        parse_output.parse(source, tokens),
+      use cursor.Cursor(current: return, rest:, ..) <- result.try(
+        parse_return.parse(source, tokens),
       )
 
-      parse_outputs(source, remaining, [output, ..outputs])
+      parse_returns(source, rest, [return, ..returns])
     }
 
     [token.Token(kind: token.Comma, ..), ..rest] ->
-      parse_outputs(source, rest, outputs)
+      parse_returns(source, rest, returns)
 
     [token.Token(kind: token.LBrace, span:), ..] ->
-      Ok(cursor.Cursor(current: outputs, span:, rest: tokens))
+      Ok(cursor.Cursor(current: returns, span:, rest: tokens))
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_outputs(source, remaining, outputs)
-    }
-  }
-}
-
-fn parse_declaration_binding(
-  source: String,
-  tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
-  case tokens {
-    [token.Token(kind: token.UpperIdentifier, span: name_span), ..rest] -> {
-      let name =
-        cursor.Cursor(
-          current: source.slice(source, name_span),
-          span: name_span,
-          rest:,
-        )
-
-      parse_declaration_equal(source, name)
-    }
-
-    _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_declaration_binding(source, remaining)
-    }
-  }
-}
-
-fn parse_declaration_equal(
-  source: String,
-  name: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
-  case name.rest {
-    [token.Token(kind: token.Equal, ..), ..rest] -> {
-      use operation <- result.try(parse(source, rest))
-
-      let span = source.Span(start: name.span.start, end: operation.span.end)
-
-      Ok(cursor.Cursor(
-        current: ast.Binding(
-          span:,
-          name: name.current,
-          value: ast.SubOperation(
-            name: name.current,
-            operation: operation.current,
-            span: operation.span,
-          ),
-        ),
-        span:,
-        rest: operation.rest,
-      ))
-    }
-
-    _tokens -> {
-      use rest <- result.try(parse_nonstarter.parse(source, name.rest))
-
-      parse_declaration_equal(
-        source,
-        cursor.Cursor(current: name.current, span: name.span, rest:),
-      )
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse_returns(source, rest, returns)
     }
   }
 }
@@ -182,68 +120,130 @@ fn parse_declaration_equal(
 fn parse_body(
   source: String,
   tokens: List(token.Token),
+  definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
 ) -> Result(
-  cursor.Cursor(#(List(ast.Binding), List(ast.Edge))),
+  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
+  diagnostic.Diagnostic,
+) {
+  use tokens <- result.try(parse_left_brace(source, tokens))
+  parse_block_body(source, tokens, definitions, bindings, edges)
+}
+
+fn parse_left_brace(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(List(token.Token), diagnostic.Diagnostic) {
+  case tokens {
+    [token.Token(kind: token.LBrace, ..), ..rest] -> Ok(rest)
+
+    _tokens -> {
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse_left_brace(source, rest)
+    }
+  }
+}
+
+fn parse_block_body(
+  source: String,
+  tokens: List(token.Token),
+  definitions: List(ast.Definition),
+  bindings: List(ast.Binding),
+  edges: List(ast.Edge),
+) -> Result(
+  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
   diagnostic.Diagnostic,
 ) {
   case tokens {
-    [token.Token(kind: token.LBrace, ..), ..rest] ->
-      parse_body(source, rest, bindings, edges)
-
-    [token.Token(kind: token.RBrace, span: r_brace_span), ..rest] ->
-      Ok(cursor.Cursor(current: #(bindings, edges), span: r_brace_span, rest:))
+    [token.Token(kind: token.RBrace, span:), ..rest] ->
+      Ok(cursor.Cursor(current: #(definitions, bindings, edges), span:, rest:))
 
     [token.Token(kind: token.UpperIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: binding, rest: remaining, ..) <- result.try(
-        parse_declaration_binding(source, tokens),
+      use cursor.Cursor(current: definition, rest:, ..) <- result.try(
+        parse_definition.parse(source, tokens, parse),
       )
 
-      parse_body(source, remaining, [binding, ..bindings], edges)
+      parse_block_body(
+        source,
+        rest,
+        [definition, ..definitions],
+        bindings,
+        edges,
+      )
     }
 
-    [token.Token(kind: token.LowerIdentifier, ..), ..]
-    | [token.Token(kind: token.Dot, ..), ..]
+    [token.Token(kind: token.LowerIdentifier, ..), ..] ->
+      parse_lower_block_body(source, tokens, definitions, bindings, edges)
+
+    [token.Token(kind: token.Dot, ..), ..]
     | [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
     | [token.Token(kind: token.String, ..), ..] -> {
-      case tokens {
-        [
-          token.Token(kind: token.LowerIdentifier, ..),
-          token.Token(kind: token.Equal, ..),
-          ..
-        ]
-        | [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-          let parsed = parse_binding.parse(source, tokens)
+      use cursor.Cursor(current: edge, rest:, ..) <- result.try(
+        parse_edge.parse(source, tokens),
+      )
 
-          case parsed {
-            Ok(cursor.Cursor(current: binding, rest: remaining, ..)) ->
-              parse_body(source, remaining, [binding, ..bindings], edges)
-
-            Error(_) -> {
-              use cursor.Cursor(current: edge, rest: remaining, ..) <- result.try(
-                parse_edge.parse(source, tokens),
-              )
-
-              parse_body(source, remaining, bindings, [edge, ..edges])
-            }
-          }
-        }
-
-        _ -> {
-          use cursor.Cursor(current: edge, rest: remaining, ..) <- result.try(
-            parse_edge.parse(source, tokens),
-          )
-
-          parse_body(source, remaining, bindings, [edge, ..edges])
-        }
-      }
+      parse_block_body(source, rest, definitions, bindings, [edge, ..edges])
     }
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_body(source, remaining, bindings, edges)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse_block_body(source, rest, definitions, bindings, edges)
+    }
+  }
+}
+
+fn parse_lower_block_body(
+  source: String,
+  tokens: List(token.Token),
+  definitions: List(ast.Definition),
+  bindings: List(ast.Binding),
+  edges: List(ast.Edge),
+) -> Result(
+  cursor.Cursor(#(List(ast.Definition), List(ast.Binding), List(ast.Edge))),
+  diagnostic.Diagnostic,
+) {
+  case tokens {
+    [
+      token.Token(kind: token.LowerIdentifier, ..),
+      token.Token(kind: token.Equal, ..),
+      ..
+    ] -> {
+      use cursor.Cursor(current: binding, rest:, ..) <- result.try(
+        parse_binding.parse(source, tokens),
+      )
+
+      parse_block_body(source, rest, definitions, [binding, ..bindings], edges)
+    }
+
+    [
+      token.Token(kind: token.LowerIdentifier, ..),
+      token.Token(kind: token.Dot, ..),
+      ..
+    ] -> {
+      use cursor.Cursor(current: edge, rest:, ..) <- result.try(
+        parse_edge.parse(source, tokens),
+      )
+
+      parse_block_body(source, rest, definitions, bindings, [edge, ..edges])
+    }
+
+    [token.Token(kind: token.LowerIdentifier, ..) as identifier, ..rest] -> {
+      use rest <- result.try(parse_nonstarter.parse(source, rest))
+
+      parse_lower_block_body(
+        source,
+        [identifier, ..rest],
+        definitions,
+        bindings,
+        edges,
+      )
+    }
+
+    _tokens -> {
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse_block_body(source, rest, definitions, bindings, edges)
     }
   }
 }

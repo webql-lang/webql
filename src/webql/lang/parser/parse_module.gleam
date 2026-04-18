@@ -34,11 +34,9 @@ fn parse_module(
   source: String,
   tokens: List(token.Token),
 ) -> Result(cursor.Cursor(ast.Module), diagnostic.Diagnostic) {
-  use operation <- result.try(parse_operation.parse(source, tokens))
+  use cursor.Cursor(current: operation, span:, rest:) <- result.try(
+    parse_operation.parse(source, tokens),
+  )
 
-  Ok(cursor.Cursor(
-    current: ast.Module(operation: operation.current, span: operation.span),
-    span: operation.span,
-    rest: operation.rest,
-  ))
+  Ok(cursor.Cursor(current: ast.Module(operation:, span:), span:, rest:))
 }

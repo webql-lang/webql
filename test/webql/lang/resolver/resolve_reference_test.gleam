@@ -17,9 +17,9 @@ pub fn resolve_access_reference_returns_access_reference_test() {
     reference: reference.Output(0),
     span: source.Span(0, 8),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_output(
       registry,
-      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.PortOutput(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -30,9 +30,9 @@ pub fn resolve_access_returns_unknown_access_when_output_is_missing_test() {
     kind: diagnostic.UnknownOutput(path: ["math", "out"]),
     span: source.Span(0, 8),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_output(
       registry,
-      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.PortOutput(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
@@ -43,9 +43,9 @@ pub fn resolve_access_returns_unknown_access_when_path_is_missing_test() {
     kind: diagnostic.UnknownInput(path: ["out"]),
     span: source.Span(0, 3),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_input(
       registry,
-      parser_ast.InputAccess(path: ["out"], span: source.Span(0, 3)),
+      parser_ast.PortInput(path: ["out"], span: source.Span(0, 3)),
     )
 }
 
@@ -56,9 +56,9 @@ pub fn resolve_access_returns_unknown_access_when_input_is_missing_test() {
     kind: diagnostic.UnknownOutput(path: ["math", "value"]),
     span: source.Span(0, 10),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_output(
       registry,
-      parser_ast.OutputAccess(path: ["math", "value"], span: source.Span(0, 10)),
+      parser_ast.PortOutput(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
@@ -73,9 +73,9 @@ pub fn resolve_single_segment_access_returns_access_reference_test() {
     reference: reference.Input(0),
     span: source.Span(0, 5),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_input(
       registry,
-      parser_ast.InputAccess(path: ["value"], span: source.Span(0, 5)),
+      parser_ast.PortInput(path: ["value"], span: source.Span(0, 5)),
     )
 }
 
@@ -87,9 +87,9 @@ pub fn resolve_primitive_reference_delegates_to_resolve_primitive_test() {
     reference: reference.Typename(0),
     span: source.Span(0, 2),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_output(
       registry,
-      parser_ast.Literal(
+      parser_ast.PrimitiveOutput(
         value: parser_ast.Int(value: 42, span: source.Span(0, 2)),
         span: source.Span(0, 2),
       ),
@@ -103,9 +103,9 @@ pub fn resolve_node_reference_returns_unknown_node_test() {
     kind: diagnostic.UnknownNode("Math"),
     span: source.Span(0, 4),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_value(
       registry,
-      parser_ast.Node(name: "Math", span: source.Span(0, 4)),
+      parser_ast.NodeValue(name: "Math", span: source.Span(0, 4)),
     )
 }
 
@@ -117,9 +117,9 @@ pub fn resolve_node_reference_returns_node_reference_test() {
     reference: reference.Node(0),
     span: source.Span(0, 4),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_value(
       registry,
-      parser_ast.Node(name: "Math", span: source.Span(0, 4)),
+      parser_ast.NodeValue(name: "Math", span: source.Span(0, 4)),
     )
 }
 
@@ -129,8 +129,9 @@ pub fn resolve_suboperation_reference_returns_suboperation_reference_test() {
 
   let operation =
     parser_ast.Operation(
-      inputs: [],
-      outputs: [],
+      parameters: [],
+      returns: [],
+      definitions: [],
       bindings: [],
       edges: [],
       span: source.Span(5, 18),
@@ -148,13 +149,9 @@ pub fn resolve_suboperation_reference_returns_suboperation_reference_test() {
     ),
     span: source.Span(0, 18),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_definition(
       registry,
-      parser_ast.SubOperation(
-        name: "Math",
-        operation:,
-        span: source.Span(0, 18),
-      ),
+      parser_ast.Definition(name: "Math", operation:, span: source.Span(0, 18)),
     )
 }
 
@@ -165,13 +162,14 @@ pub fn resolve_suboperation_reference_returns_unknown_operation_test() {
     kind: diagnostic.UnknownOperation("Math"),
     span: source.Span(0, 18),
   )) =
-    resolve_reference.resolve(
+    resolve_reference.resolve_definition(
       registry,
-      parser_ast.SubOperation(
+      parser_ast.Definition(
         name: "Math",
         operation: parser_ast.Operation(
-          inputs: [],
-          outputs: [],
+          parameters: [],
+          returns: [],
+          definitions: [],
           bindings: [],
           edges: [],
           span: source.Span(5, 18),

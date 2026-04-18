@@ -36,9 +36,9 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
       span: source.Span(start: 0, end: 14),
       operation: ast.Operation(
         span: source.Span(start: 0, end: 14),
-        inputs: [],
-        outputs: [
-          ast.Output(
+        parameters: [],
+        returns: [
+          ast.Return(
             span: source.Span(start: 3, end: 11),
             name: "out",
             typename: ast.Typename(
@@ -47,6 +47,7 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
             ),
           ),
         ],
+        definitions: [],
         bindings: [],
         edges: [],
       ),

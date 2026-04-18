@@ -15,20 +15,43 @@ const float = "Float"
 const string = "String"
 
 /// Resolves a reference.
-pub fn resolve(
+pub fn resolve_input(
   registry: registry.Registry,
-  reference: parser_ast.Reference,
+  input: parser_ast.Input,
 ) -> Result(ast.Reference, diagnostic.Diagnostic) {
-  case reference {
-    parser_ast.InputAccess(path:, span:) ->
-      resolve_input_access(registry, path, span)
-    parser_ast.OutputAccess(path:, span:) ->
+  let parser_ast.PortInput(path:, span:) = input
+  resolve_input_access(registry, path, span)
+}
+
+pub fn resolve_output(
+  registry: registry.Registry,
+  output: parser_ast.Output,
+) -> Result(ast.Reference, diagnostic.Diagnostic) {
+  case output {
+    parser_ast.PortOutput(path:, span:) ->
       resolve_output_access(registry, path, span)
-    parser_ast.Literal(value:, span:) -> resolve_literal(registry, value, span)
-    parser_ast.Node(name:, span:) -> resolve_node(registry, name, span)
-    parser_ast.SubOperation(name:, operation:, span:) ->
-      resolve_operation(registry, name, operation, span)
+    parser_ast.PrimitiveOutput(value:, span:) ->
+      resolve_literal(registry, value, span)
   }
+}
+
+pub fn resolve_value(
+  registry: registry.Registry,
+  value: parser_ast.Value,
+) -> Result(ast.Reference, diagnostic.Diagnostic) {
+  case value {
+    parser_ast.NodeValue(name:, span:) -> resolve_node(registry, name, span)
+    parser_ast.PrimitiveValue(value:, span:) ->
+      resolve_literal(registry, value, span)
+  }
+}
+
+pub fn resolve_definition(
+  registry: registry.Registry,
+  definition: parser_ast.Definition,
+) -> Result(ast.Reference, diagnostic.Diagnostic) {
+  let parser_ast.Definition(name:, operation:, span:) = definition
+  resolve_operation(registry, name, operation, span)
 }
 
 // PRIVATE FUNCTIONS

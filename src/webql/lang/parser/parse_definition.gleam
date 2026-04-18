@@ -4,48 +4,45 @@ import webql/lang/parser/ast
 import webql/lang/parser/cursor
 import webql/lang/parser/diagnostic
 import webql/lang/parser/parse_nonstarter
-import webql/lang/parser/parse_value
 import webql/lang/source
 
-/// Parses a binding inside an operation body.
-///
-/// ## Examples
-///
-///     m = Math
-///     value = "hello world"
+/// Parses a nested operation definition.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
+  parse_operation,
+) -> Result(cursor.Cursor(ast.Definition), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
+    [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
       let name =
         cursor.Cursor(current: source.slice(source, span), span:, rest:)
-      parse_binding_name(source, name)
+
+      parse_definition_name(source, name, parse_operation)
     }
 
     _tokens -> {
       use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining)
+      parse(source, remaining, parse_operation)
     }
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_binding_name(
+fn parse_definition_name(
   source: String,
   name: cursor.Cursor(String),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
+  parse_operation,
+) {
   use rest <- result.try(parse_equal(source, name.rest))
-  use cursor.Cursor(current: value, span:, rest:) <- result.try(
-    parse_value.parse(source, rest),
+  use cursor.Cursor(current: operation, span:, rest:) <- result.try(
+    parse_operation(source, rest),
   )
 
-  let span = source.cover(name.span, span)
+  let span = source.Span(start: name.span.start, end: span.end)
 
   Ok(cursor.Cursor(
-    current: ast.Binding(name: name.current, value:, span:),
+    current: ast.Definition(name: name.current, operation:, span:),
     span:,
     rest:,
   ))

@@ -82,3 +82,21 @@ pub fn parse_returns_unexpected_token_for_lower_identifier_test() {
       span: source.Span(start: 0, end: 3),
     )
 }
+
+pub fn parse_accepts_upper_identifier_with_digits_test() {
+  let source = "Int32"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
+    parse_typename.parse(source, tokens)
+
+  assert annotation
+    == ast.Typename(span: source.Span(start: 0, end: 5), name: "Int32")
+  assert span == source.Span(start: 0, end: 5)
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
+}
