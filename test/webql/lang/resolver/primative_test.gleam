@@ -3,7 +3,8 @@ import webql/lang/resolver/primative
 import webql/lang/source
 
 pub fn get_int_typename_test() {
-  let primitive = parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3))
+  let primitive =
+    parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3))
 
   assert primative.get_typename(primitive) == "Int"
 }
