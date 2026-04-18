@@ -9,10 +9,10 @@ import webql/lang/resolver/resolve_typename
 /// Resolves an output field.
 pub fn resolve(
   registry: registry.Registry,
-  field: parser_ast.Output,
+  field: parser_ast.Return,
   reference: reference.Output,
 ) -> Result(ast.Output, diagnostic.Diagnostic) {
-  let parser_ast.Output(name:, typename:, span:) = field
+  let parser_ast.Return(name:, typename:, span:) = field
   use typename <- result.try(resolve_typename.resolve(registry, typename))
 
   Ok(ast.Output(name:, typename:, reference:, span:))

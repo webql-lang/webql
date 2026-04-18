@@ -9,7 +9,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
   let registry = registry.add_typename(registry.new(), "Int")
 
   let parameter_to_resolve =
-    parser_ast.Output(
+    parser_ast.Return(
       name: "value",
       typename: parser_ast.Typename(
         name: "Int",

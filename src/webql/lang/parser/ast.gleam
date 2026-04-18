@@ -1,95 +1,123 @@
 import webql/lang/source
 
-/// The top (or root) level operation.
+/// The root container for a single top-level operation.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     in: Int -> out: Int { ... }
+///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Module {
   Module(operation: Operation, span: source.Span)
 }
 
-/// A operation with inputs, outputs, and definitions that wire data flow.
+/// An executable graph with declared interfaces and a body of nested
+/// definitions, local bindings, and edges.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     in: Int -> out: Int { ... }
-///     -> out: Int { ... }
+///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
 pub type Operation {
   Operation(
-    inputs: List(Input),
-    outputs: List(Output),
+    parameters: List(Parameter),
+    returns: List(Return),
     definitions: List(Definition),
+    bindings: List(Binding),
+    edges: List(Edge),
     span: source.Span,
   )
 }
 
-/// A named input with a typename.
+/// A declared incoming interface on an operation.
 ///
-/// ## Examples
+/// ## Example
 ///
 ///     in: Int
-pub type Input {
-  Input(name: String, typename: Typename, span: source.Span)
+pub type Parameter {
+  Parameter(name: String, typename: Typename, span: source.Span)
 }
 
-/// A named output with a typename.
+/// A declared outgoing interface on an operation.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     out: String
-pub type Output {
-  Output(name: String, typename: Typename, span: source.Span)
+///     out: Int
+pub type Return {
+  Return(name: String, typename: Typename, span: source.Span)
 }
 
-/// A typename describing the shape of a field.
+/// A type annotation describing a value.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     String
 ///     Int
-///     [Bool]
 pub type Typename {
   Typename(name: String, span: source.Span)
 }
 
-/// An statement inside an operation body.
+/// A named nested operation defined inside another operation.
 ///
-/// ## Examples
+/// ## Example
+///
+///     Inner = in: Int -> out: Int { .in -> .out }
+pub type Definition {
+  Definition(name: String, operation: Operation, span: source.Span)
+}
+
+/// A named binding that assigns a value to a local name.
+///
+/// ## Example
 ///
 ///     m = Math
-///     Inner = in: Int -> out: Int { ... }
-///     1 -> m.l
+pub type Binding {
+  Binding(name: String, value: Value, span: source.Span)
+}
+
+/// A directed connection from a producing value to a receiving location.
+///
+/// ## Example
+///
 ///     m.out -> .out
-pub type Definition {
-  Binding(name: String, value: Reference, span: source.Span)
-  Edge(from: Reference, to: Reference, span: source.Span)
+pub type Edge {
+  Edge(from: Output, to: Input, span: source.Span)
 }
 
-/// A reference used in an definition.
+/// A value used in a binding.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     m.out
-///     .out
-///     "test"
 ///     Math
-///     in: Int -> out: Int { ... }
-pub type Reference {
-  InputAccess(path: List(String), span: source.Span)
-  OutputAccess(path: List(String), span: source.Span)
-  Node(name: String, span: source.Span)
-  Literal(value: Primitive, span: source.Span)
-  SubOperation(name: String, operation: Operation, span: source.Span)
+///     "hello"
+pub type Value {
+  NodeValue(name: String, span: source.Span)
+  PrimitiveValue(value: Primitive, span: source.Span)
 }
 
-/// A literal embedded directly in the graph.
+/// A location that can receive data from an edge.
 ///
-/// ## Examples
+/// ## Example
 ///
-///     3
-///     3.3
-///     "hello world"
+///     .in
+///     m.l
+pub type Input {
+  PortInput(path: List(String), span: source.Span)
+}
+
+/// A value that can produce data into an edge.
+///
+/// ## Example
+///
+///     .out
+///     m.out
+///     1
+pub type Output {
+  PortOutput(path: List(String), span: source.Span)
+  PrimitiveOutput(value: Primitive, span: source.Span)
+}
+
+/// A literal value embedded in the graph.
+///
+/// ## Example
+///
+///     123
 pub type Primitive {
   Int(value: Int, span: source.Span)
   Float(value: Float, span: source.Span)

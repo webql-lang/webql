@@ -6,7 +6,7 @@ import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_reference
 import webql/lang/source
 
-pub fn resolve_output_access_reference_returns_access_reference_test() {
+pub fn resolve_access_reference_returns_access_reference_test() {
   let registry =
     registry.new()
     |> registry.add_typename("Int")
@@ -19,67 +19,50 @@ pub fn resolve_output_access_reference_returns_access_reference_test() {
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.PortOutput(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
-pub fn resolve_output_access_returns_unknown_access_when_output_is_missing_test() {
+pub fn resolve_access_returns_unknown_access_when_output_is_missing_test() {
   let registry = registry.add_typename(registry.new(), "Int")
 
   let assert Error(diagnostic.Diagnostic(
-    kind: diagnostic.UnknownAccess(path: ["math", "out"]),
+    kind: diagnostic.UnknownOutput(path: ["math", "out"]),
     span: source.Span(0, 8),
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.OutputAccess(path: ["math", "out"], span: source.Span(0, 8)),
+      parser_ast.PortOutput(path: ["math", "out"], span: source.Span(0, 8)),
     )
 }
 
-pub fn resolve_output_access_returns_unknown_access_when_path_is_missing_test() {
+pub fn resolve_access_returns_unknown_access_when_path_is_missing_test() {
   let registry = registry.add_typename(registry.new(), "Int")
 
   let assert Error(diagnostic.Diagnostic(
-    kind: diagnostic.UnknownAccess(path: ["out"]),
+    kind: diagnostic.UnknownInput(path: ["out"]),
     span: source.Span(0, 3),
+  )) =
+    resolve_reference.resolve_input(
+      registry,
+      parser_ast.PortInput(path: ["out"], span: source.Span(0, 3)),
+    )
+}
+
+pub fn resolve_access_returns_unknown_access_when_input_is_missing_test() {
+  let registry = registry.add_typename(registry.new(), "Int")
+
+  let assert Error(diagnostic.Diagnostic(
+    kind: diagnostic.UnknownOutput(path: ["math", "value"]),
+    span: source.Span(0, 10),
   )) =
     resolve_reference.resolve_output(
       registry,
-      parser_ast.InputAccess(path: ["out"], span: source.Span(0, 3)),
+      parser_ast.PortOutput(path: ["math", "value"], span: source.Span(0, 10)),
     )
 }
 
-pub fn resolve_input_access_reference_returns_access_reference_test() {
-  let registry =
-    registry.new()
-    |> registry.add_typename("Int")
-    |> registry.add_input(["math", "value"])
-
-  let assert Ok(ast.InputAccess(
-    path: ["math", "value"],
-    reference: reference.Input(0),
-    span: source.Span(0, 10),
-  )) =
-    resolve_reference.resolve_input(
-      registry,
-      parser_ast.InputAccess(path: ["math", "value"], span: source.Span(0, 10)),
-    )
-}
-
-pub fn resolve_input_access_returns_unknown_access_when_input_is_missing_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
-
-  let assert Error(diagnostic.Diagnostic(
-    kind: diagnostic.UnknownAccess(path: ["math", "value"]),
-    span: source.Span(0, 10),
-  )) =
-    resolve_reference.resolve_input(
-      registry,
-      parser_ast.OutputAccess(path: ["math", "value"], span: source.Span(0, 10)),
-    )
-}
-
-pub fn resolve_input_single_segment_access_returns_access_reference_test() {
+pub fn resolve_single_segment_access_returns_access_reference_test() {
   let registry =
     registry.new()
     |> registry.add_typename("Int")
@@ -92,11 +75,11 @@ pub fn resolve_input_single_segment_access_returns_access_reference_test() {
   )) =
     resolve_reference.resolve_input(
       registry,
-      parser_ast.InputAccess(path: ["value"], span: source.Span(0, 5)),
+      parser_ast.PortInput(path: ["value"], span: source.Span(0, 5)),
     )
 }
 
-pub fn resolve_input_primitive_reference_delegates_to_resolve_primitive_test() {
+pub fn resolve_primitive_reference_delegates_to_resolve_primitive_test() {
   let registry = registry.add_typename(registry.new(), "Int")
 
   let assert Ok(ast.Literal(
@@ -104,29 +87,29 @@ pub fn resolve_input_primitive_reference_delegates_to_resolve_primitive_test() {
     reference: reference.Typename(0),
     span: source.Span(0, 2),
   )) =
-    resolve_reference.resolve_input(
+    resolve_reference.resolve_output(
       registry,
-      parser_ast.Literal(
+      parser_ast.PrimitiveOutput(
         value: parser_ast.Int(value: 42, span: source.Span(0, 2)),
         span: source.Span(0, 2),
       ),
     )
 }
 
-pub fn resolve_input_node_reference_returns_unknown_node_test() {
+pub fn resolve_node_reference_returns_unknown_node_test() {
   let registry = registry.add_typename(registry.new(), "Int")
 
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.UnknownNode("Math"),
     span: source.Span(0, 4),
   )) =
-    resolve_reference.resolve_input(
+    resolve_reference.resolve_value(
       registry,
-      parser_ast.Node(name: "Math", span: source.Span(0, 4)),
+      parser_ast.NodeValue(name: "Math", span: source.Span(0, 4)),
     )
 }
 
-pub fn resolve_input_node_reference_returns_node_reference_test() {
+pub fn resolve_node_reference_returns_node_reference_test() {
   let registry = registry.add_node(registry.new(), "Math")
 
   let assert Ok(ast.Node(
@@ -134,21 +117,23 @@ pub fn resolve_input_node_reference_returns_node_reference_test() {
     reference: reference.Node(0),
     span: source.Span(0, 4),
   )) =
-    resolve_reference.resolve_input(
+    resolve_reference.resolve_value(
       registry,
-      parser_ast.Node(name: "Math", span: source.Span(0, 4)),
+      parser_ast.NodeValue(name: "Math", span: source.Span(0, 4)),
     )
 }
 
-pub fn resolve_input_suboperation_reference_returns_suboperation_reference_test() {
+pub fn resolve_suboperation_reference_returns_suboperation_reference_test() {
   let sub_registry = registry.add_typename(registry.new(), "Int")
   let registry = registry.add_operation(registry.new(), "Math", sub_registry)
 
   let operation =
     parser_ast.Operation(
-      inputs: [],
-      outputs: [],
+      parameters: [],
+      returns: [],
       definitions: [],
+      bindings: [],
+      edges: [],
       span: source.Span(5, 18),
     )
 
@@ -158,36 +143,35 @@ pub fn resolve_input_suboperation_reference_returns_suboperation_reference_test(
     operation: ast.Operation(
       inputs: [],
       outputs: [],
-      definitions: [],
+      bindings: [],
+      edges: [],
       span: source.Span(5, 18),
     ),
     span: source.Span(0, 18),
   )) =
-    resolve_reference.resolve_input(
+    resolve_reference.resolve_definition(
       registry,
-      parser_ast.SubOperation(
-        name: "Math",
-        operation:,
-        span: source.Span(0, 18),
-      ),
+      parser_ast.Definition(name: "Math", operation:, span: source.Span(0, 18)),
     )
 }
 
-pub fn resolve_input_suboperation_reference_returns_unknown_operation_test() {
+pub fn resolve_suboperation_reference_returns_unknown_operation_test() {
   let registry = registry.new()
 
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.UnknownOperation("Math"),
     span: source.Span(0, 18),
   )) =
-    resolve_reference.resolve_input(
+    resolve_reference.resolve_definition(
       registry,
-      parser_ast.SubOperation(
+      parser_ast.Definition(
         name: "Math",
         operation: parser_ast.Operation(
-          inputs: [],
-          outputs: [],
+          parameters: [],
+          returns: [],
           definitions: [],
+          bindings: [],
+          edges: [],
           span: source.Span(5, 18),
         ),
         span: source.Span(0, 18),
