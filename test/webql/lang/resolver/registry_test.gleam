@@ -27,6 +27,32 @@ pub fn add_node_assigns_stable_reference_test() {
     ])
 }
 
+pub fn add_parameter_assigns_stable_reference_test() {
+  let registry =
+    registry.add_parameters(registry.new(), [["in"], ["math", "in"], ["in"]])
+
+  let registry.Registry(parameters:, ..) = registry
+
+  assert parameters
+    == dict.from_list([
+      #(["in"], reference.Parameter(0)),
+      #(["math", "in"], reference.Parameter(1)),
+    ])
+}
+
+pub fn add_return_assigns_stable_reference_test() {
+  let registry =
+    registry.add_returns(registry.new(), [["out"], ["math", "out"], ["out"]])
+
+  let registry.Registry(returns:, ..) = registry
+
+  assert returns
+    == dict.from_list([
+      #(["out"], reference.Return(0)),
+      #(["math", "out"], reference.Return(1)),
+    ])
+}
+
 pub fn add_input_assigns_stable_reference_test() {
   let registry =
     registry.add_inputs(registry.new(), [["in"], ["math", "in"], ["in"]])

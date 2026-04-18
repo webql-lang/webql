@@ -6,6 +6,8 @@ import webql/lang/resolver/reference
 /// A registry with resolver context.
 pub type Registry {
   Registry(
+    parameters: dict.Dict(List(String), reference.Parameter),
+    returns: dict.Dict(List(String), reference.Return),
     inputs: dict.Dict(List(String), reference.Input),
     outputs: dict.Dict(List(String), reference.Output),
     definitions: dict.Dict(String, #(reference.Definition, Registry)),
@@ -21,6 +23,8 @@ pub fn new() -> Registry {
   Registry(
     typenames: dict.new(),
     nodes: dict.new(),
+    parameters: dict.new(),
+    returns: dict.new(),
     inputs: dict.new(),
     outputs: dict.new(),
     definitions: dict.new(),
@@ -67,6 +71,49 @@ pub fn add_node(registry: Registry, node: String) -> Registry {
 /// Adds nodes to the current registry instance.
 pub fn add_nodes(registry: Registry, nodes: List(String)) -> Registry {
   list.fold(nodes, registry, add_node)
+}
+
+/// Adds a parameter to the current registry instance.
+pub fn add_parameter(registry: Registry, parameter: List(String)) -> Registry {
+  let Registry(parameters:, ..) = registry
+
+  Registry(
+    ..registry,
+    parameters: dict.upsert(parameters, parameter, fn(parameter) {
+      case parameter {
+        option.Some(parameter) -> parameter
+        option.None -> next_parameter(registry)
+      }
+    }),
+  )
+}
+
+/// Adds parameters to the current registry instance.
+pub fn add_parameters(
+  registry: Registry,
+  parameters: List(List(String)),
+) -> Registry {
+  list.fold(parameters, registry, add_parameter)
+}
+
+/// Adds a return to the current registry instance.
+pub fn add_return(registry: Registry, return: List(String)) -> Registry {
+  let Registry(returns:, ..) = registry
+
+  Registry(
+    ..registry,
+    returns: dict.upsert(returns, return, fn(return) {
+      case return {
+        option.Some(return) -> return
+        option.None -> next_return(registry)
+      }
+    }),
+  )
+}
+
+/// Adds returns to the current registry instance.
+pub fn add_returns(registry: Registry, returns: List(List(String))) -> Registry {
+  list.fold(returns, registry, add_return)
 }
 
 /// Adds a input to the current registry instance.
@@ -200,6 +247,14 @@ fn next_definition(registry: Registry) -> reference.Definition {
 
 fn next_edge(registry: Registry) -> reference.Edge {
   reference.Edge(dict.size(registry.edges))
+}
+
+fn next_parameter(registry: Registry) -> reference.Parameter {
+  reference.Parameter(dict.size(registry.parameters))
+}
+
+fn next_return(registry: Registry) -> reference.Return {
+  reference.Return(dict.size(registry.returns))
 }
 
 fn next_input(registry: Registry) -> reference.Input {
