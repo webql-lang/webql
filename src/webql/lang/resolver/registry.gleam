@@ -12,7 +12,7 @@ pub type Registry {
     outputs: dict.Dict(List(String), reference.Output),
     definitions: dict.Dict(String, #(reference.Definition, Registry)),
     bindings: dict.Dict(List(String), reference.Binding),
-    edges: dict.Dict(#(List(String), List(String)), reference.Edge),
+    edges: dict.Dict(#(reference.Output, reference.Input), reference.Edge),
     nodes: dict.Dict(String, reference.Node),
     typenames: dict.Dict(String, reference.Typename),
   )
@@ -182,7 +182,7 @@ pub fn add_bindings(
 /// Adds an edge to the current registry instance.
 pub fn add_edge(
   registry: Registry,
-  edge: #(List(String), List(String)),
+  edge: #(reference.Output, reference.Input),
 ) -> Registry {
   let Registry(edges:, ..) = registry
 
@@ -200,7 +200,7 @@ pub fn add_edge(
 /// Adds edges to the current registry instance.
 pub fn add_edges(
   registry: Registry,
-  edges: List(#(List(String), List(String))),
+  edges: List(#(reference.Output, reference.Input)),
 ) -> Registry {
   list.fold(edges, registry, add_edge)
 }
