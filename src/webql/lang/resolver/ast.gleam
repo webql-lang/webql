@@ -132,6 +132,7 @@ pub type Input {
 ///
 ///     .out
 ///     m.out
+///     "hello"
 ///     1
 pub type Output {
   PortOutput(path: List(String), reference: reference.Output, span: source.Span)

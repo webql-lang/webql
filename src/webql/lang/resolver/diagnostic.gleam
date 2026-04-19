@@ -1,4 +1,5 @@
 import webql/lang/source
+import webql/lang/resolver/reference
 
 pub type DiagnosticKind {
   UnknownTypename(name: String)
@@ -9,7 +10,7 @@ pub type DiagnosticKind {
   DuplicateReturn(name: String)
   DuplicateParameter(name: String)
   DuplicateBinding(name: String)
-  DuplicateEdge(name: String)
+  DuplicateEdge(edge: #(reference.Output, reference.Input))
   TypeMismatch(expected: String, found: String)
   InvalidEdge(from: String, to: String)
 }
