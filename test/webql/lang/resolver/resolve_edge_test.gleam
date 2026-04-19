@@ -18,7 +18,10 @@ pub fn resolve_port_edge_test() {
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      to: parser_ast.PortInput(path: ["out"], span: source.Span(start: 12, end: 16)),
+      to: parser_ast.PortInput(
+        path: ["out"],
+        span: source.Span(start: 12, end: 16),
+      ),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -57,7 +60,10 @@ pub fn resolve_primitive_output_edge_test() {
         ),
         span: source.Span(start: 0, end: 6),
       ),
-      to: parser_ast.PortInput(path: ["out"], span: source.Span(start: 10, end: 14)),
+      to: parser_ast.PortInput(
+        path: ["out"],
+        span: source.Span(start: 10, end: 14),
+      ),
       span: source.Span(start: 0, end: 14),
     )
 
@@ -90,7 +96,10 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      to: parser_ast.PortInput(path: ["out"], span: source.Span(start: 12, end: 16)),
+      to: parser_ast.PortInput(
+        path: ["out"],
+        span: source.Span(start: 12, end: 16),
+      ),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -113,7 +122,10 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      to: parser_ast.PortInput(path: ["out"], span: source.Span(start: 12, end: 16)),
+      to: parser_ast.PortInput(
+        path: ["out"],
+        span: source.Span(start: 12, end: 16),
+      ),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -140,7 +152,10 @@ pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      to: parser_ast.PortInput(path: ["out"], span: source.Span(start: 12, end: 16)),
+      to: parser_ast.PortInput(
+        path: ["out"],
+        span: source.Span(start: 12, end: 16),
+      ),
       span: source.Span(start: 0, end: 16),
     )
 

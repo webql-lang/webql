@@ -1,5 +1,5 @@
-import webql/lang/source
 import webql/lang/resolver/reference
+import webql/lang/source
 
 pub type DiagnosticKind {
   UnknownTypename(name: String)

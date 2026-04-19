@@ -20,11 +20,7 @@ pub fn resolve_node_binding_test() {
     )
 
   let assert Ok(binding) =
-    resolve_binding.resolve(
-      registry,
-      binding_to_resolve,
-      reference.Binding(0),
-    )
+    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(0))
 
   assert binding
     == ast.Binding(
@@ -53,11 +49,7 @@ pub fn resolve_primitive_binding_test() {
     )
 
   let assert Ok(binding) =
-    resolve_binding.resolve(
-      registry,
-      binding_to_resolve,
-      reference.Binding(0),
-    )
+    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(0))
 
   assert binding
     == ast.Binding(
@@ -86,11 +78,7 @@ pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
     )
 
   let assert Error(error) =
-    resolve_binding.resolve(
-      registry,
-      binding_to_resolve,
-      reference.Binding(1),
-    )
+    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(1))
 
   assert error
     == diagnostic.Diagnostic(
