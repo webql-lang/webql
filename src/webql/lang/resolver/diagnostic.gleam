@@ -9,8 +9,9 @@ pub type DiagnosticKind {
   UnknownOutput(path: List(String))
   DuplicateReturn(name: String)
   DuplicateParameter(name: String)
+  DuplicateDefinition(name: String)
   DuplicateBinding(name: String)
-  DuplicateEdge(edge: #(reference.Output, reference.Input))
+  DuplicateEdge(input: reference.Input)
   TypeMismatch(expected: String, found: String)
   InvalidEdge(from: String, to: String)
 }

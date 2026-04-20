@@ -144,7 +144,7 @@ pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
     registry.new()
     |> registry.add_output(["math", "out"])
     |> registry.add_input(["out"])
-    |> registry.add_edge(#(reference.Output(0), reference.Input(0)))
+    |> registry.add_edge(reference.Input(0))
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -164,7 +164,7 @@ pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.DuplicateEdge(#(reference.Output(0), reference.Input(0))),
+      kind: diagnostic.DuplicateEdge(reference.Input(0)),
       span: source.Span(start: 0, end: 16),
     )
 }
