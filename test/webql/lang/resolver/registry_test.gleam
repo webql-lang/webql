@@ -98,17 +98,17 @@ pub fn add_edge_assigns_stable_reference_test() {
     |> registry.add_outputs([["math", "out"], ["value"]])
     |> registry.add_inputs([["out"], ["text", "in"]])
     |> registry.add_edges([
-      #(reference.Output(0), reference.Input(0)),
-      #(reference.Output(1), reference.Input(1)),
-      #(reference.Output(0), reference.Input(0)),
+      reference.Input(0),
+      reference.Input(1),
+      reference.Input(0),
     ])
 
   let registry.Registry(edges:, ..) = registry
 
   assert edges
     == dict.from_list([
-      #(#(reference.Output(0), reference.Input(0)), reference.Edge(0)),
-      #(#(reference.Output(1), reference.Input(1)), reference.Edge(1)),
+      #(reference.Input(0), reference.Edge(0)),
+      #(reference.Input(1), reference.Edge(1)),
     ])
 }
 

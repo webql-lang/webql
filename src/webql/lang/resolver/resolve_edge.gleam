@@ -20,21 +20,13 @@ pub fn resolve(
   use from <- result.try(resolve_output.resolve(registry, from))
   use to <- result.try(resolve_input.resolve(registry, to))
 
-  case from, to {
-    ast.PortOutput(..), ast.PortInput(..) -> {
-      use <- bool.guard(
-        when: dict.has_key(registry.edges, #(from.reference, to.reference)),
-        return: Error(diagnostic.Diagnostic(
-          kind: diagnostic.DuplicateEdge(#(from.reference, to.reference)),
-          span:,
-        )),
-      )
+  use <- bool.guard(
+    when: dict.has_key(registry.edges, to.reference),
+    return: Error(diagnostic.Diagnostic(
+      kind: diagnostic.DuplicateEdge(to.reference),
+      span:,
+    )),
+  )
 
-      Ok(ast.Edge(from:, to:, reference:, span:))
-    }
-
-    ast.PrimitiveOutput(..), ast.PortInput(..) -> {
-      Ok(ast.Edge(from:, to:, reference:, span:))
-    }
-  }
+  Ok(ast.Edge(from:, to:, reference:, span:))
 }

@@ -12,7 +12,7 @@ pub type Registry {
     outputs: dict.Dict(List(String), reference.Output),
     definitions: dict.Dict(String, #(reference.Definition, Registry)),
     bindings: dict.Dict(List(String), reference.Binding),
-    edges: dict.Dict(#(reference.Output, reference.Input), reference.Edge),
+    edges: dict.Dict(reference.Input, reference.Edge),
     nodes: dict.Dict(String, reference.Node),
     typenames: dict.Dict(String, reference.Typename),
   )
@@ -180,10 +180,7 @@ pub fn add_bindings(
 }
 
 /// Adds an edge to the current registry instance.
-pub fn add_edge(
-  registry: Registry,
-  edge: #(reference.Output, reference.Input),
-) -> Registry {
+pub fn add_edge(registry: Registry, edge: reference.Input) -> Registry {
   let Registry(edges:, ..) = registry
 
   Registry(
@@ -198,10 +195,7 @@ pub fn add_edge(
 }
 
 /// Adds edges to the current registry instance.
-pub fn add_edges(
-  registry: Registry,
-  edges: List(#(reference.Output, reference.Input)),
-) -> Registry {
+pub fn add_edges(registry: Registry, edges: List(reference.Input)) -> Registry {
   list.fold(edges, registry, add_edge)
 }
 
@@ -235,40 +229,47 @@ pub fn add_definitions(
   })
 }
 
-// PRIVATE FUNCTIONS
-// =================
-fn next_binding(registry: Registry) -> reference.Binding {
+/// Gets the next stable binding reference.
+pub fn next_binding(registry: Registry) -> reference.Binding {
   reference.Binding(dict.size(registry.bindings))
 }
 
-fn next_definition(registry: Registry) -> reference.Definition {
+/// Gets the next stable definition reference.
+pub fn next_definition(registry: Registry) -> reference.Definition {
   reference.Definition(dict.size(registry.definitions))
 }
 
-fn next_edge(registry: Registry) -> reference.Edge {
+/// Gets the next stable edge reference.
+pub fn next_edge(registry: Registry) -> reference.Edge {
   reference.Edge(dict.size(registry.edges))
 }
 
-fn next_parameter(registry: Registry) -> reference.Parameter {
+/// Gets the next stable parameter reference.
+pub fn next_parameter(registry: Registry) -> reference.Parameter {
   reference.Parameter(dict.size(registry.parameters))
 }
 
-fn next_return(registry: Registry) -> reference.Return {
+/// Gets the next stable return reference.
+pub fn next_return(registry: Registry) -> reference.Return {
   reference.Return(dict.size(registry.returns))
 }
 
-fn next_input(registry: Registry) -> reference.Input {
+/// Gets the next stable input reference.
+pub fn next_input(registry: Registry) -> reference.Input {
   reference.Input(dict.size(registry.inputs))
 }
 
-fn next_output(registry: Registry) -> reference.Output {
+/// Gets the next stable output reference.
+pub fn next_output(registry: Registry) -> reference.Output {
   reference.Output(dict.size(registry.outputs))
 }
 
-fn next_typename(registry: Registry) -> reference.Typename {
+/// Gets the next stable typename reference.
+pub fn next_typename(registry: Registry) -> reference.Typename {
   reference.Typename(dict.size(registry.typenames))
 }
 
-fn next_node(registry: Registry) -> reference.Node {
+/// Gets the next stable node reference.
+pub fn next_node(registry: Registry) -> reference.Node {
   reference.Node(dict.size(registry.nodes))
 }
