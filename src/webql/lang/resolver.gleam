@@ -5,11 +5,17 @@ import webql/lang/resolver/reference
 import webql/lang/resolver/registry
 import webql/lang/resolver/resolve_module
 
-/// Resolves a parser module AST.
-pub fn resolve(
-  registry: registry.Registry,
-  module: parser_ast.Module,
-) -> Result(ast.Module, diagnostic.Diagnostic) {
+pub opaque type Resolver {
+  Resolver(module: parser_ast.Module, registry: registry.Registry)
+}
+
+/// Creates a new resolver instance from a parser module.
+pub fn new(module: parser_ast.Module, registry: registry.Registry) -> Resolver {
+  Resolver(module:, registry:)
+}
+
+/// Resolves a resolver instance.
+pub fn resolve(resolver: Resolver) -> Result(ast.Module, diagnostic.Diagnostic) {
   let reference = reference.Module(0)
-  resolve_module.resolve(registry, module, reference)
+  resolve_module.resolve(resolver.registry, resolver.module, reference)
 }

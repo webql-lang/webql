@@ -4,19 +4,19 @@ import webql/lang/resolver/ast
 import webql/lang/resolver/diagnostic
 import webql/lang/resolver/registry
 
-/// Resolves annotations in a field.
+/// Resolves typenames in a field.
 pub fn resolve(
   registry: registry.Registry,
-  annotation: parser_ast.Typename,
+  typename: parser_ast.Typename,
 ) -> Result(ast.Typename, diagnostic.Diagnostic) {
-  case dict.get(registry.typenames, annotation.name) {
+  case dict.get(registry.typenames, typename.name) {
     Ok(reference) ->
-      Ok(ast.Typename(name: annotation.name, reference:, span: annotation.span))
+      Ok(ast.Typename(name: typename.name, reference:, span: typename.span))
 
     Error(_nil) ->
       Error(diagnostic.Diagnostic(
-        kind: diagnostic.UnknownTypename(annotation.name),
-        span: annotation.span,
+        kind: diagnostic.UnknownTypename(typename.name),
+        span: typename.span,
       ))
   }
 }

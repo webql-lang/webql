@@ -46,7 +46,10 @@ pub fn resolve_module_through_public_entrypoint_test() {
       span: source.Span(start: 0, end: 26),
     )
 
-  let assert Ok(module) = resolver.resolve(registry, module_to_resolve)
+  let assert Ok(module) =
+    module_to_resolve
+    |> resolver.new(registry)
+    |> resolver.resolve()
 
   assert module
     == ast.Module(
@@ -143,7 +146,10 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
       span: source.Span(start: 0, end: 36),
     )
 
-  let assert Error(error) = resolver.resolve(registry, module_to_resolve)
+  let assert Error(error) =
+    module_to_resolve
+    |> resolver.new(registry)
+    |> resolver.resolve()
 
   assert error
     == diagnostic.Diagnostic(
