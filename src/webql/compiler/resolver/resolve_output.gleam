@@ -1,0 +1,55 @@
+import gleam/dict
+import webql/compiler/parser/ast as parser_ast
+import webql/compiler/resolver/ast
+import webql/compiler/resolver/diagnostic
+import webql/compiler/resolver/primative
+import webql/compiler/resolver/registry
+import webql/compiler/resolver/resolve_primitive
+import webql/compiler/source
+
+/// Resolves an edge output.
+pub fn resolve(
+  registry: registry.Registry,
+  output: parser_ast.Output,
+) -> Result(ast.Output, diagnostic.Diagnostic) {
+  case output {
+    parser_ast.PortOutput(path:, span:) ->
+      resolve_port_output(registry, path, span)
+
+    parser_ast.PrimitiveOutput(value:, span:) ->
+      resolve_primitive_output(registry, value, span)
+  }
+}
+
+// PRIVATE FUNCTIONS
+// =================
+fn resolve_port_output(
+  registry: registry.Registry,
+  path: List(String),
+  span: source.Span,
+) {
+  case dict.get(registry.outputs, path) {
+    Ok(reference) -> Ok(ast.PortOutput(path:, reference:, span:))
+
+    Error(_nil) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOutput(path), span:))
+  }
+}
+
+fn resolve_primitive_output(
+  registry: registry.Registry,
+  value: parser_ast.Primitive,
+  span: source.Span,
+) {
+  let name = primative.get_typename(value)
+
+  case dict.get(registry.typenames, name) {
+    Ok(typename) -> {
+      let value = resolve_primitive.resolve(value)
+      Ok(ast.PrimitiveOutput(value:, typename:, span:))
+    }
+
+    Error(_nil) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownTypename(name), span:))
+  }
+}

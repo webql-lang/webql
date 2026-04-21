@@ -1,0 +1,80 @@
+import gleam/float
+import gleam/int
+import gleam/result
+import gleam/string
+import webql/compiler/lexer/token
+import webql/compiler/parser/ast
+import webql/compiler/parser/cursor
+import webql/compiler/parser/diagnostic
+import webql/compiler/parser/parse_nonstarter
+import webql/compiler/source
+
+/// Parses a literal value.
+///
+/// ## Examples
+///
+///     1
+///     1.23
+///     "test"
+pub fn parse(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(cursor.Cursor(ast.Primitive), diagnostic.Diagnostic) {
+  case tokens {
+    [token.Token(kind: token.Int, span:), ..rest] -> {
+      let literal = source.slice(source, span)
+      use value <- result.try(parse_int(literal, span))
+
+      Ok(cursor.Cursor(current: value, span:, rest:))
+    }
+
+    [token.Token(kind: token.Float, span:), ..rest] -> {
+      let literal = source.slice(source, span)
+      use value <- result.try(parse_float(literal, span))
+
+      Ok(cursor.Cursor(current: value, span:, rest:))
+    }
+
+    [token.Token(kind: token.String, span:), ..rest] -> {
+      let value =
+        string.slice(
+          from: source,
+          at_index: span.start + 1,
+          length: span.end - span.start - 2,
+        )
+
+      Ok(cursor.Cursor(current: ast.String(value:, span:), span:, rest:))
+    }
+
+    _tokens -> {
+      use tokens <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, tokens)
+    }
+  }
+}
+
+// PRIVATE FUNCTIONS
+// =================
+fn parse_int(raw: String, span: source.Span) {
+  case int.parse(raw) {
+    Ok(value) -> Ok(ast.Int(value:, span:))
+
+    Error(_error) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnexpectedToken(token.Int),
+        span:,
+      ))
+  }
+}
+
+fn parse_float(raw: String, span: source.Span) {
+  case float.parse(raw) {
+    Ok(value) -> Ok(ast.Float(value:, span:))
+
+    Error(_error) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnexpectedToken(token.Float),
+        span:,
+      ))
+  }
+}
