@@ -65,7 +65,7 @@ pub fn resolve_primitive_binding_test() {
 }
 
 pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
-  let registry = registry.add_binding(registry.new(), ["math"])
+  let registry = registry.add_binding(registry.new(), "math")
 
   let binding_to_resolve =
     parser_ast.Binding(

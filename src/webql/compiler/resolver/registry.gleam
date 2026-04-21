@@ -11,7 +11,7 @@ pub type Registry {
     inputs: dict.Dict(List(String), reference.Input),
     outputs: dict.Dict(List(String), reference.Output),
     definitions: dict.Dict(String, #(reference.Definition, Registry)),
-    bindings: dict.Dict(List(String), reference.Binding),
+    bindings: dict.Dict(String, reference.Binding),
     edges: dict.Dict(reference.Input, reference.Edge),
     nodes: dict.Dict(String, reference.Node),
     typenames: dict.Dict(String, reference.Typename),
@@ -157,7 +157,7 @@ pub fn add_outputs(registry: Registry, outputs: List(List(String))) -> Registry 
 }
 
 /// Adds a binding to the current registry instance.
-pub fn add_binding(registry: Registry, binding: List(String)) -> Registry {
+pub fn add_binding(registry: Registry, binding: String) -> Registry {
   let Registry(bindings:, ..) = registry
 
   Registry(
@@ -172,10 +172,7 @@ pub fn add_binding(registry: Registry, binding: List(String)) -> Registry {
 }
 
 /// Adds bindings to the current registry instance.
-pub fn add_bindings(
-  registry: Registry,
-  bindings: List(List(String)),
-) -> Registry {
+pub fn add_bindings(registry: Registry, bindings: List(String)) -> Registry {
   list.fold(bindings, registry, add_binding)
 }
 

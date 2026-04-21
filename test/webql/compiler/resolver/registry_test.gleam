@@ -80,15 +80,14 @@ pub fn add_output_assigns_stable_reference_test() {
 }
 
 pub fn add_binding_assigns_stable_reference_test() {
-  let registry =
-    registry.add_bindings(registry.new(), [["math"], ["text"], ["math"]])
+  let registry = registry.add_bindings(registry.new(), ["math", "text", "math"])
 
   let registry.Registry(bindings:, ..) = registry
 
   assert bindings
     == dict.from_list([
-      #(["math"], reference.Binding(0)),
-      #(["text"], reference.Binding(1)),
+      #("math", reference.Binding(0)),
+      #("text", reference.Binding(1)),
     ])
 }
 
