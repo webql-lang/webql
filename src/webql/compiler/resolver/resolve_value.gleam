@@ -1,5 +1,4 @@
 import gleam/dict
-import gleam/result
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
@@ -42,21 +41,13 @@ fn resolve_primitive_value(
   value: parser_ast.Primitive,
   span: source.Span,
 ) {
-  use typename <- result.try(resolve_primitive_typename(registry, value, span))
-  let value = resolve_primitive.resolve(value)
-
-  Ok(ast.PrimitiveValue(value:, typename:, span:))
-}
-
-fn resolve_primitive_typename(
-  registry: registry.Registry,
-  value: parser_ast.Primitive,
-  span: source.Span,
-) {
   let name = primative.get_typename(value)
 
   case dict.get(registry.typenames, name) {
-    Ok(reference) -> Ok(reference)
+    Ok(typename) -> {
+      let value = resolve_primitive.resolve(value)
+      Ok(ast.PrimitiveValue(value:, typename:, span:))
+    }
 
     Error(_nil) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownTypename(name), span:))

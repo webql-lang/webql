@@ -149,7 +149,7 @@ fn resolve_bindings(
         reference,
       ))
 
-      let registry = registry.add_binding(registry, [binding.name])
+      let registry = registry.add_binding(registry, binding.name)
 
       use #(bindings, registry) <- result.try(resolve_bindings(
         registry,

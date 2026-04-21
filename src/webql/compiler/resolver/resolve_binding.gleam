@@ -17,7 +17,7 @@ pub fn resolve(
   let parser_ast.Binding(name:, value:, span:) = binding
 
   use <- bool.guard(
-    when: dict.has_key(registry.bindings, [name]),
+    when: dict.has_key(registry.bindings, name),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateBinding(name),
       span:,
