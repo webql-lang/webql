@@ -1,5 +1,4 @@
 import gleam/bool
-import gleam/dict
 import gleam/result
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
@@ -23,7 +22,7 @@ pub fn resolve(
   use to <- result.try(resolve_input.resolve(runtime, to))
 
   use <- bool.guard(
-    when: dict.has_key(runtime.edges, to.reference),
+    when: result.is_ok(runtime.get_edge(runtime, to.reference)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateEdge(to.reference),
       span:,

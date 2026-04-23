@@ -19,7 +19,7 @@ pub fn resolve(
   let parser_ast.Definition(name:, operation:, span:) = definition
 
   use <- bool.guard(
-    when: dict.has_key(runtime.definitions, definition.name),
+    when: result.is_ok(runtime.get_definition(runtime, definition.name)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateDefinition(definition.name),
       span: definition.span,

@@ -1,5 +1,4 @@
 import gleam/bool
-import gleam/dict
 import gleam/result
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
@@ -19,7 +18,7 @@ pub fn resolve(
   let parser_ast.Return(name:, typename:, span:) = field
 
   use <- bool.guard(
-    when: dict.has_key(runtime.returns, name),
+    when: result.is_ok(runtime.get_return(runtime, name)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateReturn(name),
       span:,

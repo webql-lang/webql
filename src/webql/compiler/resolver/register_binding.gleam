@@ -1,4 +1,3 @@
-import gleam/dict
 import gleam/list
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/reference
@@ -29,12 +28,12 @@ fn register_node_value(
   name: String,
   node: reference.Node,
 ) {
-  let runtime = case dict.get(schema.inputs, node) {
+  let runtime = case schema.get_inputs(schema, node) {
     Ok(inputs) -> register_inputs(runtime, name, inputs)
     Error(_nil) -> runtime
   }
 
-  case dict.get(schema.outputs, node) {
+  case schema.get_outputs(schema, node) {
     Ok(outputs) -> register_outputs(runtime, name, outputs)
     Error(_nil) -> runtime
   }

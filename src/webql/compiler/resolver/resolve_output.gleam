@@ -1,4 +1,3 @@
-import gleam/dict
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
@@ -45,7 +44,7 @@ fn resolve_primitive_output(
 ) {
   let name = primative.get_typename(value)
 
-  case dict.get(schema.typenames, name) {
+  case schema.get_typename(schema, name) {
     Ok(typename) -> {
       let value = resolve_primitive.resolve(value)
       Ok(ast.PrimitiveOutput(value:, typename:, span:))

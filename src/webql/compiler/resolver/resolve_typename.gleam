@@ -1,4 +1,3 @@
-import gleam/dict
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
@@ -9,7 +8,7 @@ pub fn resolve(
   schema: schema.Schema,
   typename: parser_ast.Typename,
 ) -> Result(ast.Typename, diagnostic.Diagnostic) {
-  case dict.get(schema.typenames, typename.name) {
+  case schema.get_typename(schema, typename.name) {
     Ok(reference) ->
       Ok(ast.Typename(name: typename.name, reference:, span: typename.span))
 
