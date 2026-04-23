@@ -3,11 +3,11 @@ import webql/compiler/resolver
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_module_through_public_entrypoint_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let module_to_resolve =
     parser_ast.Module(
@@ -48,7 +48,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
 
   let assert Ok(module) =
     module_to_resolve
-    |> resolver.new(registry)
+    |> resolver.new(schema)
     |> resolver.resolve()
 
   assert module
@@ -93,7 +93,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
 }
 
 pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let module_to_resolve =
     parser_ast.Module(
@@ -148,7 +148,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
 
   let assert Error(error) =
     module_to_resolve
-    |> resolver.new(registry)
+    |> resolver.new(schema)
     |> resolver.resolve()
 
   assert error

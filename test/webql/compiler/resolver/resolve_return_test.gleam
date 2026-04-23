@@ -2,12 +2,13 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/resolver/resolve_return
 import webql/compiler/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let return_to_resolve =
     parser_ast.Return(
@@ -20,7 +21,12 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
     )
 
   let assert Ok(value) =
-    resolve_return.resolve(registry, return_to_resolve, reference.Return(0))
+    resolve_return.resolve(
+      schema,
+      runtime.new(),
+      return_to_resolve,
+      reference.Return(0),
+    )
 
   assert value
     == ast.Return(
@@ -36,7 +42,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_duplicate_return_for_existing_return_test() {
-  let registry = registry.add_return(registry.new(), ["value"])
+  let runtime = runtime.add_return(runtime.new(), "value")
 
   let return_to_resolve =
     parser_ast.Return(
@@ -49,7 +55,12 @@ pub fn resolve_returns_duplicate_return_for_existing_return_test() {
     )
 
   let assert Error(error) =
-    resolve_return.resolve(registry, return_to_resolve, reference.Return(1))
+    resolve_return.resolve(
+      schema.new(),
+      runtime,
+      return_to_resolve,
+      reference.Return(1),
+    )
 
   assert error
     == diagnostic.Diagnostic(

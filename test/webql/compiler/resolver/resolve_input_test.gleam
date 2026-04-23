@@ -2,12 +2,12 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
 import webql/compiler/resolver/resolve_input
 import webql/compiler/source
 
 pub fn resolve_port_input_test() {
-  let registry = registry.add_input(registry.new(), ["math", "in"])
+  let runtime = runtime.add_input(runtime.new(), ["math", "in"])
 
   let input_to_resolve =
     parser_ast.PortInput(
@@ -15,7 +15,7 @@ pub fn resolve_port_input_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  let assert Ok(input) = resolve_input.resolve(registry, input_to_resolve)
+  let assert Ok(input) = resolve_input.resolve(runtime, input_to_resolve)
 
   assert input
     == ast.PortInput(
@@ -26,7 +26,7 @@ pub fn resolve_port_input_test() {
 }
 
 pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
-  let registry = registry.new()
+  let runtime = runtime.new()
 
   let input_to_resolve =
     parser_ast.PortInput(
@@ -34,7 +34,7 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  let assert Error(error) = resolve_input.resolve(registry, input_to_resolve)
+  let assert Error(error) = resolve_input.resolve(runtime, input_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

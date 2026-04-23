@@ -2,16 +2,16 @@ import gleam/dict
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
 
 /// Resolves an edge input.
 pub fn resolve(
-  registry: registry.Registry,
+  runtime: runtime.Runtime,
   input: parser_ast.Input,
 ) -> Result(ast.Input, diagnostic.Diagnostic) {
   let parser_ast.PortInput(path:, span:) = input
 
-  case dict.get(registry.inputs, path) {
+  case dict.get(runtime.inputs, path) {
     Ok(reference) -> Ok(ast.PortInput(path:, reference:, span:))
 
     Error(_nil) ->

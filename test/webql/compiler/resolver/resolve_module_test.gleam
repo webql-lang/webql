@@ -1,12 +1,13 @@
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/resolver/resolve_module
 import webql/compiler/source
 
 pub fn resolve_module_wraps_resolved_operation_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let module_to_resolve =
     parser_ast.Module(
@@ -31,7 +32,12 @@ pub fn resolve_module_wraps_resolved_operation_test() {
     )
 
   let assert Ok(module) =
-    resolve_module.resolve(registry, module_to_resolve, reference.Module(0))
+    resolve_module.resolve(
+      schema,
+      runtime.new(),
+      module_to_resolve,
+      reference.Module(0),
+    )
 
   assert module
     == ast.Module(

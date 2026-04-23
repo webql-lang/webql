@@ -2,25 +2,40 @@ import gleam/result
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/register_binding
+import webql/compiler/resolver/register_definiton
+import webql/compiler/resolver/register_edge
+import webql/compiler/resolver/register_parameter
+import webql/compiler/resolver/register_return
 import webql/compiler/resolver/resolve_binding
 import webql/compiler/resolver/resolve_definition
 import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 
 /// Resolves an operation body and its nested declarations.
 pub fn resolve(
-  registry: registry.Registry,
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
   operation: parser_ast.Operation,
 ) -> Result(ast.Operation, diagnostic.Diagnostic) {
-  use #(operation, _registry) <- result.try(resolve_body(registry, operation))
+  use #(operation, _runtime) <- result.try(resolve_body(
+    schema,
+    runtime,
+    operation,
+  ))
   Ok(operation)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn resolve_body(registry: registry.Registry, operation: parser_ast.Operation) {
+fn resolve_body(
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
+  operation: parser_ast.Operation,
+) {
   let parser_ast.Operation(
     parameters:,
     returns:,
@@ -30,151 +45,179 @@ fn resolve_body(registry: registry.Registry, operation: parser_ast.Operation) {
     span:,
   ) = operation
 
-  use #(parameters, registry) <- result.try(resolve_parameters(
-    registry,
+  use #(parameters, runtime) <- result.try(resolve_parameters(
+    schema,
+    runtime,
     parameters,
   ))
 
-  use #(returns, registry) <- result.try(resolve_returns(registry, returns))
+  use #(returns, runtime) <- result.try(resolve_returns(
+    schema,
+    runtime,
+    returns,
+  ))
 
-  use #(definitions, registry) <- result.try(resolve_definitions(
-    registry,
+  use #(definitions, runtime) <- result.try(resolve_definitions(
+    schema,
+    runtime,
     definitions,
   ))
 
-  use #(bindings, registry) <- result.try(resolve_bindings(registry, bindings))
-  use #(edges, registry) <- result.try(resolve_edges(registry, edges))
+  use #(bindings, runtime) <- result.try(resolve_bindings(
+    schema,
+    runtime,
+    bindings,
+  ))
+
+  use #(edges, runtime) <- result.try(resolve_edges(schema, runtime, edges))
 
   Ok(#(
     ast.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
-    registry,
+    runtime,
   ))
 }
 
 fn resolve_parameters(
-  registry: registry.Registry,
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
   parameters: List(parser_ast.Parameter),
 ) {
   case parameters {
     [parameter, ..rest] -> {
-      let reference = registry.next_parameter(registry)
+      let reference = runtime.next_parameter(runtime)
 
       use parameter <- result.try(resolve_parameter.resolve(
-        registry,
+        schema,
+        runtime,
         parameter,
         reference,
       ))
 
-      let registry =
-        registry
-        |> registry.add_parameter([parameter.name])
-        |> registry.add_output([parameter.name])
+      let runtime = register_parameter.register(runtime, parameter)
 
-      use #(rest, registry) <- result.try(resolve_parameters(registry, rest))
-      Ok(#([parameter, ..rest], registry))
+      use #(rest, runtime) <- result.try(resolve_parameters(
+        schema,
+        runtime,
+        rest,
+      ))
+      Ok(#([parameter, ..rest], runtime))
     }
 
-    [] -> Ok(#([], registry))
+    [] -> Ok(#([], runtime))
   }
 }
 
 fn resolve_returns(
-  registry: registry.Registry,
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
   returns: List(parser_ast.Return),
 ) {
   case returns {
     [return, ..rest] -> {
-      let reference = registry.next_return(registry)
+      let reference = runtime.next_return(runtime)
 
       use return <- result.try(resolve_return.resolve(
-        registry,
+        schema,
+        runtime,
         return,
         reference,
       ))
 
-      let registry =
-        registry
-        |> registry.add_return([return.name])
-        |> registry.add_input([return.name])
+      let runtime = register_return.register(runtime, return)
 
-      use #(rest, registry) <- result.try(resolve_returns(registry, rest))
-      Ok(#([return, ..rest], registry))
+      use #(rest, runtime) <- result.try(resolve_returns(schema, runtime, rest))
+      Ok(#([return, ..rest], runtime))
     }
 
-    [] -> Ok(#([], registry))
+    [] -> Ok(#([], runtime))
   }
 }
 
 fn resolve_definitions(
-  registry: registry.Registry,
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
   definitions: List(parser_ast.Definition),
 ) {
   case definitions {
     [definition, ..definitions] -> {
-      let reference = registry.next_definition(registry)
+      let reference = runtime.next_definition(runtime)
 
-      use #(definition, sub_registry) <- result.try(resolve_definition.resolve(
-        registry,
+      use #(definition, sub_runtime) <- result.try(resolve_definition.resolve(
+        schema,
+        runtime,
         definition,
         reference,
         resolve,
       ))
 
-      let registry =
-        registry.add_definition(registry, definition.name, sub_registry)
+      let runtime =
+        register_definiton.register(runtime, definition, sub_runtime)
 
-      use #(definitions, registry) <- result.try(resolve_definitions(
-        registry,
+      use #(definitions, runtime) <- result.try(resolve_definitions(
+        schema,
+        runtime,
         definitions,
       ))
 
-      Ok(#([definition, ..definitions], registry))
+      Ok(#([definition, ..definitions], runtime))
     }
 
-    [] -> Ok(#([], registry))
+    [] -> Ok(#([], runtime))
   }
 }
 
 fn resolve_bindings(
-  registry: registry.Registry,
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
   bindings: List(parser_ast.Binding),
 ) {
   case bindings {
     [binding, ..bindings] -> {
-      let reference = registry.next_binding(registry)
+      let reference = runtime.next_binding(runtime)
 
       use binding <- result.try(resolve_binding.resolve(
-        registry,
+        schema,
+        runtime,
         binding,
         reference,
       ))
 
-      let registry = registry.add_binding(registry, binding.name)
+      let runtime = register_binding.register(schema, runtime, binding)
 
-      use #(bindings, registry) <- result.try(resolve_bindings(
-        registry,
+      use #(bindings, runtime) <- result.try(resolve_bindings(
+        schema,
+        runtime,
         bindings,
       ))
 
-      Ok(#([binding, ..bindings], registry))
+      Ok(#([binding, ..bindings], runtime))
     }
 
-    [] -> Ok(#([], registry))
+    [] -> Ok(#([], runtime))
   }
 }
 
-fn resolve_edges(registry: registry.Registry, edges: List(parser_ast.Edge)) {
+fn resolve_edges(
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
+  edges: List(parser_ast.Edge),
+) {
   case edges {
     [edge, ..edges] -> {
-      let reference = registry.next_edge(registry)
-      use edge <- result.try(resolve_edge.resolve(registry, edge, reference))
+      let reference = runtime.next_edge(runtime)
+      use edge <- result.try(resolve_edge.resolve(
+        schema,
+        runtime,
+        edge,
+        reference,
+      ))
 
-      let registry = registry.add_edge(registry, edge.to.reference)
+      let runtime = register_edge.register(runtime, edge)
 
-      use #(edges, registry) <- result.try(resolve_edges(registry, edges))
-      Ok(#([edge, ..edges], registry))
+      use #(edges, runtime) <- result.try(resolve_edges(schema, runtime, edges))
+      Ok(#([edge, ..edges], runtime))
     }
 
-    [] -> Ok(#([], registry))
+    [] -> Ok(#([], runtime))
   }
 }

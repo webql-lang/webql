@@ -2,12 +2,13 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let parameter_to_resolve =
     parser_ast.Parameter(
@@ -21,7 +22,8 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 
   let assert Ok(parameter) =
     resolve_parameter.resolve(
-      registry,
+      schema,
+      runtime.new(),
       parameter_to_resolve,
       reference.Parameter(0),
     )
@@ -40,7 +42,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let parameter_to_resolve =
     parser_ast.Parameter(
@@ -54,7 +56,8 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
 
   let assert Error(error) =
     resolve_parameter.resolve(
-      registry,
+      schema,
+      runtime.new(),
       parameter_to_resolve,
       reference.Parameter(0),
     )
@@ -67,7 +70,7 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
 }
 
 pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
-  let registry = registry.add_parameter(registry.new(), ["value"])
+  let runtime = runtime.add_parameter(runtime.new(), "value")
 
   let parameter_to_resolve =
     parser_ast.Parameter(
@@ -81,7 +84,8 @@ pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
 
   let assert Error(error) =
     resolve_parameter.resolve(
-      registry,
+      schema.new(),
+      runtime,
       parameter_to_resolve,
       reference.Parameter(1),
     )

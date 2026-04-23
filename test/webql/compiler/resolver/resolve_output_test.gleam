@@ -2,12 +2,13 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/resolver/resolve_output
 import webql/compiler/source
 
 pub fn resolve_port_output_test() {
-  let registry = registry.add_output(registry.new(), ["math", "out"])
+  let runtime = runtime.add_output(runtime.new(), ["math", "out"])
 
   let output_to_resolve =
     parser_ast.PortOutput(
@@ -15,7 +16,8 @@ pub fn resolve_port_output_test() {
       span: source.Span(start: 0, end: 8),
     )
 
-  let assert Ok(output) = resolve_output.resolve(registry, output_to_resolve)
+  let assert Ok(output) =
+    resolve_output.resolve(schema.new(), runtime, output_to_resolve)
 
   assert output
     == ast.PortOutput(
@@ -26,7 +28,7 @@ pub fn resolve_port_output_test() {
 }
 
 pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
-  let registry = registry.new()
+  let runtime = runtime.new()
 
   let output_to_resolve =
     parser_ast.PortOutput(
@@ -34,7 +36,8 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
       span: source.Span(start: 0, end: 8),
     )
 
-  let assert Error(error) = resolve_output.resolve(registry, output_to_resolve)
+  let assert Error(error) =
+    resolve_output.resolve(schema.new(), runtime, output_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
@@ -44,7 +47,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
 }
 
 pub fn resolve_primitive_output_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
@@ -52,7 +55,8 @@ pub fn resolve_primitive_output_test() {
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Ok(output) = resolve_output.resolve(registry, output_to_resolve)
+  let assert Ok(output) =
+    resolve_output.resolve(schema, runtime.new(), output_to_resolve)
 
   assert output
     == ast.PrimitiveOutput(
@@ -63,7 +67,7 @@ pub fn resolve_primitive_output_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
@@ -71,7 +75,8 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test()
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Error(error) = resolve_output.resolve(registry, output_to_resolve)
+  let assert Error(error) =
+    resolve_output.resolve(schema, runtime.new(), output_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

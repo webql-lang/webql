@@ -2,13 +2,14 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/resolver/resolve_definition
 import webql/compiler/resolver/resolve_operation
 import webql/compiler/source
 
 pub fn resolve_definition_resolves_nested_operation_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let definition_to_resolve =
     parser_ast.Definition(
@@ -54,9 +55,10 @@ pub fn resolve_definition_resolves_nested_operation_test() {
       span: source.Span(start: 0, end: 47),
     )
 
-  let assert Ok(#(definition, _registry)) =
+  let assert Ok(#(definition, _runtime)) =
     resolve_definition.resolve(
-      registry,
+      schema,
+      runtime.new(),
       definition_to_resolve,
       reference.Definition(0),
       resolve_operation.resolve,
@@ -116,8 +118,7 @@ pub fn resolve_definition_resolves_nested_operation_test() {
 }
 
 pub fn resolve_definition_returns_duplicate_definition_test() {
-  let registry =
-    registry.add_definition(registry.new(), "Inner", registry.new())
+  let runtime = runtime.add_definition(runtime.new(), "Inner")
 
   let definition_to_resolve =
     parser_ast.Definition(
@@ -135,7 +136,8 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
 
   let assert Error(error) =
     resolve_definition.resolve(
-      registry,
+      schema.new(),
+      runtime,
       definition_to_resolve,
       reference.Definition(1),
       resolve_operation.resolve,
