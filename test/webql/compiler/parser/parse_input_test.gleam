@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_input
 import webql/compiler/source
@@ -14,8 +13,7 @@ pub fn parse_node_port_input_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: input, span:, rest:)) =
-    parse_input.parse(source, tokens)
+  let assert Ok(#(input, span, rest)) = parse_input.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 5)
   assert input
@@ -32,8 +30,7 @@ pub fn parse_operation_port_input_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: input, span:, rest:)) =
-    parse_input.parse(source, tokens)
+  let assert Ok(#(input, span, rest)) = parse_input.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 4)
   assert input
@@ -50,8 +47,7 @@ pub fn parse_preserves_remaining_tokens_after_input_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: input, span:, rest:)) =
-    parse_input.parse(source, tokens)
+  let assert Ok(#(input, span, rest)) = parse_input.parse(source, tokens)
 
   assert span == source.Span(start: 0, end: 5)
   assert input

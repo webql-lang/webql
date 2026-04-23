@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_binding
 import webql/compiler/source
@@ -14,8 +13,7 @@ pub fn parse_binding_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: binding, rest:, ..)) =
-    parse_binding.parse(source, tokens)
+  let assert Ok(#(binding, _, rest)) = parse_binding.parse(source, tokens)
 
   assert binding
     == ast.Binding(
@@ -36,8 +34,7 @@ pub fn parse_binding_primitive_value_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: binding, rest:, ..)) =
-    parse_binding.parse(source, tokens)
+  let assert Ok(#(binding, _, rest)) = parse_binding.parse(source, tokens)
 
   assert binding
     == ast.Binding(
@@ -65,8 +62,7 @@ pub fn parse_preserves_remaining_tokens_after_binding_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: binding, rest:, ..)) =
-    parse_binding.parse(source, tokens)
+  let assert Ok(#(binding, _, rest)) = parse_binding.parse(source, tokens)
 
   assert binding
     == ast.Binding(

@@ -1,6 +1,5 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_module
 import webql/compiler/parser/parse_operation
@@ -14,10 +13,8 @@ pub fn parse_wraps_operation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: module, rest:, ..)) =
-    parse_module.parse(source, tokens)
-  let assert Ok(cursor.Cursor(current: operation, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(module, _, rest)) = parse_module.parse(source, tokens)
+  let assert Ok(#(operation, _, _)) = parse_operation.parse(source, tokens)
 
   assert module.operation == operation
   assert module.span == source.Span(start: 2, end: 16)
@@ -33,10 +30,8 @@ pub fn parse_preserves_remaining_tokens_after_module_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: module, rest:, ..)) =
-    parse_module.parse(source, tokens)
-  let assert Ok(cursor.Cursor(current: operation, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(module, _, rest)) = parse_module.parse(source, tokens)
+  let assert Ok(#(operation, _, _)) = parse_operation.parse(source, tokens)
 
   assert module.operation == operation
   assert module.span == source.Span(start: 0, end: 14)

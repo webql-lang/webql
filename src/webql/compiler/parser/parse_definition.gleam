@@ -1,7 +1,6 @@
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/source
@@ -10,12 +9,18 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-  parse_operation,
-) -> Result(cursor.Cursor(ast.Definition), diagnostic.Diagnostic) {
+  parse_operation: fn(String, List(token.Token)) ->
+    Result(
+      #(ast.Operation, source.Span, List(token.Token)),
+      diagnostic.Diagnostic,
+    ),
+) -> Result(
+  #(ast.Definition, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
   case tokens {
     [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
-      let name =
-        cursor.Cursor(current: source.slice(source, span), span:, rest:)
+      let name = #(source.slice(source, span), span, rest)
 
       parse_definition_name(source, name, parse_operation)
     }
@@ -31,21 +36,23 @@ pub fn parse(
 // =================
 fn parse_definition_name(
   source: String,
-  name: cursor.Cursor(String),
-  parse_operation,
+  name: #(String, source.Span, List(token.Token)),
+  parse_operation: fn(String, List(token.Token)) ->
+    Result(
+      #(ast.Operation, source.Span, List(token.Token)),
+      diagnostic.Diagnostic,
+    ),
 ) {
-  use rest <- result.try(parse_equal(source, name.rest))
-  use cursor.Cursor(current: operation, span:, rest:) <- result.try(
-    parse_operation(source, rest),
-  )
-
-  let span = source.Span(start: name.span.start, end: span.end)
-
-  Ok(cursor.Cursor(
-    current: ast.Definition(name: name.current, operation:, span:),
-    span:,
-    rest:,
+  let #(name, name_span, rest) = name
+  use rest <- result.try(parse_equal(source, rest))
+  use #(operation, operation_span, rest) <- result.try(parse_operation(
+    source,
+    rest,
   ))
+
+  let span = source.Span(start: name_span.start, end: operation_span.end)
+
+  Ok(#(ast.Definition(name:, operation:, span:), span, rest))
 }
 
 fn parse_equal(source: String, tokens: List(token.Token)) {

@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_definition
 import webql/compiler/parser/parse_operation
@@ -15,7 +14,7 @@ pub fn parse_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: definition, rest:, ..)) =
+  let assert Ok(#(definition, _, rest)) =
     parse_definition.parse(source, tokens, parse_operation.parse)
 
   assert definition
@@ -53,7 +52,7 @@ pub fn parse_definition_preserves_remaining_tokens_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: definition, rest:, ..)) =
+  let assert Ok(#(definition, _, rest)) =
     parse_definition.parse(source, tokens, parse_operation.parse)
 
   assert definition

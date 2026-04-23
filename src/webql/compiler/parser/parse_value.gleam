@@ -1,7 +1,6 @@
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/parser/parse_primitive
@@ -11,14 +10,10 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Value), diagnostic.Diagnostic) {
+) -> Result(#(ast.Value, source.Span, List(token.Token)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.UpperIdentifier, span:), ..rest] ->
-      Ok(cursor.Cursor(
-        current: ast.NodeValue(name: source.slice(source, span), span:),
-        span:,
-        rest:,
-      ))
+      Ok(#(ast.NodeValue(name: source.slice(source, span), span:), span, rest))
 
     [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
@@ -35,9 +30,7 @@ pub fn parse(
 // PRIVATE FUNCTIONS
 // =================
 fn parse_primitive_value(source: String, tokens: List(token.Token)) {
-  use cursor.Cursor(current: value, span:, rest:) <- result.try(
-    parse_primitive.parse(source, tokens),
-  )
+  use #(value, span, rest) <- result.try(parse_primitive.parse(source, tokens))
 
-  Ok(cursor.Cursor(current: ast.PrimitiveValue(value:, span:), span:, rest:))
+  Ok(#(ast.PrimitiveValue(value:, span:), span, rest))
 }

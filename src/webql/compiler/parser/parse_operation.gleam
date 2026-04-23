@@ -2,7 +2,6 @@ import gleam/list
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_binding
 import webql/compiler/parser/parse_definition
@@ -16,7 +15,10 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Operation), diagnostic.Diagnostic) {
+) -> Result(
+  #(ast.Operation, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..]
     | [token.Token(kind: token.Dot, span:), ..]
@@ -32,23 +34,26 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_operation(source: String, tokens: List(token.Token), start: Int) {
-  use cursor.Cursor(current: parameters, rest:, ..) <- result.try(
-    parse_parameters(source, tokens, []),
-  )
+fn parse_operation(
+  source: String,
+  tokens: List(token.Token),
+  start: Int,
+) -> Result(
+  #(ast.Operation, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
+  use #(parameters, _, rest) <- result.try(parse_parameters(source, tokens, []))
 
-  use cursor.Cursor(current: returns, rest:, ..) <- result.try(
-    parse_returns(source, rest, []),
-  )
+  use #(returns, _, rest) <- result.try(parse_returns(source, rest, []))
 
-  use cursor.Cursor(current: #(definitions, bindings, edges), rest:, span:) <- result.try(
+  use #(#(definitions, bindings, edges), body_span, rest) <- result.try(
     parse_body(source, rest, [], [], []),
   )
 
-  let span = source.Span(start: start, end: span.end)
+  let span = source.Span(start: start, end: body_span.end)
 
-  Ok(cursor.Cursor(
-    current: ast.Operation(
+  Ok(#(
+    ast.Operation(
       parameters: list.reverse(parameters),
       returns: list.reverse(returns),
       definitions: list.reverse(definitions),
@@ -56,8 +61,8 @@ fn parse_operation(source: String, tokens: List(token.Token), start: Int) {
       edges: list.reverse(edges),
       span:,
     ),
-    span:,
-    rest:,
+    span,
+    rest,
   ))
 }
 
@@ -65,12 +70,16 @@ fn parse_parameters(
   source: String,
   tokens: List(token.Token),
   parameters: List(ast.Parameter),
+) -> Result(
+  #(List(ast.Parameter), source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
 ) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: parameter, rest:, ..) <- result.try(
-        parse_parameter.parse(source, tokens),
-      )
+      use #(parameter, _, rest) <- result.try(parse_parameter.parse(
+        source,
+        tokens,
+      ))
 
       parse_parameters(source, rest, [parameter, ..parameters])
     }
@@ -79,7 +88,7 @@ fn parse_parameters(
       parse_parameters(source, rest, parameters)
 
     [token.Token(kind: token.RArrow, span:), ..rest] ->
-      Ok(cursor.Cursor(current: parameters, span:, rest:))
+      Ok(#(parameters, span, rest))
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
@@ -92,12 +101,13 @@ fn parse_returns(
   source: String,
   tokens: List(token.Token),
   returns: List(ast.Return),
+) -> Result(
+  #(List(ast.Return), source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
 ) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: return, rest:, ..) <- result.try(
-        parse_return.parse(source, tokens),
-      )
+      use #(return, _, rest) <- result.try(parse_return.parse(source, tokens))
 
       parse_returns(source, rest, [return, ..returns])
     }
@@ -105,8 +115,7 @@ fn parse_returns(
     [token.Token(kind: token.Comma, ..), ..rest] ->
       parse_returns(source, rest, returns)
 
-    [token.Token(kind: token.LBrace, span:), ..] ->
-      Ok(cursor.Cursor(current: returns, span:, rest: tokens))
+    [token.Token(kind: token.LBrace, span:), ..] -> Ok(#(returns, span, tokens))
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
@@ -121,12 +130,22 @@ fn parse_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
+) -> Result(
+  #(
+    #(List(ast.Definition), List(ast.Binding), List(ast.Edge)),
+    source.Span,
+    List(token.Token),
+  ),
+  diagnostic.Diagnostic,
 ) {
   use tokens <- result.try(parse_left_brace(source, tokens))
   parse_block_body(source, tokens, definitions, bindings, edges)
 }
 
-fn parse_left_brace(source: String, tokens: List(token.Token)) {
+fn parse_left_brace(
+  source: String,
+  tokens: List(token.Token),
+) -> Result(List(token.Token), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LBrace, ..), ..rest] -> Ok(rest)
 
@@ -143,15 +162,24 @@ fn parse_block_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
+) -> Result(
+  #(
+    #(List(ast.Definition), List(ast.Binding), List(ast.Edge)),
+    source.Span,
+    List(token.Token),
+  ),
+  diagnostic.Diagnostic,
 ) {
   case tokens {
     [token.Token(kind: token.RBrace, span:), ..rest] ->
-      Ok(cursor.Cursor(current: #(definitions, bindings, edges), span:, rest:))
+      Ok(#(#(definitions, bindings, edges), span, rest))
 
     [token.Token(kind: token.UpperIdentifier, ..), ..] -> {
-      use cursor.Cursor(current: definition, rest:, ..) <- result.try(
-        parse_definition.parse(source, tokens, parse),
-      )
+      use #(definition, _, rest) <- result.try(parse_definition.parse(
+        source,
+        tokens,
+        parse,
+      ))
 
       parse_block_body(
         source,
@@ -169,9 +197,7 @@ fn parse_block_body(
     | [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
     | [token.Token(kind: token.String, ..), ..] -> {
-      use cursor.Cursor(current: edge, rest:, ..) <- result.try(
-        parse_edge.parse(source, tokens),
-      )
+      use #(edge, _, rest) <- result.try(parse_edge.parse(source, tokens))
 
       parse_block_body(source, rest, definitions, bindings, [edge, ..edges])
     }
@@ -189,6 +215,13 @@ fn parse_lower_block_body(
   definitions: List(ast.Definition),
   bindings: List(ast.Binding),
   edges: List(ast.Edge),
+) -> Result(
+  #(
+    #(List(ast.Definition), List(ast.Binding), List(ast.Edge)),
+    source.Span,
+    List(token.Token),
+  ),
+  diagnostic.Diagnostic,
 ) {
   case tokens {
     [
@@ -196,9 +229,7 @@ fn parse_lower_block_body(
       token.Token(kind: token.Equal, ..),
       ..
     ] -> {
-      use cursor.Cursor(current: binding, rest:, ..) <- result.try(
-        parse_binding.parse(source, tokens),
-      )
+      use #(binding, _, rest) <- result.try(parse_binding.parse(source, tokens))
 
       parse_block_body(source, rest, definitions, [binding, ..bindings], edges)
     }
@@ -208,9 +239,7 @@ fn parse_lower_block_body(
       token.Token(kind: token.Dot, ..),
       ..
     ] -> {
-      use cursor.Cursor(current: edge, rest:, ..) <- result.try(
-        parse_edge.parse(source, tokens),
-      )
+      use #(edge, _, rest) <- result.try(parse_edge.parse(source, tokens))
 
       parse_block_body(source, rest, definitions, bindings, [edge, ..edges])
     }
