@@ -126,8 +126,7 @@ pub fn add_runtime_keeps_existing_registration_test() {
 }
 
 pub fn get_input_returns_typed_registration_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["in"], reference.Typename(7))
+  let runtime = runtime.add_input(runtime.new(), ["in"], reference.Typename(7))
 
   assert runtime.get_input(runtime, ["in"])
     == Ok(#(reference.Input(0), reference.Typename(7)))

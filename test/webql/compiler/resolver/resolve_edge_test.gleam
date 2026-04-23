@@ -53,8 +53,7 @@ pub fn resolve_port_edge_test() {
 
 pub fn resolve_primitive_output_edge_test() {
   let schema = schema.add_typename(schema.new(), "String")
-  let runtime =
-    runtime.add_input(runtime.new(), ["out"], reference.Typename(0))
+  let runtime = runtime.add_input(runtime.new(), ["out"], reference.Typename(0))
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -93,8 +92,7 @@ pub fn resolve_primitive_output_edge_test() {
 }
 
 pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["out"], reference.Typename(0))
+  let runtime = runtime.add_input(runtime.new(), ["out"], reference.Typename(0))
 
   let edge_to_resolve =
     parser_ast.Edge(
