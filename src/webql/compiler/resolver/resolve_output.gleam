@@ -3,9 +3,9 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/primative
+import webql/compiler/resolver/resolve_primitive
 import webql/compiler/resolver/runtime
 import webql/compiler/resolver/schema
-import webql/compiler/resolver/resolve_primitive
 import webql/compiler/source
 
 /// Resolves an edge output.

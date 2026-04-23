@@ -22,7 +22,8 @@ pub fn register_registers_definition_and_nested_runtime_test() {
     )
 
   let sub_runtime = runtime.add_return(runtime.new(), "out")
-  let runtime = register_definiton.register(runtime.new(), definition, sub_runtime)
+  let runtime =
+    register_definiton.register(runtime.new(), definition, sub_runtime)
   let runtime.Runtime(definitions:, runtimes:, ..) = runtime
 
   assert definitions == dict.from_list([#("Inner", reference.Definition(0))])

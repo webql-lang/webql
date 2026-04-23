@@ -142,10 +142,12 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownInput([
-        "m",
-        "l",
-      ])),
+      kind: diagnostic.ResolverDiagnostic(
+        resolver_diagnostic.UnknownInput([
+          "m",
+          "l",
+        ]),
+      ),
       span: source.Span(start: 38, end: 41),
     )
 }

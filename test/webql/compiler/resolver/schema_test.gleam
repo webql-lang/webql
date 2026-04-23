@@ -30,26 +30,17 @@ pub fn add_input_registers_typed_node_inputs_test() {
   let schema =
     schema.new()
     |> schema.add_node("Math")
-    |> schema.add_input(
-      reference.Node(0),
-      #("l", reference.Typename(0)),
-    )
-    |> schema.add_input(
-      reference.Node(0),
-      #("r", reference.Typename(0)),
-    )
+    |> schema.add_input(reference.Node(0), #("l", reference.Typename(0)))
+    |> schema.add_input(reference.Node(0), #("r", reference.Typename(0)))
 
   let schema.Schema(inputs:, ..) = schema
 
   assert inputs
     == dict.from_list([
-      #(
-        reference.Node(0),
-        [
-          #("l", reference.Typename(0)),
-          #("r", reference.Typename(0)),
-        ],
-      ),
+      #(reference.Node(0), [
+        #("l", reference.Typename(0)),
+        #("r", reference.Typename(0)),
+      ]),
     ])
 }
 
@@ -57,19 +48,13 @@ pub fn add_output_registers_typed_node_outputs_test() {
   let schema =
     schema.new()
     |> schema.add_node("Math")
-    |> schema.add_output(
-      reference.Node(0),
-      #("value", reference.Typename(0)),
-    )
+    |> schema.add_output(reference.Node(0), #("value", reference.Typename(0)))
 
   let schema.Schema(outputs:, ..) = schema
 
   assert outputs
     == dict.from_list([
-      #(
-        reference.Node(0),
-        [#("value", reference.Typename(0))],
-      ),
+      #(reference.Node(0), [#("value", reference.Typename(0))]),
     ])
 }
 
@@ -77,25 +62,19 @@ pub fn add_inputs_registers_multiple_typed_node_inputs_test() {
   let schema =
     schema.new()
     |> schema.add_node("Math")
-    |> schema.add_inputs(
-      reference.Node(0),
-      [
-        #("l", reference.Typename(0)),
-        #("r", reference.Typename(0)),
-      ],
-    )
+    |> schema.add_inputs(reference.Node(0), [
+      #("l", reference.Typename(0)),
+      #("r", reference.Typename(0)),
+    ])
 
   let schema.Schema(inputs:, ..) = schema
 
   assert inputs
     == dict.from_list([
-      #(
-        reference.Node(0),
-        [
-          #("l", reference.Typename(0)),
-          #("r", reference.Typename(0)),
-        ],
-      ),
+      #(reference.Node(0), [
+        #("l", reference.Typename(0)),
+        #("r", reference.Typename(0)),
+      ]),
     ])
 }
 
@@ -103,24 +82,18 @@ pub fn add_outputs_registers_multiple_typed_node_outputs_test() {
   let schema =
     schema.new()
     |> schema.add_node("Math")
-    |> schema.add_outputs(
-      reference.Node(0),
-      [
-        #("value", reference.Typename(0)),
-        #("count", reference.Typename(0)),
-      ],
-    )
+    |> schema.add_outputs(reference.Node(0), [
+      #("value", reference.Typename(0)),
+      #("count", reference.Typename(0)),
+    ])
 
   let schema.Schema(outputs:, ..) = schema
 
   assert outputs
     == dict.from_list([
-      #(
-        reference.Node(0),
-        [
-          #("value", reference.Typename(0)),
-          #("count", reference.Typename(0)),
-        ],
-      ),
+      #(reference.Node(0), [
+        #("value", reference.Typename(0)),
+        #("count", reference.Typename(0)),
+      ]),
     ])
 }

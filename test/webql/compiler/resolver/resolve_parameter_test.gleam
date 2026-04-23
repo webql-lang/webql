@@ -2,9 +2,9 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
+import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/runtime
 import webql/compiler/resolver/schema
-import webql/compiler/resolver/resolve_parameter
 import webql/compiler/source
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
