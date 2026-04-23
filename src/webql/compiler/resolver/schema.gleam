@@ -129,3 +129,32 @@ pub fn next_typename(schema: Schema) -> reference.Typename {
 pub fn next_node(schema: Schema) -> reference.Node {
   reference.Node(dict.size(schema.nodes))
 }
+
+/// Looks up typed input ports for a node.
+pub fn get_inputs(
+  schema: Schema,
+  node: reference.Node,
+) -> Result(List(#(String, reference.Typename)), Nil) {
+  dict.get(schema.inputs, node)
+}
+
+/// Looks up a node reference by name.
+pub fn get_node(schema: Schema, node: String) -> Result(reference.Node, Nil) {
+  dict.get(schema.nodes, node)
+}
+
+/// Looks up typed output ports for a node.
+pub fn get_outputs(
+  schema: Schema,
+  node: reference.Node,
+) -> Result(List(#(String, reference.Typename)), Nil) {
+  dict.get(schema.outputs, node)
+}
+
+/// Looks up a typename reference by name.
+pub fn get_typename(
+  schema: Schema,
+  typename: String,
+) -> Result(reference.Typename, Nil) {
+  dict.get(schema.typenames, typename)
+}

@@ -140,6 +140,36 @@ pub fn get_output_returns_typed_registration_test() {
     == Ok(#(reference.Output(0), reference.Typename(9)))
 }
 
+pub fn get_binding_returns_registered_reference_test() {
+  let runtime = runtime.add_binding(runtime.new(), "math")
+
+  assert runtime.get_binding(runtime, "math") == Ok(reference.Binding(0))
+}
+
+pub fn get_definition_returns_registered_reference_test() {
+  let runtime = runtime.add_definition(runtime.new(), "Math")
+
+  assert runtime.get_definition(runtime, "Math") == Ok(reference.Definition(0))
+}
+
+pub fn get_edge_returns_registered_reference_test() {
+  let runtime = runtime.add_edge(runtime.new(), reference.Input(3))
+
+  assert runtime.get_edge(runtime, reference.Input(3)) == Ok(reference.Edge(0))
+}
+
+pub fn get_parameter_returns_registered_reference_test() {
+  let runtime = runtime.add_parameter(runtime.new(), "in")
+
+  assert runtime.get_parameter(runtime, "in") == Ok(reference.Parameter(0))
+}
+
+pub fn get_return_returns_registered_reference_test() {
+  let runtime = runtime.add_return(runtime.new(), "out")
+
+  assert runtime.get_return(runtime, "out") == Ok(reference.Return(0))
+}
+
 pub fn add_runtimes_registers_nested_runtimes_test() {
   let math_runtime = runtime.add_parameter(runtime.new(), "in")
   let text_runtime = runtime.add_return(runtime.new(), "out")
@@ -159,4 +189,13 @@ pub fn add_runtimes_registers_nested_runtimes_test() {
       #(reference.Definition(0), math_runtime),
       #(reference.Definition(1), text_runtime),
     ])
+}
+
+pub fn get_runtime_returns_registered_nested_runtime_test() {
+  let nested_runtime = runtime.add_parameter(runtime.new(), "in")
+  let runtime =
+    runtime.add_runtime(runtime.new(), reference.Definition(0), nested_runtime)
+
+  assert runtime.get_runtime(runtime, reference.Definition(0))
+    == Ok(nested_runtime)
 }

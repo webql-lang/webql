@@ -270,3 +270,51 @@ pub fn next_parameter(runtime: Runtime) -> reference.Parameter {
 pub fn next_return(runtime: Runtime) -> reference.Return {
   reference.Return(dict.size(runtime.returns))
 }
+
+/// Looks up a binding reference by name.
+pub fn get_binding(
+  runtime: Runtime,
+  binding: String,
+) -> Result(reference.Binding, Nil) {
+  dict.get(runtime.bindings, binding)
+}
+
+/// Looks up a definition reference by name.
+pub fn get_definition(
+  runtime: Runtime,
+  definition: String,
+) -> Result(reference.Definition, Nil) {
+  dict.get(runtime.definitions, definition)
+}
+
+/// Looks up an edge reference by input reference.
+pub fn get_edge(
+  runtime: Runtime,
+  input: reference.Input,
+) -> Result(reference.Edge, Nil) {
+  dict.get(runtime.edges, input)
+}
+
+/// Looks up a parameter reference by name.
+pub fn get_parameter(
+  runtime: Runtime,
+  parameter: String,
+) -> Result(reference.Parameter, Nil) {
+  dict.get(runtime.parameters, parameter)
+}
+
+/// Looks up a return reference by name.
+pub fn get_return(
+  runtime: Runtime,
+  return: String,
+) -> Result(reference.Return, Nil) {
+  dict.get(runtime.returns, return)
+}
+
+/// Looks up a nested runtime by definition reference.
+pub fn get_runtime(
+  runtime: Runtime,
+  definition: reference.Definition,
+) -> Result(Runtime, Nil) {
+  dict.get(runtime.runtimes, definition)
+}
