@@ -2,18 +2,18 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
 import webql/compiler/resolver/resolve_typename
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_named_type_annotation_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let annotation_to_resolve =
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Ok(annotation) =
-    resolve_typename.resolve(registry, annotation_to_resolve)
+    resolve_typename.resolve(schema, annotation_to_resolve)
 
   assert annotation
     == ast.Typename(
@@ -24,13 +24,13 @@ pub fn resolve_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let annotation_to_resolve =
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Error(error) =
-    resolve_typename.resolve(registry, annotation_to_resolve)
+    resolve_typename.resolve(schema, annotation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

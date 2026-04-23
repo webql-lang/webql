@@ -2,15 +2,16 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
 import webql/compiler/resolver/resolve_edge
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_port_edge_test() {
-  let registry =
-    registry.new()
-    |> registry.add_output(["math", "out"])
-    |> registry.add_input(["out"])
+  let runtime =
+    runtime.new()
+    |> runtime.add_output(["math", "out"])
+    |> runtime.add_input(["out"])
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -26,7 +27,12 @@ pub fn resolve_port_edge_test() {
     )
 
   let assert Ok(edge) =
-    resolve_edge.resolve(registry, edge_to_resolve, reference.Edge(0))
+    resolve_edge.resolve(
+      schema.new(),
+      runtime,
+      edge_to_resolve,
+      reference.Edge(0),
+    )
 
   assert edge
     == ast.Edge(
@@ -46,10 +52,8 @@ pub fn resolve_port_edge_test() {
 }
 
 pub fn resolve_primitive_output_edge_test() {
-  let registry =
-    registry.new()
-    |> registry.add_typename("String")
-    |> registry.add_input(["out"])
+  let schema = schema.add_typename(schema.new(), "String")
+  let runtime = runtime.add_input(runtime.new(), ["out"])
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -68,7 +72,7 @@ pub fn resolve_primitive_output_edge_test() {
     )
 
   let assert Ok(edge) =
-    resolve_edge.resolve(registry, edge_to_resolve, reference.Edge(0))
+    resolve_edge.resolve(schema, runtime, edge_to_resolve, reference.Edge(0))
 
   assert edge
     == ast.Edge(
@@ -88,7 +92,7 @@ pub fn resolve_primitive_output_edge_test() {
 }
 
 pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
-  let registry = registry.add_input(registry.new(), ["out"])
+  let runtime = runtime.add_input(runtime.new(), ["out"])
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -104,7 +108,12 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
     )
 
   let assert Error(error) =
-    resolve_edge.resolve(registry, edge_to_resolve, reference.Edge(0))
+    resolve_edge.resolve(
+      schema.new(),
+      runtime,
+      edge_to_resolve,
+      reference.Edge(0),
+    )
 
   assert error
     == diagnostic.Diagnostic(
@@ -114,7 +123,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
 }
 
 pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
-  let registry = registry.add_output(registry.new(), ["math", "out"])
+  let runtime = runtime.add_output(runtime.new(), ["math", "out"])
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -130,7 +139,12 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
     )
 
   let assert Error(error) =
-    resolve_edge.resolve(registry, edge_to_resolve, reference.Edge(0))
+    resolve_edge.resolve(
+      schema.new(),
+      runtime,
+      edge_to_resolve,
+      reference.Edge(0),
+    )
 
   assert error
     == diagnostic.Diagnostic(
@@ -140,11 +154,11 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
 }
 
 pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
-  let registry =
-    registry.new()
-    |> registry.add_output(["math", "out"])
-    |> registry.add_input(["out"])
-    |> registry.add_edge(reference.Input(0))
+  let runtime =
+    runtime.new()
+    |> runtime.add_output(["math", "out"])
+    |> runtime.add_input(["out"])
+    |> runtime.add_edge(reference.Input(0))
 
   let edge_to_resolve =
     parser_ast.Edge(
@@ -160,7 +174,12 @@ pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
     )
 
   let assert Error(error) =
-    resolve_edge.resolve(registry, edge_to_resolve, reference.Edge(1))
+    resolve_edge.resolve(
+      schema.new(),
+      runtime,
+      edge_to_resolve,
+      reference.Edge(1),
+    )
 
   assert error
     == diagnostic.Diagnostic(

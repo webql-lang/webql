@@ -2,12 +2,13 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
 import webql/compiler/resolver/resolve_operation
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_operation_resolves_body_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let operation_to_resolve =
     parser_ast.Operation(
@@ -84,7 +85,7 @@ pub fn resolve_operation_resolves_body_test() {
     )
 
   let assert Ok(operation) =
-    resolve_operation.resolve(registry, operation_to_resolve)
+    resolve_operation.resolve(schema, runtime.new(), operation_to_resolve)
 
   assert operation
     == ast.Operation(
@@ -171,7 +172,7 @@ pub fn resolve_operation_resolves_body_test() {
 }
 
 pub fn resolve_operation_returns_duplicate_definition_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let operation_to_resolve =
     parser_ast.Operation(
@@ -209,7 +210,7 @@ pub fn resolve_operation_returns_duplicate_definition_test() {
     )
 
   let assert Error(error) =
-    resolve_operation.resolve(registry, operation_to_resolve)
+    resolve_operation.resolve(schema, runtime.new(), operation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
@@ -219,7 +220,7 @@ pub fn resolve_operation_returns_duplicate_definition_test() {
 }
 
 pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_same_input_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let operation_to_resolve =
     parser_ast.Operation(
@@ -270,7 +271,7 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
     )
 
   let assert Error(error) =
-    resolve_operation.resolve(registry, operation_to_resolve)
+    resolve_operation.resolve(schema, runtime.new(), operation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

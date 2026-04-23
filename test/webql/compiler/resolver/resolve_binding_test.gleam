@@ -2,12 +2,13 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
 import webql/compiler/resolver/resolve_binding
+import webql/compiler/resolver/runtime
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_node_binding_test() {
-  let registry = registry.add_node(registry.new(), "Math")
+  let schema = schema.add_node(schema.new(), "Math")
 
   let binding_to_resolve =
     parser_ast.Binding(
@@ -20,7 +21,12 @@ pub fn resolve_node_binding_test() {
     )
 
   let assert Ok(binding) =
-    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(0))
+    resolve_binding.resolve(
+      schema,
+      runtime.new(),
+      binding_to_resolve,
+      reference.Binding(0),
+    )
 
   assert binding
     == ast.Binding(
@@ -36,7 +42,7 @@ pub fn resolve_node_binding_test() {
 }
 
 pub fn resolve_primitive_binding_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let binding_to_resolve =
     parser_ast.Binding(
@@ -49,7 +55,12 @@ pub fn resolve_primitive_binding_test() {
     )
 
   let assert Ok(binding) =
-    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(0))
+    resolve_binding.resolve(
+      schema,
+      runtime.new(),
+      binding_to_resolve,
+      reference.Binding(0),
+    )
 
   assert binding
     == ast.Binding(
@@ -65,7 +76,7 @@ pub fn resolve_primitive_binding_test() {
 }
 
 pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
-  let registry = registry.add_binding(registry.new(), "math")
+  let runtime = runtime.add_binding(runtime.new(), "math")
 
   let binding_to_resolve =
     parser_ast.Binding(
@@ -78,7 +89,12 @@ pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
     )
 
   let assert Error(error) =
-    resolve_binding.resolve(registry, binding_to_resolve, reference.Binding(1))
+    resolve_binding.resolve(
+      schema.new(),
+      runtime,
+      binding_to_resolve,
+      reference.Binding(1),
+    )
 
   assert error
     == diagnostic.Diagnostic(

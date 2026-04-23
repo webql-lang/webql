@@ -2,17 +2,17 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/reference
-import webql/compiler/resolver/registry
 import webql/compiler/resolver/resolve_value
+import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_node_value_test() {
-  let registry = registry.add_node(registry.new(), "Math")
+  let schema = schema.add_node(schema.new(), "Math")
 
   let value_to_resolve =
     parser_ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
 
-  let assert Ok(value) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
 
   assert value
     == ast.NodeValue(
@@ -23,12 +23,12 @@ pub fn resolve_node_value_test() {
 }
 
 pub fn resolve_returns_unknown_node_for_missing_node_value_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let value_to_resolve =
     parser_ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
 
-  let assert Error(error) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Error(error) = resolve_value.resolve(schema, value_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
@@ -38,7 +38,7 @@ pub fn resolve_returns_unknown_node_for_missing_node_value_test() {
 }
 
 pub fn resolve_int_primitive_value_test() {
-  let registry = registry.add_typename(registry.new(), "Int")
+  let schema = schema.add_typename(schema.new(), "Int")
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
@@ -46,7 +46,7 @@ pub fn resolve_int_primitive_value_test() {
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Ok(value) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -57,7 +57,7 @@ pub fn resolve_int_primitive_value_test() {
 }
 
 pub fn resolve_float_primitive_value_test() {
-  let registry = registry.add_typename(registry.new(), "Float")
+  let schema = schema.add_typename(schema.new(), "Float")
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
@@ -65,7 +65,7 @@ pub fn resolve_float_primitive_value_test() {
       span: source.Span(start: 0, end: 4),
     )
 
-  let assert Ok(value) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -76,7 +76,7 @@ pub fn resolve_float_primitive_value_test() {
 }
 
 pub fn resolve_string_primitive_value_test() {
-  let registry = registry.add_typename(registry.new(), "String")
+  let schema = schema.add_typename(schema.new(), "String")
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
@@ -87,7 +87,7 @@ pub fn resolve_string_primitive_value_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  let assert Ok(value) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -98,7 +98,7 @@ pub fn resolve_string_primitive_value_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_primitive_typename_test() {
-  let registry = registry.new()
+  let schema = schema.new()
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
@@ -106,7 +106,7 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_typename_test() {
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Error(error) = resolve_value.resolve(registry, value_to_resolve)
+  let assert Error(error) = resolve_value.resolve(schema, value_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
