@@ -9,6 +9,12 @@ import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/source
 
+const int = "Int"
+
+const float = "Float"
+
+const string = "String"
+
 /// Parses a literal value.
 ///
 /// ## Examples
@@ -22,28 +28,23 @@ pub fn parse(
 ) -> Result(cursor.Cursor(ast.Primitive), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.Int, span:), ..rest] -> {
-      let literal = source.slice(source, span)
-      use value <- result.try(parse_int(literal, span))
-
+      use value <- result.try(parse_int(source, span))
       Ok(cursor.Cursor(current: value, span:, rest:))
     }
 
     [token.Token(kind: token.Float, span:), ..rest] -> {
-      let literal = source.slice(source, span)
-      use value <- result.try(parse_float(literal, span))
-
+      use value <- result.try(parse_float(source, span))
       Ok(cursor.Cursor(current: value, span:, rest:))
     }
 
     [token.Token(kind: token.String, span:), ..rest] -> {
-      let value =
-        string.slice(
-          from: source,
-          at_index: span.start + 1,
-          length: span.end - span.start - 2,
-        )
+      let value = parse_string(source, span)
 
-      Ok(cursor.Cursor(current: ast.String(value:, span:), span:, rest:))
+      Ok(cursor.Cursor(
+        current: ast.String(name: string, value:, span:),
+        span:,
+        rest:,
+      ))
     }
 
     _tokens -> {
@@ -55,9 +56,19 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_int(raw: String, span: source.Span) {
-  case int.parse(raw) {
-    Ok(value) -> Ok(ast.Int(value:, span:))
+fn parse_string(source: String, span: source.Span) {
+  string.slice(
+    from: source,
+    at_index: span.start + 1,
+    length: span.end - span.start - 2,
+  )
+}
+
+fn parse_int(source: String, span: source.Span) {
+  let literal = source.slice(source, span)
+
+  case int.parse(literal) {
+    Ok(value) -> Ok(ast.Int(name: int, value:, span:))
 
     Error(_error) ->
       Error(diagnostic.Diagnostic(
@@ -67,9 +78,11 @@ fn parse_int(raw: String, span: source.Span) {
   }
 }
 
-fn parse_float(raw: String, span: source.Span) {
-  case float.parse(raw) {
-    Ok(value) -> Ok(ast.Float(value:, span:))
+fn parse_float(source: String, span: source.Span) {
+  let literal = source.slice(source, span)
+
+  case float.parse(literal) {
+    Ok(value) -> Ok(ast.Float(name: float, value:, span:))
 
     Error(_error) ->
       Error(diagnostic.Diagnostic(

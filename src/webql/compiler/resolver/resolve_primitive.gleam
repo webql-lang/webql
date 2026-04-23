@@ -4,8 +4,8 @@ import webql/compiler/resolver/ast
 /// Resolves a parser primitive into a resolver primitive.
 pub fn resolve(value: parser_ast.Primitive) -> ast.Primitive {
   case value {
-    parser_ast.Int(value:, span:) -> ast.Int(value:, span:)
-    parser_ast.Float(value:, span:) -> ast.Float(value:, span:)
-    parser_ast.String(value:, span:) -> ast.String(value:, span:)
+    parser_ast.Int(name:, value:, span:) -> ast.Int(name:, value:, span:)
+    parser_ast.Float(name:, value:, span:) -> ast.Float(name:, value:, span:)
+    parser_ast.String(name:, value:, span:) -> ast.String(name:, value:, span:)
   }
 }

@@ -242,7 +242,11 @@ pub fn parse_parses_binding_when_spaces_exist_before_equal_test() {
           name: "value",
           value: ast.PrimitiveValue(
             span: source.Span(start: 24, end: 27),
-            value: ast.Int(span: source.Span(start: 24, end: 27), value: 123),
+            value: ast.Int(
+              name: "Int",
+              span: source.Span(start: 24, end: 27),
+              value: 123,
+            ),
           ),
         ),
       ],

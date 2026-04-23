@@ -118,8 +118,10 @@ pub type Output {
 /// ## Examples
 ///
 ///     123
+///     1.23
+///     "hello"
 pub type Primitive {
-  Int(value: Int, span: source.Span)
-  Float(value: Float, span: source.Span)
-  String(value: String, span: source.Span)
+  Int(name: String, value: Int, span: source.Span)
+  Float(name: String, value: Float, span: source.Span)
+  String(name: String, value: String, span: source.Span)
 }

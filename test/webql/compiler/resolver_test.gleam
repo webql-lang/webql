@@ -29,6 +29,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
           parser_ast.Edge(
             from: parser_ast.PrimitiveOutput(
               value: parser_ast.Int(
+                name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
               ),
@@ -72,7 +73,11 @@ pub fn resolve_module_through_public_entrypoint_test() {
         edges: [
           ast.Edge(
             from: ast.PrimitiveOutput(
-              value: ast.Int(value: 1, span: source.Span(start: 15, end: 16)),
+              value: ast.Int(
+                name: "Int",
+                value: 1,
+                span: source.Span(start: 15, end: 16),
+              ),
               typename: reference.Typename(0),
               span: source.Span(start: 15, end: 16),
             ),
@@ -115,6 +120,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
           parser_ast.Edge(
             from: parser_ast.PrimitiveOutput(
               value: parser_ast.Int(
+                name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
               ),
@@ -129,6 +135,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
           parser_ast.Edge(
             from: parser_ast.PrimitiveOutput(
               value: parser_ast.Int(
+                name: "Int",
                 value: 2,
                 span: source.Span(start: 25, end: 26),
               ),

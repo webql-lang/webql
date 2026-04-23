@@ -11,7 +11,11 @@ pub fn register_registers_primitive_binding_name_only_test() {
     ast.Binding(
       name: "count",
       value: ast.PrimitiveValue(
-        value: ast.Int(value: 123, span: source.Span(start: 8, end: 11)),
+        value: ast.Int(
+          name: "Int",
+          value: 123,
+          span: source.Span(start: 8, end: 11),
+        ),
         typename: reference.Typename(0),
         span: source.Span(start: 8, end: 11),
       ),

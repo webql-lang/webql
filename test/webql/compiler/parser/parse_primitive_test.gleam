@@ -12,17 +12,21 @@ pub fn parse_primitives_test() {
     #(
       "123",
       source.Span(start: 0, end: 3),
-      ast.Int(span: source.Span(start: 0, end: 3), value: 123),
+      ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123),
     ),
     #(
       "1.23",
       source.Span(start: 0, end: 4),
-      ast.Float(span: source.Span(start: 0, end: 4), value: 1.23),
+      ast.Float(name: "Float", span: source.Span(start: 0, end: 4), value: 1.23),
     ),
     #(
       "\"test\"",
       source.Span(start: 0, end: 6),
-      ast.String(span: source.Span(start: 0, end: 6), value: "test"),
+      ast.String(
+        name: "String",
+        span: source.Span(start: 0, end: 6),
+        value: "test",
+      ),
     ),
   ]
 
@@ -61,7 +65,8 @@ pub fn parse_skips_space_test() {
   let assert Ok(cursor.Cursor(current: value, span:, rest:)) =
     parse_primitive.parse(source, tokens)
 
-  assert value == ast.Int(span: source.Span(start: 2, end: 5), value: 123)
+  assert value
+    == ast.Int(name: "Int", span: source.Span(start: 2, end: 5), value: 123)
 
   assert span == source.Span(start: 2, end: 5)
 
@@ -80,7 +85,8 @@ pub fn parse_preserves_rest_test() {
   let assert Ok(cursor.Cursor(current: value, span:, rest:)) =
     parse_primitive.parse(source, tokens)
 
-  assert value == ast.Int(span: source.Span(start: 0, end: 3), value: 123)
+  assert value
+    == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
 
   assert span == source.Span(start: 0, end: 3)
 

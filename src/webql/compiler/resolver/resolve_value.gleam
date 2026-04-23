@@ -1,7 +1,6 @@
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/primative
 import webql/compiler/resolver/resolve_primitive
 import webql/compiler/resolver/schema
 import webql/compiler/source
@@ -35,15 +34,16 @@ fn resolve_primitive_value(
   value: parser_ast.Primitive,
   span: source.Span,
 ) {
-  let name = primative.get_typename(value)
-
-  case schema.get_typename(schema, name) {
+  case schema.get_typename(schema, value.name) {
     Ok(typename) -> {
       let value = resolve_primitive.resolve(value)
       Ok(ast.PrimitiveValue(value:, typename:, span:))
     }
 
     Error(_nil) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownTypename(name), span:))
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownTypename(value.name),
+        span:,
+      ))
   }
 }

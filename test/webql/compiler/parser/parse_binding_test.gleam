@@ -45,7 +45,11 @@ pub fn parse_binding_primitive_value_test() {
       name: "count",
       value: ast.PrimitiveValue(
         span: source.Span(start: 8, end: 11),
-        value: ast.Int(span: source.Span(start: 8, end: 11), value: 123),
+        value: ast.Int(
+          name: "Int",
+          span: source.Span(start: 8, end: 11),
+          value: 123,
+        ),
       ),
     )
 

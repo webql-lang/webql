@@ -39,7 +39,11 @@ pub fn parse_primitive_value_test() {
   assert value
     == ast.PrimitiveValue(
       span: source.Span(start: 0, end: 3),
-      value: ast.Int(span: source.Span(start: 0, end: 3), value: 123),
+      value: ast.Int(
+        name: "Int",
+        span: source.Span(start: 0, end: 3),
+        value: 123,
+      ),
     )
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
