@@ -59,6 +59,7 @@ pub fn resolve_primitive_output_edge_test() {
     parser_ast.Edge(
       from: parser_ast.PrimitiveOutput(
         value: parser_ast.String(
+          name: "String",
           value: "test",
           span: source.Span(start: 0, end: 6),
         ),
@@ -77,7 +78,11 @@ pub fn resolve_primitive_output_edge_test() {
   assert edge
     == ast.Edge(
       from: ast.PrimitiveOutput(
-        value: ast.String(value: "test", span: source.Span(start: 0, end: 6)),
+        value: ast.String(
+          name: "String",
+          value: "test",
+          span: source.Span(start: 0, end: 6),
+        ),
         typename: reference.Typename(0),
         span: source.Span(start: 0, end: 6),
       ),

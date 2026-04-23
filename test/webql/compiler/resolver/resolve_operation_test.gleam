@@ -60,6 +60,7 @@ pub fn resolve_operation_resolves_body_test() {
           name: "count",
           value: parser_ast.PrimitiveValue(
             value: parser_ast.Int(
+              name: "Int",
               value: 123,
               span: source.Span(start: 50, end: 53),
             ),
@@ -143,7 +144,11 @@ pub fn resolve_operation_resolves_body_test() {
         ast.Binding(
           name: "count",
           value: ast.PrimitiveValue(
-            value: ast.Int(value: 123, span: source.Span(start: 50, end: 53)),
+            value: ast.Int(
+              name: "Int",
+              value: 123,
+              span: source.Span(start: 50, end: 53),
+            ),
             typename: reference.Typename(0),
             span: source.Span(start: 50, end: 53),
           ),
@@ -241,6 +246,7 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
         parser_ast.Edge(
           from: parser_ast.PrimitiveOutput(
             value: parser_ast.Int(
+              name: "Int",
               value: 1,
               span: source.Span(start: 13, end: 14),
             ),
@@ -255,6 +261,7 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
         parser_ast.Edge(
           from: parser_ast.PrimitiveOutput(
             value: parser_ast.Int(
+              name: "Int",
               value: 2,
               span: source.Span(start: 23, end: 24),
             ),

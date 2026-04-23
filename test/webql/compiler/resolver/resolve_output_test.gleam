@@ -52,7 +52,11 @@ pub fn resolve_primitive_output_test() {
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
-      value: parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: parser_ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       span: source.Span(start: 0, end: 3),
     )
 
@@ -61,7 +65,11 @@ pub fn resolve_primitive_output_test() {
 
   assert output
     == ast.PrimitiveOutput(
-      value: ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       typename: reference.Typename(0),
       span: source.Span(start: 0, end: 3),
     )
@@ -72,7 +80,11 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test()
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
-      value: parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: parser_ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       span: source.Span(start: 0, end: 3),
     )
 

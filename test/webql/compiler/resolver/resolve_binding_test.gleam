@@ -48,7 +48,11 @@ pub fn resolve_primitive_binding_test() {
     parser_ast.Binding(
       name: "count",
       value: parser_ast.PrimitiveValue(
-        value: parser_ast.Int(value: 123, span: source.Span(start: 8, end: 11)),
+        value: parser_ast.Int(
+          name: "Int",
+          value: 123,
+          span: source.Span(start: 8, end: 11),
+        ),
         span: source.Span(start: 8, end: 11),
       ),
       span: source.Span(start: 0, end: 11),
@@ -66,7 +70,11 @@ pub fn resolve_primitive_binding_test() {
     == ast.Binding(
       name: "count",
       value: ast.PrimitiveValue(
-        value: ast.Int(value: 123, span: source.Span(start: 8, end: 11)),
+        value: ast.Int(
+          name: "Int",
+          value: 123,
+          span: source.Span(start: 8, end: 11),
+        ),
         typename: reference.Typename(0),
         span: source.Span(start: 8, end: 11),
       ),

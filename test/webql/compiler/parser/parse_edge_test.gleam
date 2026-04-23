@@ -47,7 +47,11 @@ pub fn parse_literal_edge_definition_test() {
       span: source.Span(start: 0, end: 14),
       from: ast.PrimitiveOutput(
         span: source.Span(start: 0, end: 6),
-        value: ast.String(span: source.Span(start: 0, end: 6), value: "test"),
+        value: ast.String(
+          name: "String",
+          span: source.Span(start: 0, end: 6),
+          value: "test",
+        ),
       ),
       to: ast.PortInput(span: source.Span(start: 10, end: 14), path: ["out"]),
     )

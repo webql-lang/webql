@@ -59,7 +59,11 @@ pub fn parse_primitive_output_test() {
   assert output
     == ast.PrimitiveOutput(
       span: source.Span(start: 0, end: 3),
-      value: ast.Int(span: source.Span(start: 0, end: 3), value: 123),
+      value: ast.Int(
+        name: "Int",
+        span: source.Span(start: 0, end: 3),
+        value: 123,
+      ),
     )
 
   assert rest

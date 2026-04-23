@@ -42,7 +42,11 @@ pub fn resolve_int_primitive_value_test() {
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
-      value: parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: parser_ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       span: source.Span(start: 0, end: 3),
     )
 
@@ -50,7 +54,11 @@ pub fn resolve_int_primitive_value_test() {
 
   assert value
     == ast.PrimitiveValue(
-      value: ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       typename: reference.Typename(0),
       span: source.Span(start: 0, end: 3),
     )
@@ -61,7 +69,11 @@ pub fn resolve_float_primitive_value_test() {
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
-      value: parser_ast.Float(value: 1.23, span: source.Span(start: 0, end: 4)),
+      value: parser_ast.Float(
+        name: "Float",
+        value: 1.23,
+        span: source.Span(start: 0, end: 4),
+      ),
       span: source.Span(start: 0, end: 4),
     )
 
@@ -69,7 +81,11 @@ pub fn resolve_float_primitive_value_test() {
 
   assert value
     == ast.PrimitiveValue(
-      value: ast.Float(value: 1.23, span: source.Span(start: 0, end: 4)),
+      value: ast.Float(
+        name: "Float",
+        value: 1.23,
+        span: source.Span(start: 0, end: 4),
+      ),
       typename: reference.Typename(0),
       span: source.Span(start: 0, end: 4),
     )
@@ -81,6 +97,7 @@ pub fn resolve_string_primitive_value_test() {
   let value_to_resolve =
     parser_ast.PrimitiveValue(
       value: parser_ast.String(
+        name: "String",
         value: "hello",
         span: source.Span(start: 0, end: 7),
       ),
@@ -91,7 +108,11 @@ pub fn resolve_string_primitive_value_test() {
 
   assert value
     == ast.PrimitiveValue(
-      value: ast.String(value: "hello", span: source.Span(start: 0, end: 7)),
+      value: ast.String(
+        name: "String",
+        value: "hello",
+        span: source.Span(start: 0, end: 7),
+      ),
       typename: reference.Typename(0),
       span: source.Span(start: 0, end: 7),
     )
@@ -102,7 +123,11 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_typename_test() {
 
   let value_to_resolve =
     parser_ast.PrimitiveValue(
-      value: parser_ast.Int(value: 123, span: source.Span(start: 0, end: 3)),
+      value: parser_ast.Int(
+        name: "Int",
+        value: 123,
+        span: source.Span(start: 0, end: 3),
+      ),
       span: source.Span(start: 0, end: 3),
     )
 
