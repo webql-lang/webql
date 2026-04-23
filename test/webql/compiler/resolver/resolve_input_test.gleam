@@ -7,7 +7,8 @@ import webql/compiler/resolver/runtime
 import webql/compiler/source
 
 pub fn resolve_port_input_test() {
-  let runtime = runtime.add_input(runtime.new(), ["math", "in"])
+  let runtime =
+    runtime.add_input(runtime.new(), ["math", "in"], reference.Typename(0))
 
   let input_to_resolve =
     parser_ast.PortInput(

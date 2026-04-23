@@ -22,5 +22,8 @@ pub fn register_registers_parameter_and_output_test() {
   let runtime.Runtime(parameters:, outputs:, ..) = runtime
 
   assert parameters == dict.from_list([#("in", reference.Parameter(0))])
-  assert outputs == dict.from_list([#(["in"], reference.Output(0))])
+  assert outputs
+    == dict.from_list([
+      #(["in"], #(reference.Output(0), reference.Typename(0))),
+    ])
 }

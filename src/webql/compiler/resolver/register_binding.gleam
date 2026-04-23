@@ -46,8 +46,8 @@ fn register_inputs(
   inputs: List(#(String, reference.Typename)),
 ) {
   list.fold(inputs, runtime, fn(runtime, input) {
-    let #(port, _typename) = input
-    runtime.add_input(runtime, [name, port])
+    let #(port, typename) = input
+    runtime.add_input(runtime, [name, port], typename)
   })
 }
 
@@ -57,7 +57,7 @@ fn register_outputs(
   outputs: List(#(String, reference.Typename)),
 ) {
   list.fold(outputs, runtime, fn(runtime, output) {
-    let #(port, _typename) = output
-    runtime.add_output(runtime, [name, port])
+    let #(port, typename) = output
+    runtime.add_output(runtime, [name, port], typename)
   })
 }

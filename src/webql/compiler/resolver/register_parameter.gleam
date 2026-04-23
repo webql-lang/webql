@@ -8,5 +8,5 @@ pub fn register(
 ) -> runtime.Runtime {
   runtime
   |> runtime.add_parameter(parameter.name)
-  |> runtime.add_output([parameter.name])
+  |> runtime.add_output([parameter.name], parameter.typename.reference)
 }

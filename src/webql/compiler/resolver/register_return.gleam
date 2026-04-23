@@ -5,5 +5,5 @@ import webql/compiler/resolver/runtime
 pub fn register(runtime: runtime.Runtime, return: ast.Return) -> runtime.Runtime {
   runtime
   |> runtime.add_return(return.name)
-  |> runtime.add_input([return.name])
+  |> runtime.add_input([return.name], return.typename.reference)
 }

@@ -8,7 +8,8 @@ import webql/compiler/resolver/schema
 import webql/compiler/source
 
 pub fn resolve_port_output_test() {
-  let runtime = runtime.add_output(runtime.new(), ["math", "out"])
+  let runtime =
+    runtime.add_output(runtime.new(), ["math", "out"], reference.Typename(0))
 
   let output_to_resolve =
     parser_ast.PortOutput(
