@@ -22,5 +22,8 @@ pub fn register_registers_return_and_input_test() {
   let runtime.Runtime(returns:, inputs:, ..) = runtime
 
   assert returns == dict.from_list([#("out", reference.Return(0))])
-  assert inputs == dict.from_list([#(["out"], reference.Input(0))])
+  assert inputs
+    == dict.from_list([
+      #(["out"], #(reference.Input(0), reference.Typename(0))),
+    ])
 }

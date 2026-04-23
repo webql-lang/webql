@@ -50,6 +50,12 @@ pub fn register_registers_node_binding_ports_from_schema_test() {
   let runtime.Runtime(bindings:, inputs:, outputs:, ..) = runtime
 
   assert bindings == dict.from_list([#("math", reference.Binding(0))])
-  assert inputs == dict.from_list([#(["math", "left"], reference.Input(0))])
-  assert outputs == dict.from_list([#(["math", "value"], reference.Output(0))])
+  assert inputs
+    == dict.from_list([
+      #(["math", "left"], #(reference.Input(0), reference.Typename(0))),
+    ])
+  assert outputs
+    == dict.from_list([
+      #(["math", "value"], #(reference.Output(0), reference.Typename(0))),
+    ])
 }

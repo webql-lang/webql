@@ -8,8 +8,8 @@ pub type Runtime {
     bindings: dict.Dict(String, reference.Binding),
     definitions: dict.Dict(String, reference.Definition),
     edges: dict.Dict(reference.Input, reference.Edge),
-    inputs: dict.Dict(List(String), reference.Input),
-    outputs: dict.Dict(List(String), reference.Output),
+    inputs: dict.Dict(List(String), #(reference.Input, reference.Typename)),
+    outputs: dict.Dict(List(String), #(reference.Output, reference.Typename)),
     parameters: dict.Dict(String, reference.Parameter),
     returns: dict.Dict(String, reference.Return),
     runtimes: dict.Dict(reference.Definition, Runtime),
@@ -90,8 +90,12 @@ pub fn add_edges(runtime: Runtime, edges: List(reference.Input)) -> Runtime {
   list.fold(edges, runtime, add_edge)
 }
 
-/// Adds an input to the current runtime instance.
-pub fn add_input(runtime: Runtime, input: List(String)) -> Runtime {
+/// Adds a typed input to the current runtime instance.
+pub fn add_input(
+  runtime: Runtime,
+  input: List(String),
+  typename: reference.Typename,
+) -> Runtime {
   let Runtime(inputs:, ..) = runtime
 
   Runtime(
@@ -99,19 +103,29 @@ pub fn add_input(runtime: Runtime, input: List(String)) -> Runtime {
     inputs: dict.upsert(inputs, input, fn(input) {
       case input {
         option.Some(input) -> input
-        option.None -> next_input(runtime)
+        option.None -> #(next_input(runtime), typename)
       }
     }),
   )
 }
 
-/// Adds inputs to the current runtime instance.
-pub fn add_inputs(runtime: Runtime, inputs: List(List(String))) -> Runtime {
-  list.fold(inputs, runtime, add_input)
+/// Adds typed inputs to the current runtime instance.
+pub fn add_inputs(
+  runtime: Runtime,
+  inputs: List(#(List(String), reference.Typename)),
+) -> Runtime {
+  list.fold(inputs, runtime, fn(runtime, input) {
+    let #(path, typename) = input
+    add_input(runtime, path, typename)
+  })
 }
 
-/// Adds an output to the current runtime instance.
-pub fn add_output(runtime: Runtime, output: List(String)) -> Runtime {
+/// Adds a typed output to the current runtime instance.
+pub fn add_output(
+  runtime: Runtime,
+  output: List(String),
+  typename: reference.Typename,
+) -> Runtime {
   let Runtime(outputs:, ..) = runtime
 
   Runtime(
@@ -119,15 +133,21 @@ pub fn add_output(runtime: Runtime, output: List(String)) -> Runtime {
     outputs: dict.upsert(outputs, output, fn(output) {
       case output {
         option.Some(output) -> output
-        option.None -> next_output(runtime)
+        option.None -> #(next_output(runtime), typename)
       }
     }),
   )
 }
 
-/// Adds outputs to the current runtime instance.
-pub fn add_outputs(runtime: Runtime, outputs: List(List(String))) -> Runtime {
-  list.fold(outputs, runtime, add_output)
+/// Adds typed outputs to the current runtime instance.
+pub fn add_outputs(
+  runtime: Runtime,
+  outputs: List(#(List(String), reference.Typename)),
+) -> Runtime {
+  list.fold(outputs, runtime, fn(runtime, output) {
+    let #(path, typename) = output
+    add_output(runtime, path, typename)
+  })
 }
 
 /// Adds a parameter to the current runtime instance.
@@ -223,6 +243,22 @@ pub fn next_input(runtime: Runtime) -> reference.Input {
 /// Gets the next stable output reference.
 pub fn next_output(runtime: Runtime) -> reference.Output {
   reference.Output(dict.size(runtime.outputs))
+}
+
+/// Looks up a typed input by path.
+pub fn get_input(
+  runtime: Runtime,
+  path: List(String),
+) -> Result(#(reference.Input, reference.Typename), Nil) {
+  dict.get(runtime.inputs, path)
+}
+
+/// Looks up a typed output by path.
+pub fn get_output(
+  runtime: Runtime,
+  path: List(String),
+) -> Result(#(reference.Output, reference.Typename), Nil) {
+  dict.get(runtime.outputs, path)
 }
 
 /// Gets the next stable parameter reference.

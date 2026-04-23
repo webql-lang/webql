@@ -30,8 +30,8 @@ fn resolve_port_output(
   path: List(String),
   span: source.Span,
 ) {
-  case dict.get(runtime.outputs, path) {
-    Ok(reference) -> Ok(ast.PortOutput(path:, reference:, span:))
+  case runtime.get_output(runtime, path) {
+    Ok(#(reference, _typename)) -> Ok(ast.PortOutput(path:, reference:, span:))
 
     Error(_nil) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOutput(path), span:))
