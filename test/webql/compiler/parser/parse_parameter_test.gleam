@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_parameter
 import webql/compiler/source
@@ -14,8 +13,7 @@ pub fn parse_returns_parameter_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
-    parse_parameter.parse(source, tokens)
+  let assert Ok(#(parameter, _, rest)) = parse_parameter.parse(source, tokens)
 
   assert parameter
     == ast.Parameter(
@@ -39,8 +37,7 @@ pub fn parse_preserves_remaining_tokens_after_parameter_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: parameter, rest:, ..)) =
-    parse_parameter.parse(source, tokens)
+  let assert Ok(#(parameter, _, rest)) = parse_parameter.parse(source, tokens)
 
   assert parameter
     == ast.Parameter(

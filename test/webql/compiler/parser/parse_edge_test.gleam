@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_edge
 import webql/compiler/source
@@ -14,8 +13,7 @@ pub fn parse_node_port_edge_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: edge, rest:, ..)) =
-    parse_edge.parse(source, tokens)
+  let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
   assert edge
     == ast.Edge(
@@ -39,8 +37,7 @@ pub fn parse_literal_edge_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: edge, rest:, ..)) =
-    parse_edge.parse(source, tokens)
+  let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
   assert edge
     == ast.Edge(
@@ -68,8 +65,7 @@ pub fn parse_preserves_remaining_tokens_after_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: edge, rest:, ..)) =
-    parse_edge.parse(source, tokens)
+  let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
   assert edge
     == ast.Edge(

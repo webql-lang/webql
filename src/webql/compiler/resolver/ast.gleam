@@ -1,4 +1,4 @@
-import webql/compiler/resolver/reference
+import webql/compiler/reference
 import webql/compiler/source
 
 /// The root container for a single top-level operation.

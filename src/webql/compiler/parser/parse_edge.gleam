@@ -1,7 +1,6 @@
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_input
 import webql/compiler/parser/parse_nonstarter
@@ -12,7 +11,7 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Edge), diagnostic.Diagnostic) {
+) -> Result(#(ast.Edge, source.Span, List(token.Token)), diagnostic.Diagnostic) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, ..), ..]
     | [token.Token(kind: token.Dot, ..), ..]
@@ -22,8 +21,8 @@ pub fn parse(
       parse_edge_from(source, tokens)
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, rest)
     }
   }
 }
@@ -35,25 +34,24 @@ fn parse_edge_from(source: String, tokens: List(token.Token)) {
   parse_arrow(source, from)
 }
 
-fn parse_arrow(source: String, from: cursor.Cursor(ast.Output)) {
-  case from.rest {
+fn parse_arrow(
+  source: String,
+  from: #(ast.Output, source.Span, List(token.Token)),
+) {
+  let #(from, from_span, rest) = from
+
+  case rest {
     [token.Token(kind: token.RArrow, ..), ..rest] -> {
       use to <- result.try(parse_input.parse(source, rest))
-      let span = source.cover(from.span, to.span)
+      let #(to, to_span, rest) = to
+      let span = source.cover(from_span, to_span)
 
-      Ok(cursor.Cursor(
-        current: ast.Edge(span:, from: from.current, to: to.current),
-        span:,
-        rest: to.rest,
-      ))
+      Ok(#(ast.Edge(span:, from:, to:), span, rest))
     }
 
     _tokens -> {
-      use rest <- result.try(parse_nonstarter.parse(source, from.rest))
-      parse_arrow(
-        source,
-        cursor.Cursor(current: from.current, span: from.span, rest:),
-      )
+      use rest <- result.try(parse_nonstarter.parse(source, rest))
+      parse_arrow(source, #(from, from_span, rest))
     }
   }
 }

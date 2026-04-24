@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_return
 import webql/compiler/source
@@ -14,8 +13,7 @@ pub fn parse_returns_return_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: output_return, rest:, ..)) =
-    parse_return.parse(source, tokens)
+  let assert Ok(#(output_return, _, rest)) = parse_return.parse(source, tokens)
 
   assert output_return
     == ast.Return(
@@ -39,8 +37,7 @@ pub fn parse_preserves_remaining_tokens_after_return_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: output_return, rest:, ..)) =
-    parse_return.parse(source, tokens)
+  let assert Ok(#(output_return, _, rest)) = parse_return.parse(source, tokens)
 
   assert output_return
     == ast.Return(

@@ -4,7 +4,6 @@ import gleam/result
 import gleam/string
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/source
@@ -25,26 +24,25 @@ const string = "String"
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Primitive), diagnostic.Diagnostic) {
+) -> Result(
+  #(ast.Primitive, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
   case tokens {
     [token.Token(kind: token.Int, span:), ..rest] -> {
       use value <- result.try(parse_int(source, span))
-      Ok(cursor.Cursor(current: value, span:, rest:))
+      Ok(#(value, span, rest))
     }
 
     [token.Token(kind: token.Float, span:), ..rest] -> {
       use value <- result.try(parse_float(source, span))
-      Ok(cursor.Cursor(current: value, span:, rest:))
+      Ok(#(value, span, rest))
     }
 
     [token.Token(kind: token.String, span:), ..rest] -> {
       let value = parse_string(source, span)
 
-      Ok(cursor.Cursor(
-        current: ast.String(name: string, value:, span:),
-        span:,
-        rest:,
-      ))
+      Ok(#(ast.String(name: string, value:, span:), span, rest))
     }
 
     _tokens -> {

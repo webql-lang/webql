@@ -1,7 +1,6 @@
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/parser/parse_typename
@@ -11,20 +10,21 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Return), diagnostic.Diagnostic) {
+) -> Result(
+  #(ast.Return, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
   use key <- result.try(parse_key(source, tokens))
-  use rest <- result.try(parse_separator(key.rest))
-  use cursor.Cursor(current: typename, span: typename_span, rest:) <- result.try(
-    parse_typename.parse(source, rest),
-  )
-
-  let span = source.cover(key.span, typename_span)
-
-  Ok(cursor.Cursor(
-    current: ast.Return(span:, name: key.current, typename:),
-    span:,
-    rest:,
+  let #(name, key_span, rest) = key
+  use rest <- result.try(parse_separator(rest))
+  use #(typename, typename_span, rest) <- result.try(parse_typename.parse(
+    source,
+    rest,
   ))
+
+  let span = source.cover(key_span, typename_span)
+
+  Ok(#(ast.Return(span:, name:, typename:), span, rest))
 }
 
 // PRIVATE FUNCTIONS
@@ -32,7 +32,7 @@ pub fn parse(
 fn parse_key(source: String, tokens: List(token.Token)) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] ->
-      Ok(cursor.Cursor(current: source.slice(source, span), span:, rest:))
+      Ok(#(source.slice(source, span), span, rest))
 
     _tokens -> {
       use tokens <- result.try(parse_nonstarter.parse(source, tokens))

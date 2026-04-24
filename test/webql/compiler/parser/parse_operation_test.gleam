@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_operation
 import webql/compiler/source
@@ -15,8 +14,7 @@ pub fn parse_parses_operation_with_nested_operation_and_definition_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
 
   assert operation
     == ast.Operation(
@@ -113,8 +111,7 @@ pub fn parse_skips_leading_and_internal_spaces_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
 
   assert operation
     == ast.Operation(
@@ -164,8 +161,7 @@ pub fn parse_parses_operation_body_with_lowercase_binding_and_edge_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
 
   assert operation
     == ast.Operation(
@@ -218,8 +214,7 @@ pub fn parse_parses_binding_when_spaces_exist_before_equal_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
 
   assert operation
     == ast.Operation(
@@ -265,8 +260,7 @@ pub fn parse_preserves_remaining_tokens_after_operation_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: operation, rest:, ..)) =
-    parse_operation.parse(source, tokens)
+  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
 
   assert operation
     == ast.Operation(

@@ -1,13 +1,13 @@
 import gleam/bool
 import gleam/result
 import webql/compiler/parser/ast as parser_ast
+import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/reference
 import webql/compiler/resolver/resolve_input
 import webql/compiler/resolver/resolve_output
-import webql/compiler/resolver/runtime
-import webql/compiler/resolver/schema
+import webql/compiler/runtime
+import webql/compiler/schema
 
 /// Resolves an edge declaration.
 pub fn resolve(

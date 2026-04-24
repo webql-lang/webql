@@ -1,7 +1,6 @@
 import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
 import webql/compiler/parser/parse_value
@@ -16,11 +15,13 @@ import webql/compiler/source
 pub fn parse(
   source: String,
   tokens: List(token.Token),
-) -> Result(cursor.Cursor(ast.Binding), diagnostic.Diagnostic) {
+) -> Result(
+  #(ast.Binding, source.Span, List(token.Token)),
+  diagnostic.Diagnostic,
+) {
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
-      let name =
-        cursor.Cursor(current: source.slice(source, span), span:, rest:)
+      let name = #(source.slice(source, span), span, rest)
       parse_binding_name(source, name)
     }
 
@@ -33,19 +34,17 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_binding_name(source: String, name: cursor.Cursor(String)) {
-  use rest <- result.try(parse_equal(source, name.rest))
-  use cursor.Cursor(current: value, span:, rest:) <- result.try(
-    parse_value.parse(source, rest),
-  )
+fn parse_binding_name(
+  source: String,
+  name: #(String, source.Span, List(token.Token)),
+) {
+  let #(name, name_span, rest) = name
+  use rest <- result.try(parse_equal(source, rest))
+  use #(value, value_span, rest) <- result.try(parse_value.parse(source, rest))
 
-  let span = source.cover(name.span, span)
+  let span = source.cover(name_span, value_span)
 
-  Ok(cursor.Cursor(
-    current: ast.Binding(name: name.current, value:, span:),
-    span:,
-    rest:,
-  ))
+  Ok(#(ast.Binding(name:, value:, span:), span, rest))
 }
 
 fn parse_equal(source: String, tokens: List(token.Token)) {

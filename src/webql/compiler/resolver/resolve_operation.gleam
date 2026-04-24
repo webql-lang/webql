@@ -12,8 +12,8 @@ import webql/compiler/resolver/resolve_definition
 import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
-import webql/compiler/resolver/runtime
-import webql/compiler/resolver/schema
+import webql/compiler/runtime
+import webql/compiler/schema
 
 /// Resolves an operation body and its nested declarations.
 pub fn resolve(

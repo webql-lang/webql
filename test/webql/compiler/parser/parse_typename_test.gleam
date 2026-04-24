@@ -1,7 +1,6 @@
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
-import webql/compiler/parser/cursor
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_typename
 import webql/compiler/source
@@ -14,7 +13,7 @@ pub fn parse_returns_typename_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
+  let assert Ok(#(annotation, span, rest)) =
     parse_typename.parse(source, tokens)
 
   assert annotation
@@ -32,7 +31,7 @@ pub fn parse_preserves_remaining_tokens_after_typename_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
+  let assert Ok(#(annotation, span, rest)) =
     parse_typename.parse(source, tokens)
 
   assert annotation
@@ -91,7 +90,7 @@ pub fn parse_accepts_upper_identifier_with_digits_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(cursor.Cursor(current: annotation, span:, rest:)) =
+  let assert Ok(#(annotation, span, rest)) =
     parse_typename.parse(source, tokens)
 
   assert annotation

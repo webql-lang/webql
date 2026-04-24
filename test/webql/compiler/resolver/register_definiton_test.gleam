@@ -1,8 +1,8 @@
 import gleam/dict
+import webql/compiler/reference
 import webql/compiler/resolver/ast
-import webql/compiler/resolver/reference
 import webql/compiler/resolver/register_definiton
-import webql/compiler/resolver/runtime
+import webql/compiler/runtime
 import webql/compiler/source
 
 pub fn register_registers_definition_and_nested_runtime_test() {
