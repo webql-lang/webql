@@ -1,9 +1,9 @@
 import gleam/dict
+import webql/compiler/reference
 import webql/compiler/resolver/ast
-import webql/compiler/resolver/reference
 import webql/compiler/resolver/register_binding
-import webql/compiler/resolver/runtime
-import webql/compiler/resolver/schema
+import webql/compiler/runtime
+import webql/compiler/schema
 import webql/compiler/source
 
 pub fn register_registers_primitive_binding_name_only_test() {

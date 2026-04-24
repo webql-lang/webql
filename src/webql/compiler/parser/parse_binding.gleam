@@ -40,9 +40,9 @@ fn parse_binding_name(
 ) {
   let #(name, name_span, rest) = name
   use rest <- result.try(parse_equal(source, rest))
-  use #(value, span, rest) <- result.try(parse_value.parse(source, rest))
+  use #(value, value_span, rest) <- result.try(parse_value.parse(source, rest))
 
-  let span = source.cover(name_span, span)
+  let span = source.cover(name_span, value_span)
 
   Ok(#(ast.Binding(name:, value:, span:), span, rest))
 }

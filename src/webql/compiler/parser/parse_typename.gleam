@@ -9,8 +9,9 @@ import webql/compiler/source
 ///
 /// ## Examples
 ///
-///     String
 ///     Int
+///     Float
+///     String
 pub fn parse(
   source: String,
   tokens: List(token.Token),

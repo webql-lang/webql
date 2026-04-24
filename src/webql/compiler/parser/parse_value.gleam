@@ -31,6 +31,5 @@ pub fn parse(
 // =================
 fn parse_primitive_value(source: String, tokens: List(token.Token)) {
   use #(value, span, rest) <- result.try(parse_primitive.parse(source, tokens))
-
   Ok(#(ast.PrimitiveValue(value:, span:), span, rest))
 }

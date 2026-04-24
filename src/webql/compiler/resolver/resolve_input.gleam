@@ -1,7 +1,7 @@
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/runtime
+import webql/compiler/runtime
 
 /// Resolves an edge input.
 pub fn resolve(

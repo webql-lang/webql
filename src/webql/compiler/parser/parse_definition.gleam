@@ -26,8 +26,8 @@ pub fn parse(
     }
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining, parse_operation)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, rest, parse_operation)
     }
   }
 }

@@ -1,6 +1,6 @@
 import gleam/dict
-import webql/compiler/resolver/reference
-import webql/compiler/resolver/runtime
+import webql/compiler/reference
+import webql/compiler/runtime
 
 pub fn add_parameter_assigns_stable_reference_test() {
   let runtime = runtime.add_parameters(runtime.new(), ["in", "value", "in"])

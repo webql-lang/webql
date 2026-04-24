@@ -1,10 +1,10 @@
 import webql/compiler/parser/ast as parser_ast
+import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/resolver/reference
 import webql/compiler/resolver/resolve_edge
-import webql/compiler/resolver/runtime
-import webql/compiler/resolver/schema
+import webql/compiler/runtime
+import webql/compiler/schema
 import webql/compiler/source
 
 pub fn resolve_port_edge_test() {

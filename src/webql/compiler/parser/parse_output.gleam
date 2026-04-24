@@ -18,7 +18,6 @@ pub fn parse(
   case tokens {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
       let alias = #(source.slice(source, span), span, rest)
-
       parse_node_output(source, alias)
     }
 
@@ -33,8 +32,8 @@ pub fn parse(
       parse_primitive_output(source, tokens)
 
     _tokens -> {
-      use remaining <- result.try(parse_nonstarter.parse(source, tokens))
-      parse(source, remaining)
+      use rest <- result.try(parse_nonstarter.parse(source, tokens))
+      parse(source, rest)
     }
   }
 }

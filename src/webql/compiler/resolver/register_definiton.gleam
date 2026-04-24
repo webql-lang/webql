@@ -1,5 +1,5 @@
 import webql/compiler/resolver/ast
-import webql/compiler/resolver/runtime
+import webql/compiler/runtime
 
 /// Registers a definition.
 pub fn register(

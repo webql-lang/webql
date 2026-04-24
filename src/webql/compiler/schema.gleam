@@ -1,7 +1,7 @@
 import gleam/dict
 import gleam/list
 import gleam/option
-import webql/compiler/resolver/reference
+import webql/compiler/reference
 
 pub type Schema {
   Schema(

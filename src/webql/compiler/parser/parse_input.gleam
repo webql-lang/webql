@@ -94,7 +94,7 @@ fn parse_operation_input(
   source: String,
   dot: #(Nil, source.Span, List(token.Token)),
 ) {
-  let #(_, dot_span, rest) = dot
+  let #(_dot, dot_span, rest) = dot
 
   case rest {
     [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
