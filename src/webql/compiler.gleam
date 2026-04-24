@@ -5,23 +5,22 @@ import webql/compiler/parser
 import webql/compiler/resolver
 import webql/compiler/resolver/ast as resolver_ast
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 pub opaque type Compiler {
-  Compiler(schema: schema.Schema, runtime: runtime.Runtime)
+  Compiler(runtime: runtime.Runtime)
 }
 
 /// Creates a compiler instance with resolver context.
 pub fn new() -> Compiler {
-  let schema = schema.new()
   let runtime = runtime.new()
-
-  Compiler(schema:, runtime:)
+  Compiler(runtime:)
 }
 
 /// Compiles a text source into a finalized module.
 pub fn compile(
   compiler: Compiler,
+  schema: schema.Schema,
   source: String,
 ) -> Result(resolver_ast.Module, diagnostic.Diagnostic) {
   let lexer = lexer.new(source)
@@ -31,7 +30,7 @@ pub fn compile(
   use module <- result.try(compile_parse(parser))
 
   let resolver = resolver.new(module)
-  compile_resolve(compiler, resolver)
+  compile_resolve(compiler, schema, resolver)
 }
 
 // PRIVATE FUNCTIONS
@@ -60,8 +59,12 @@ fn compile_parse(parser: parser.Parser) {
   }
 }
 
-fn compile_resolve(compiler: Compiler, resolver: resolver.Resolver) {
-  case resolver.resolve(resolver, compiler.schema, compiler.runtime) {
+fn compile_resolve(
+  compiler: Compiler,
+  schema: schema.Schema,
+  resolver: resolver.Resolver,
+) {
+  case resolver.resolve(resolver, schema, compiler.runtime) {
     Ok(module) -> Ok(module)
 
     Error(error) ->

@@ -1,7 +1,7 @@
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves typenames in a field.
 pub fn resolve(

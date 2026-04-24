@@ -6,7 +6,7 @@ import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_typename
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves an output field.
 pub fn resolve(

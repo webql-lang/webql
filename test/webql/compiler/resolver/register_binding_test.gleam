@@ -3,8 +3,8 @@ import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/register_binding
 import webql/compiler/runtime
-import webql/compiler/schema
 import webql/compiler/source
+import webql/loader/schema
 
 pub fn register_registers_primitive_binding_name_only_test() {
   let binding =

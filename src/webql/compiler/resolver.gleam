@@ -4,7 +4,7 @@ import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_module
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 pub opaque type Resolver {
   Resolver(module: parser_ast.Module)

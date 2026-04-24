@@ -1,6 +1,6 @@
 import gleam/dict
 import webql/compiler/reference
-import webql/compiler/schema
+import webql/loader/schema
 
 pub fn add_typename_assigns_stable_reference_test() {
   let schema = schema.add_typenames(schema.new(), ["Int", "String", "Int"])

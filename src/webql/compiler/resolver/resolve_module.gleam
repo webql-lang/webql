@@ -5,7 +5,7 @@ import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_operation
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves a top-level module.
 pub fn resolve(

@@ -2,8 +2,8 @@ import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_primitive
-import webql/compiler/schema
 import webql/compiler/source
+import webql/loader/schema
 
 /// Resolves a binding value.
 pub fn resolve(
