@@ -7,7 +7,7 @@ import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_input
 import webql/compiler/resolver/resolve_output
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves an edge declaration.
 pub fn resolve(

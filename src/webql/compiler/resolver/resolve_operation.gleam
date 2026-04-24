@@ -13,7 +13,7 @@ import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves an operation body and its nested declarations.
 pub fn resolve(

@@ -4,8 +4,8 @@ import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_edge
 import webql/compiler/runtime
-import webql/compiler/schema
 import webql/compiler/source
+import webql/loader/schema
 
 pub fn resolve_port_edge_test() {
   let runtime =

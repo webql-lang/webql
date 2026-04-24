@@ -6,7 +6,7 @@ import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Resolves a nested operation definition.
 pub fn resolve(

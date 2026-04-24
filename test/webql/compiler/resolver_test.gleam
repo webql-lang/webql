@@ -4,8 +4,8 @@ import webql/compiler/resolver
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/runtime
-import webql/compiler/schema
 import webql/compiler/source
+import webql/loader/schema
 
 pub fn resolve_module_through_public_entrypoint_test() {
   let schema = schema.add_typename(schema.new(), "Int")

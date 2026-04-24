@@ -2,7 +2,7 @@ import gleam/list
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/runtime
-import webql/compiler/schema
+import webql/loader/schema
 
 /// Registers a binding.
 pub fn register(

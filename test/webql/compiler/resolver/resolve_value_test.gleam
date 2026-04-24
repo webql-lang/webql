@@ -3,8 +3,8 @@ import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_value
-import webql/compiler/schema
 import webql/compiler/source
+import webql/loader/schema
 
 pub fn resolve_node_value_test() {
   let schema = schema.add_node(schema.new(), "Math")
