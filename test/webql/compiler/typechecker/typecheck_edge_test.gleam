@@ -6,7 +6,8 @@ import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_edge
 
 pub fn typecheck_accepts_matching_primitive_edge_test() {
-  let runtime = runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let runtime =
+    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
 
   let edge =
     ast.Edge(
@@ -32,7 +33,8 @@ pub fn typecheck_accepts_matching_primitive_edge_test() {
 }
 
 pub fn typecheck_rejects_mismatched_primitive_edge_test() {
-  let runtime = runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let runtime =
+    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
 
   let edge =
     ast.Edge(

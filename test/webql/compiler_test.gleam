@@ -171,10 +171,12 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.TypecheckerDiagnostic(typechecker_diagnostic.TypeMismatch(
-        expected: reference.Typename(0),
-        found: reference.Typename(1),
-      )),
+      kind: diagnostic.TypecheckerDiagnostic(
+        typechecker_diagnostic.TypeMismatch(
+          expected: reference.Typename(0),
+          found: reference.Typename(1),
+        ),
+      ),
       span: source.Span(start: 23, end: 38),
     )
 }
