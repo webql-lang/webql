@@ -1,8 +1,42 @@
+import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/source
+
+pub fn parse_allows_comments_before_inside_and_after_module_test() {
+  let source = "# module\n-> out: Int { # body\n}"
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(module) = parser.parse(parser.new(source, tokens))
+
+  assert module
+    == ast.Module(
+      span: source.Span(start: 9, end: 31),
+      operation: ast.Operation(
+        span: source.Span(start: 9, end: 31),
+        parameters: [],
+        returns: [
+          ast.Return(
+            span: source.Span(start: 12, end: 20),
+            name: "out",
+            typename: ast.Typename(
+              span: source.Span(start: 17, end: 20),
+              name: "Int",
+            ),
+          ),
+        ],
+        definitions: [],
+        bindings: [],
+        edges: [],
+      ),
+    )
+}
 
 pub fn parse_allows_trailing_spaces_before_eof_test() {
   let source = "-> out: Int {}   "
