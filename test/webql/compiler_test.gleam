@@ -7,6 +7,7 @@ import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic as resolver_diagnostic
 import webql/compiler/source
+import webql/compiler/typechecker/diagnostic as typechecker_diagnostic
 import webql/loader
 
 pub fn compile_resolves_module_test() {
@@ -157,7 +158,7 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
     )
 }
 
-pub fn compile_missing_port_typename_falls_back_to_next_reference_test() {
+pub fn compile_rejects_port_typename_mismatch_test() {
   let operation_source = "-> out: Int { m = Math m.value -> .out }"
   let compiler = compiler.new()
   let assert Ok(schema) =
@@ -166,21 +167,16 @@ pub fn compile_missing_port_typename_falls_back_to_next_reference_test() {
       "{\"typenames\":[\"Int\"],\"nodes\":[{\"name\":\"Math\",\"inputs\":[],\"outputs\":[{\"name\":\"value\",\"typename\":\"String\"}]}]}",
     )
 
-  let assert Ok(ast.Module(operation:, ..)) =
-    compiler.compile(compiler, schema, operation_source)
+  let assert Error(error) = compiler.compile(compiler, schema, operation_source)
 
-  let assert [
-    ast.Edge(
-      from: ast.PortOutput(
-        path: ["m", "value"],
-        reference: reference.Output(0),
-        ..,
-      ),
-      to: ast.PortInput(path: ["out"], reference: reference.Input(0), ..),
-      reference: reference.Edge(0),
-      ..,
-    ),
-  ] = operation.edges
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.TypecheckerDiagnostic(typechecker_diagnostic.TypeMismatch(
+        expected: reference.Typename(0),
+        found: reference.Typename(1),
+      )),
+      span: source.Span(start: 23, end: 38),
+    )
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {

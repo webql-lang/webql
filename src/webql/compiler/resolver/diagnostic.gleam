@@ -12,7 +12,6 @@ pub type DiagnosticKind {
   DuplicateDefinition(name: String)
   DuplicateBinding(name: String)
   DuplicateEdge(input: reference.Input)
-  TypeMismatch(expected: String, found: String)
   InvalidEdge(from: String, to: String)
 }
 

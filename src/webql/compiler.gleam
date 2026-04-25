@@ -5,6 +5,7 @@ import webql/compiler/parser
 import webql/compiler/resolver
 import webql/compiler/resolver/ast as resolver_ast
 import webql/compiler/runtime
+import webql/compiler/typechecker
 import webql/loader/schema
 
 pub opaque type Compiler {
@@ -30,7 +31,10 @@ pub fn compile(
   use module <- result.try(compile_parse(parser))
 
   let resolver = resolver.new(module)
-  compile_resolve(compiler, schema, resolver)
+  use module <- result.try(compile_resolve(compiler, schema, resolver))
+
+  let typechecker = typechecker.new(module)
+  compile_typecheck(schema, typechecker)
 }
 
 // PRIVATE FUNCTIONS
@@ -70,6 +74,21 @@ fn compile_resolve(
     Error(error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.ResolverDiagnostic(error.kind),
+        span: error.span,
+      ))
+  }
+}
+
+fn compile_typecheck(
+  schema: schema.Schema,
+  typechecker: typechecker.Typechecker,
+) {
+  case typechecker.resolve(typechecker, schema) {
+    Ok(module) -> Ok(module)
+
+    Error(error) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.TypecheckerDiagnostic(error.kind),
         span: error.span,
       ))
   }
