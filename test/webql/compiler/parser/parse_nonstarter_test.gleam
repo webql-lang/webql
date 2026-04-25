@@ -26,6 +26,28 @@ pub fn parse_consumes_leading_spaces_test() {
     ]
 }
 
+pub fn parse_consumes_leading_comments_test() {
+  let source = "# comment\nabc"
+  let tokens = [
+    token.Token(kind: token.CommentSingle, span: source.Span(start: 0, end: 9)),
+    token.Token(kind: token.Space, span: source.Span(start: 9, end: 10)),
+    token.Token(
+      kind: token.LowerIdentifier,
+      span: source.Span(start: 10, end: 13),
+    ),
+  ]
+
+  let assert Ok(rest) = parse_nonstarter.parse(source: source, tokens: tokens)
+
+  assert rest
+    == [
+      token.Token(
+        kind: token.LowerIdentifier,
+        span: source.Span(start: 10, end: 13),
+      ),
+    ]
+}
+
 pub fn parse_preserves_eof_after_spaces_test() {
   let source = "   "
   let tokens = [
