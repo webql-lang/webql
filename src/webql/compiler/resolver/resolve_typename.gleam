@@ -1,14 +1,14 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/loader/schema
 
 /// Resolves typenames in a field.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   typename: parser_ast.Typename,
 ) -> Result(ast.Typename, diagnostic.Diagnostic) {
-  case schema.get_typename(schema, typename.name) {
+  case environment.get_typename(environment, typename.name) {
     Ok(reference) ->
       Ok(ast.Typename(name: typename.name, reference:, span: typename.span))
 

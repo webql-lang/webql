@@ -1,16 +1,16 @@
 import gleam/bool
 import gleam/result
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_typename
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Resolves an output field.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   field: parser_ast.Return,
   reference: reference.Return,
@@ -25,7 +25,7 @@ pub fn resolve(
     )),
   )
 
-  use typename <- result.try(resolve_typename.resolve(schema, typename))
+  use typename <- result.try(resolve_typename.resolve(environment, typename))
 
   Ok(ast.Return(name:, typename:, reference:, span:))
 }

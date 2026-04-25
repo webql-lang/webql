@@ -12,11 +12,11 @@ import webql/loader
 
 pub fn compile_resolves_module_test() {
   let operation_source = "-> out: Int {}"
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(loader.new(), "{\"typenames\":[\"Int\"],\"nodes\":[]}")
+  let compiler = compiler.new(schema)
 
-  let assert Ok(module) = compiler.compile(compiler, schema, operation_source)
+  let assert Ok(module) = compiler.compile(compiler, operation_source)
 
   assert module
     == ast.Module(
@@ -48,15 +48,15 @@ pub fn compile_materializes_node_binding_ports_from_singular_adders_test() {
   let operation_source =
     "in: Int -> out: Int { m = Math .in -> m.l 1 -> m.r m.value -> .out }"
 
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(
       loader.new(),
       "{\"typenames\":[\"Int\"],\"nodes\":[{\"name\":\"Math\",\"inputs\":[{\"name\":\"r\",\"typename\":\"Int\"},{\"name\":\"l\",\"typename\":\"Int\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]}]}",
     )
+  let compiler = compiler.new(schema)
 
   let assert Ok(ast.Module(operation:, ..)) =
-    compiler.compile(compiler, schema, operation_source)
+    compiler.compile(compiler, operation_source)
 
   let assert [
     ast.Edge(
@@ -88,15 +88,15 @@ pub fn compile_materializes_node_binding_ports_test() {
   let operation_source =
     "in: Int -> out: Int { m = Math .in -> m.l 1 -> m.r m.value -> .out }"
 
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(
       loader.new(),
       "{\"typenames\":[\"Int\"],\"nodes\":[{\"name\":\"Math\",\"inputs\":[{\"name\":\"r\",\"typename\":\"Int\"},{\"name\":\"l\",\"typename\":\"Int\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]}]}",
     )
+  let compiler = compiler.new(schema)
 
   let assert Ok(ast.Module(operation:, ..)) =
-    compiler.compile(compiler, schema, operation_source)
+    compiler.compile(compiler, operation_source)
 
   let assert [
     ast.Binding(
@@ -137,15 +137,15 @@ pub fn compile_materializes_definition_binding_ports_test() {
   let operation_source =
     "in: Int -> out: Int { SubOperation = in: String -> out: Int { ti = ToInt .in -> ti.value ti.value -> .out } m = Math so = SubOperation \"123\" -> so.in so.out -> m.l .in -> m.r m.value -> .out }"
 
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(
       loader.new(),
       "{\"typenames\":[\"Int\",\"String\"],\"nodes\":[{\"name\":\"ToInt\",\"inputs\":[{\"name\":\"value\",\"typename\":\"String\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]},{\"name\":\"Math\",\"inputs\":[{\"name\":\"l\",\"typename\":\"Int\"},{\"name\":\"r\",\"typename\":\"Int\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]}]}",
     )
+  let compiler = compiler.new(schema)
 
   let assert Ok(ast.Module(operation:, ..)) =
-    compiler.compile(compiler, schema, operation_source)
+    compiler.compile(compiler, operation_source)
 
   let assert [
     ast.Binding(
@@ -206,14 +206,14 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
   let operation_source =
     "in: Int -> out: Int { m = Math .in -> m.l m.value -> .out }"
 
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(
       loader.new(),
       "{\"typenames\":[\"Int\"],\"nodes\":[{\"name\":\"Math\",\"inputs\":[],\"outputs\":[]}]}",
     )
+  let compiler = compiler.new(schema)
 
-  let assert Error(error) = compiler.compile(compiler, schema, operation_source)
+  let assert Error(error) = compiler.compile(compiler, operation_source)
 
   assert error
     == diagnostic.Diagnostic(
@@ -229,14 +229,14 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
 
 pub fn compile_rejects_port_typename_mismatch_test() {
   let operation_source = "-> out: Int { m = Math m.value -> .out }"
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(
       loader.new(),
       "{\"typenames\":[\"Int\"],\"nodes\":[{\"name\":\"Math\",\"inputs\":[],\"outputs\":[{\"name\":\"value\",\"typename\":\"String\"}]}]}",
     )
+  let compiler = compiler.new(schema)
 
-  let assert Error(error) = compiler.compile(compiler, schema, operation_source)
+  let assert Error(error) = compiler.compile(compiler, operation_source)
 
   assert error
     == diagnostic.Diagnostic(
@@ -251,11 +251,11 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(loader.new(), "{\"typenames\":[],\"nodes\":[]}")
+  let compiler = compiler.new(schema)
 
-  let assert Error(error) = compiler.compile(compiler, schema, "!")
+  let assert Error(error) = compiler.compile(compiler, "!")
 
   assert error
     == diagnostic.Diagnostic(
@@ -265,11 +265,11 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(loader.new(), "{\"typenames\":[],\"nodes\":[]}")
+  let compiler = compiler.new(schema)
 
-  let assert Error(error) = compiler.compile(compiler, schema, "{")
+  let assert Error(error) = compiler.compile(compiler, "{")
 
   assert error
     == diagnostic.Diagnostic(
@@ -282,11 +282,11 @@ pub fn compile_wraps_parser_diagnostic_test() {
 
 pub fn compile_wraps_resolver_diagnostic_test() {
   let operation_source = "-> out: Int {}"
-  let compiler = compiler.new()
   let assert Ok(schema) =
     loader.load(loader.new(), "{\"typenames\":[],\"nodes\":[]}")
+  let compiler = compiler.new(schema)
 
-  let assert Error(error) = compiler.compile(compiler, schema, operation_source)
+  let assert Error(error) = compiler.compile(compiler, operation_source)
 
   assert error
     == diagnostic.Diagnostic(

@@ -1,14 +1,14 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_primitive
 import webql/compiler/runtime
 import webql/compiler/source
-import webql/loader/schema
 
 /// Resolves an edge output.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   output: parser_ast.Output,
 ) -> Result(ast.Output, diagnostic.Diagnostic) {
@@ -17,7 +17,7 @@ pub fn resolve(
       resolve_port_output(runtime, path, span)
 
     parser_ast.PrimitiveOutput(value:, span:) ->
-      resolve_primitive_output(schema, value, span)
+      resolve_primitive_output(environment, value, span)
   }
 }
 
@@ -37,11 +37,11 @@ fn resolve_port_output(
 }
 
 fn resolve_primitive_output(
-  schema: schema.Schema,
+  environment: environment.Environment,
   value: parser_ast.Primitive,
   span: source.Span,
 ) {
-  case schema.get_typename(schema, value.name) {
+  case environment.get_typename(environment, value.name) {
     Ok(typename) -> {
       let value = resolve_primitive.resolve(value)
       Ok(ast.PrimitiveOutput(value:, typename:, span:))

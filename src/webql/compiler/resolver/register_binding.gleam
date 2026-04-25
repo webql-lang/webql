@@ -1,12 +1,12 @@
 import gleam/list
+import webql/compiler/environment
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Registers a binding.
 pub fn register(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   binding: ast.Binding,
 ) -> runtime.Runtime {
@@ -14,7 +14,7 @@ pub fn register(
 
   case binding.value {
     ast.NodeValue(reference: node, ..) ->
-      register_node_value(runtime, schema, binding.name, node)
+      register_node_value(runtime, environment, binding.name, node)
 
     _primative -> runtime
   }
@@ -24,16 +24,16 @@ pub fn register(
 // =================
 fn register_node_value(
   runtime: runtime.Runtime,
-  schema: schema.Schema,
+  environment: environment.Environment,
   name: String,
   node: reference.Node,
 ) {
-  let runtime = case schema.get_inputs(schema, node) {
+  let runtime = case environment.get_inputs(environment, node) {
     Ok(inputs) -> register_inputs(runtime, name, inputs)
     Error(_nil) -> runtime
   }
 
-  case schema.get_outputs(schema, node) {
+  case environment.get_outputs(environment, node) {
     Ok(outputs) -> register_outputs(runtime, name, outputs)
     Error(_nil) -> runtime
   }

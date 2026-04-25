@@ -1,16 +1,16 @@
 import gleam/bool
 import gleam/dict
 import gleam/result
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Resolves a nested operation definition.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   definition: parser_ast.Definition,
   reference: reference.Definition,
@@ -19,7 +19,7 @@ pub fn resolve(
   let parser_ast.Definition(name:, operation:, span:) = definition
 
   use <- bool.guard(
-    when: result.is_ok(schema.get_node(schema, definition.name)),
+    when: result.is_ok(environment.get_node(environment, definition.name)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateDefinition(definition.name),
       span: definition.span,
@@ -38,7 +38,7 @@ pub fn resolve(
     )
 
   use #(operation, runtime) <- result.try(resolve_operation(
-    schema,
+    environment,
     runtime,
     operation,
   ))

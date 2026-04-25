@@ -49,7 +49,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
       span: source.Span(start: 0, end: 26),
     )
 
-  let assert Ok(module) =
+  let assert Ok(#(module, _runtime)) =
     module_to_resolve
     |> resolver.new()
     |> resolver.resolve(schema, runtime)

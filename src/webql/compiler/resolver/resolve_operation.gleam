@@ -1,5 +1,6 @@
 import gleam/list
 import gleam/result
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
@@ -14,30 +15,15 @@ import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Resolves an operation body and its nested declarations.
 pub fn resolve(
-  schema: schema.Schema,
-  runtime: runtime.Runtime,
-  operation: parser_ast.Operation,
-) -> Result(ast.Operation, diagnostic.Diagnostic) {
-  use #(operation, _runtime) <- result.try(resolve_with_runtime(
-    schema,
-    runtime,
-    operation,
-  ))
-  Ok(operation)
-}
-
-/// Resolves an operation body and returns its populated runtime.
-pub fn resolve_with_runtime(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   operation: parser_ast.Operation,
 ) -> Result(#(ast.Operation, runtime.Runtime), diagnostic.Diagnostic) {
-  use #(operation, runtime, _schema) <- result.try(resolve_body(
-    schema,
+  use #(operation, runtime, _environment) <- result.try(resolve_body(
+    environment,
     runtime,
     operation,
   ))
@@ -47,11 +33,11 @@ pub fn resolve_with_runtime(
 // PRIVATE FUNCTIONS
 // =================
 fn resolve_body(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   operation: parser_ast.Operation,
 ) -> Result(
-  #(ast.Operation, runtime.Runtime, schema.Schema),
+  #(ast.Operation, runtime.Runtime, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   let parser_ast.Operation(
@@ -64,40 +50,40 @@ fn resolve_body(
   ) = operation
 
   use #(parameters, runtime) <- result.try(resolve_parameters(
-    schema,
+    environment,
     runtime,
     parameters,
   ))
 
   use #(returns, runtime) <- result.try(resolve_returns(
-    schema,
+    environment,
     runtime,
     returns,
   ))
 
-  use #(definitions, runtime, schema) <- result.try(resolve_definitions(
-    schema,
+  use #(definitions, runtime, environment) <- result.try(resolve_definitions(
+    environment,
     runtime,
     definitions,
   ))
 
   use #(bindings, runtime) <- result.try(resolve_bindings(
-    schema,
+    environment,
     runtime,
     bindings,
   ))
 
-  use #(edges, runtime) <- result.try(resolve_edges(schema, runtime, edges))
+  use #(edges, runtime) <- result.try(resolve_edges(environment, runtime, edges))
 
   Ok(#(
     ast.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
     runtime,
-    schema,
+    environment,
   ))
 }
 
 fn resolve_parameters(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   parameters: List(parser_ast.Parameter),
 ) {
@@ -106,7 +92,7 @@ fn resolve_parameters(
       let reference = runtime.next_parameter(runtime)
 
       use parameter <- result.try(resolve_parameter.resolve(
-        schema,
+        environment,
         runtime,
         parameter,
         reference,
@@ -115,7 +101,7 @@ fn resolve_parameters(
       let runtime = register_parameter.register(runtime, parameter)
 
       use #(rest, runtime) <- result.try(resolve_parameters(
-        schema,
+        environment,
         runtime,
         rest,
       ))
@@ -127,7 +113,7 @@ fn resolve_parameters(
 }
 
 fn resolve_returns(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   returns: List(parser_ast.Return),
 ) {
@@ -136,7 +122,7 @@ fn resolve_returns(
       let reference = runtime.next_return(runtime)
 
       use return <- result.try(resolve_return.resolve(
-        schema,
+        environment,
         runtime,
         return,
         reference,
@@ -144,7 +130,11 @@ fn resolve_returns(
 
       let runtime = register_return.register(runtime, return)
 
-      use #(rest, runtime) <- result.try(resolve_returns(schema, runtime, rest))
+      use #(rest, runtime) <- result.try(resolve_returns(
+        environment,
+        runtime,
+        rest,
+      ))
       Ok(#([return, ..rest], runtime))
     }
 
@@ -153,11 +143,11 @@ fn resolve_returns(
 }
 
 fn resolve_definitions(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   definitions: List(parser_ast.Definition),
 ) -> Result(
-  #(List(ast.Definition), runtime.Runtime, schema.Schema),
+  #(List(ast.Definition), runtime.Runtime, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   case definitions {
@@ -165,53 +155,58 @@ fn resolve_definitions(
       let reference = runtime.next_definition(runtime)
 
       use #(definition, sub_runtime) <- result.try(resolve_definition.resolve(
-        schema,
+        environment,
         runtime,
         definition,
         reference,
-        resolve_with_runtime,
+        resolve,
       ))
 
       let runtime =
         register_definiton.register(runtime, definition, sub_runtime)
 
-      let schema = register_definition_node(schema, definition)
+      let environment = register_definition_node(environment, definition)
 
-      use #(definitions, runtime, schema) <- result.try(resolve_definitions(
-        schema,
-        runtime,
-        definitions,
-      ))
+      use #(definitions, runtime, environment) <- result.try(
+        resolve_definitions(environment, runtime, definitions),
+      )
 
-      Ok(#([definition, ..definitions], runtime, schema))
+      Ok(#([definition, ..definitions], runtime, environment))
     }
 
-    [] -> Ok(#([], runtime, schema))
+    [] -> Ok(#([], runtime, environment))
   }
 }
 
 fn register_definition_node(
-  schema: schema.Schema,
+  environment: environment.Environment,
   definition: ast.Definition,
-) -> schema.Schema {
-  let schema = schema.add_node(schema, definition.name)
-  let assert Ok(node) = schema.get_node(schema, definition.name)
+) -> environment.Environment {
+  let environment = environment.add_node(environment, definition.name)
+  let assert Ok(node) = environment.get_node(environment, definition.name)
 
-  let schema =
-    list.fold(definition.operation.parameters, schema, fn(schema, parameter) {
-      schema.add_input(schema, node, #(
-        parameter.name,
-        parameter.typename.reference,
-      ))
-    })
+  let environment =
+    list.fold(
+      definition.operation.parameters,
+      environment,
+      fn(environment, parameter) {
+        environment.add_input(environment, node, #(
+          parameter.name,
+          parameter.typename.reference,
+        ))
+      },
+    )
 
-  list.fold(definition.operation.returns, schema, fn(schema, return) {
-    schema.add_output(schema, node, #(return.name, return.typename.reference))
+  list.fold(definition.operation.returns, environment, fn(environment, return) {
+    environment.add_output(environment, node, #(
+      return.name,
+      return.typename.reference,
+    ))
   })
 }
 
 fn resolve_bindings(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   bindings: List(parser_ast.Binding),
 ) {
@@ -220,16 +215,16 @@ fn resolve_bindings(
       let reference = runtime.next_binding(runtime)
 
       use binding <- result.try(resolve_binding.resolve(
-        schema,
+        environment,
         runtime,
         binding,
         reference,
       ))
 
-      let runtime = register_binding.register(schema, runtime, binding)
+      let runtime = register_binding.register(environment, runtime, binding)
 
       use #(bindings, runtime) <- result.try(resolve_bindings(
-        schema,
+        environment,
         runtime,
         bindings,
       ))
@@ -242,7 +237,7 @@ fn resolve_bindings(
 }
 
 fn resolve_edges(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   edges: List(parser_ast.Edge),
 ) {
@@ -250,7 +245,7 @@ fn resolve_edges(
     [edge, ..edges] -> {
       let reference = runtime.next_edge(runtime)
       use edge <- result.try(resolve_edge.resolve(
-        schema,
+        environment,
         runtime,
         edge,
         reference,
@@ -258,7 +253,11 @@ fn resolve_edges(
 
       let runtime = register_edge.register(runtime, edge)
 
-      use #(edges, runtime) <- result.try(resolve_edges(schema, runtime, edges))
+      use #(edges, runtime) <- result.try(resolve_edges(
+        environment,
+        runtime,
+        edges,
+      ))
       Ok(#([edge, ..edges], runtime))
     }
 

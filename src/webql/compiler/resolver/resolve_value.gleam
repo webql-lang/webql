@@ -1,27 +1,32 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_primitive
 import webql/compiler/source
-import webql/loader/schema
 
 /// Resolves a binding value.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   value: parser_ast.Value,
 ) -> Result(ast.Value, diagnostic.Diagnostic) {
   case value {
-    parser_ast.NodeValue(name:, span:) -> resolve_node_value(schema, name, span)
+    parser_ast.NodeValue(name:, span:) ->
+      resolve_node_value(environment, name, span)
 
     parser_ast.PrimitiveValue(value:, span:) ->
-      resolve_primitive_value(schema, value, span)
+      resolve_primitive_value(environment, value, span)
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn resolve_node_value(schema: schema.Schema, name: String, span: source.Span) {
-  case schema.get_node(schema, name) {
+fn resolve_node_value(
+  environment: environment.Environment,
+  name: String,
+  span: source.Span,
+) {
+  case environment.get_node(environment, name) {
     Ok(reference) -> Ok(ast.NodeValue(name:, reference:, span:))
 
     Error(_nil) ->
@@ -30,11 +35,11 @@ fn resolve_node_value(schema: schema.Schema, name: String, span: source.Span) {
 }
 
 fn resolve_primitive_value(
-  schema: schema.Schema,
+  environment: environment.Environment,
   value: parser_ast.Primitive,
   span: source.Span,
 ) {
-  case schema.get_typename(schema, value.name) {
+  case environment.get_typename(environment, value.name) {
     Ok(typename) -> {
       let value = resolve_primitive.resolve(value)
       Ok(ast.PrimitiveValue(value:, typename:, span:))

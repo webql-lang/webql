@@ -1,5 +1,6 @@
 import gleam/bool
 import gleam/result
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -7,18 +8,17 @@ import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_input
 import webql/compiler/resolver/resolve_output
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Resolves an edge declaration.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   edge: parser_ast.Edge,
   reference: reference.Edge,
 ) -> Result(ast.Edge, diagnostic.Diagnostic) {
   let parser_ast.Edge(from:, to:, span:) = edge
 
-  use from <- result.try(resolve_output.resolve(schema, runtime, from))
+  use from <- result.try(resolve_output.resolve(environment, runtime, from))
   use to <- result.try(resolve_input.resolve(runtime, to))
 
   use <- bool.guard(

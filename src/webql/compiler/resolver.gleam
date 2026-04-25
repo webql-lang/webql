@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -20,7 +21,12 @@ pub fn resolve(
   resolver: Resolver,
   schema: schema.Schema,
   runtime: runtime.Runtime,
-) -> Result(ast.Module, diagnostic.Diagnostic) {
+) -> Result(#(ast.Module, runtime.Runtime), diagnostic.Diagnostic) {
   let reference = reference.Module(0)
-  resolve_module.resolve(schema, runtime, resolver.module, reference)
+  resolve_module.resolve(
+    environment.new(schema),
+    runtime,
+    resolver.module,
+    reference,
+  )
 }

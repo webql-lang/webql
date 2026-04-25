@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -57,11 +58,11 @@ pub fn resolve_definition_resolves_nested_operation_test() {
 
   let assert Ok(#(definition, _runtime)) =
     resolve_definition.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       definition_to_resolve,
       reference.Definition(0),
-      resolve_operation.resolve_with_runtime,
+      resolve_operation.resolve,
     )
 
   assert definition
@@ -136,11 +137,11 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
 
   let assert Error(error) =
     resolve_definition.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       definition_to_resolve,
       reference.Definition(1),
-      resolve_operation.resolve_with_runtime,
+      resolve_operation.resolve,
     )
 
   assert error
@@ -169,11 +170,11 @@ pub fn resolve_definition_returns_duplicate_definition_for_schema_node_test() {
 
   let assert Error(error) =
     resolve_definition.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       definition_to_resolve,
       reference.Definition(0),
-      resolve_operation.resolve_with_runtime,
+      resolve_operation.resolve,
     )
 
   assert error

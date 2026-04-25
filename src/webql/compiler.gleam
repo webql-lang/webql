@@ -9,21 +9,21 @@ import webql/compiler/typechecker
 import webql/loader/schema
 
 pub opaque type Compiler {
-  Compiler(runtime: runtime.Runtime)
+  Compiler(schema: schema.Schema)
 }
 
 /// Creates a compiler instance with resolver context.
-pub fn new() -> Compiler {
-  let runtime = runtime.new()
-  Compiler(runtime:)
+pub fn new(schema: schema.Schema) -> Compiler {
+  Compiler(schema:)
 }
 
 /// Compiles a text source into a finalized module.
 pub fn compile(
   compiler: Compiler,
-  schema: schema.Schema,
   source: String,
 ) -> Result(resolver_ast.Module, diagnostic.Diagnostic) {
+  let runtime = runtime.new()
+
   let lexer = lexer.new(source)
   use tokens <- result.try(compile_lex(lexer))
 
@@ -31,10 +31,14 @@ pub fn compile(
   use module <- result.try(compile_parse(parser))
 
   let resolver = resolver.new(module)
-  use module <- result.try(compile_resolve(compiler, schema, resolver))
+  use #(module, runtime) <- result.try(compile_resolve(
+    compiler,
+    runtime,
+    resolver,
+  ))
 
   let typechecker = typechecker.new(module)
-  compile_typecheck(schema, typechecker)
+  compile_typecheck(typechecker, runtime)
 }
 
 // PRIVATE FUNCTIONS
@@ -65,10 +69,10 @@ fn compile_parse(parser: parser.Parser) {
 
 fn compile_resolve(
   compiler: Compiler,
-  schema: schema.Schema,
+  runtime: runtime.Runtime,
   resolver: resolver.Resolver,
 ) {
-  case resolver.resolve(resolver, schema, compiler.runtime) {
+  case resolver.resolve(resolver, compiler.schema, runtime) {
     Ok(module) -> Ok(module)
 
     Error(error) ->
@@ -80,10 +84,10 @@ fn compile_resolve(
 }
 
 fn compile_typecheck(
-  schema: schema.Schema,
   typechecker: typechecker.Typechecker,
+  runtime: runtime.Runtime,
 ) {
-  case typechecker.resolve(typechecker, schema) {
+  case typechecker.resolve(typechecker, runtime) {
     Ok(module) -> Ok(module)
 
     Error(error) ->
