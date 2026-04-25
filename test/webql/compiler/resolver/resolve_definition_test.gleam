@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -57,7 +58,7 @@ pub fn resolve_definition_resolves_nested_operation_test() {
 
   let assert Ok(#(definition, _runtime)) =
     resolve_definition.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       definition_to_resolve,
       reference.Definition(0),
@@ -118,7 +119,7 @@ pub fn resolve_definition_resolves_nested_operation_test() {
 }
 
 pub fn resolve_definition_returns_duplicate_definition_test() {
-  let runtime = runtime.add_definition(runtime.new(), "Inner")
+  let schema = schema.add_node(schema.new(), "Inner")
 
   let definition_to_resolve =
     parser_ast.Definition(
@@ -136,8 +137,8 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
 
   let assert Error(error) =
     resolve_definition.resolve(
-      schema.new(),
-      runtime,
+      environment.new(schema),
+      runtime.new(),
       definition_to_resolve,
       reference.Definition(1),
       resolve_operation.resolve,
@@ -147,5 +148,38 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
     == diagnostic.Diagnostic(
       kind: diagnostic.DuplicateDefinition("Inner"),
       span: source.Span(start: 0, end: 10),
+    )
+}
+
+pub fn resolve_definition_returns_duplicate_definition_for_schema_node_test() {
+  let schema = schema.add_node(schema.new(), "Math")
+
+  let definition_to_resolve =
+    parser_ast.Definition(
+      name: "Math",
+      operation: parser_ast.Operation(
+        parameters: [],
+        returns: [],
+        definitions: [],
+        bindings: [],
+        edges: [],
+        span: source.Span(start: 7, end: 9),
+      ),
+      span: source.Span(start: 0, end: 9),
+    )
+
+  let assert Error(error) =
+    resolve_definition.resolve(
+      environment.new(schema),
+      runtime.new(),
+      definition_to_resolve,
+      reference.Definition(0),
+      resolve_operation.resolve,
+    )
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.DuplicateDefinition("Math"),
+      span: source.Span(start: 0, end: 9),
     )
 }

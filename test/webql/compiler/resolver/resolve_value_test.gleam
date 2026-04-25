@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -12,7 +13,8 @@ pub fn resolve_node_value_test() {
   let value_to_resolve =
     parser_ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
 
-  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Ok(value) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert value
     == ast.NodeValue(
@@ -28,7 +30,8 @@ pub fn resolve_returns_unknown_node_for_missing_node_value_test() {
   let value_to_resolve =
     parser_ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
 
-  let assert Error(error) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Error(error) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
@@ -50,7 +53,8 @@ pub fn resolve_int_primitive_value_test() {
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Ok(value) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -77,7 +81,8 @@ pub fn resolve_float_primitive_value_test() {
       span: source.Span(start: 0, end: 4),
     )
 
-  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Ok(value) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -104,7 +109,8 @@ pub fn resolve_string_primitive_value_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Ok(value) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert value
     == ast.PrimitiveValue(
@@ -131,7 +137,8 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_typename_test() {
       span: source.Span(start: 0, end: 3),
     )
 
-  let assert Error(error) = resolve_value.resolve(schema, value_to_resolve)
+  let assert Error(error) =
+    resolve_value.resolve(environment.new(schema), value_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

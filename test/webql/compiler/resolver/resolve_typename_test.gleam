@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -13,7 +14,7 @@ pub fn resolve_named_type_annotation_test() {
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Ok(annotation) =
-    resolve_typename.resolve(schema, annotation_to_resolve)
+    resolve_typename.resolve(environment.new(schema), annotation_to_resolve)
 
   assert annotation
     == ast.Typename(
@@ -30,7 +31,7 @@ pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Error(error) =
-    resolve_typename.resolve(schema, annotation_to_resolve)
+    resolve_typename.resolve(environment.new(schema), annotation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

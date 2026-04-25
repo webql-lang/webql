@@ -1,3 +1,4 @@
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
@@ -22,7 +23,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 
   let assert Ok(parameter) =
     resolve_parameter.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       parameter_to_resolve,
       reference.Parameter(0),
@@ -56,7 +57,7 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
 
   let assert Error(error) =
     resolve_parameter.resolve(
-      schema,
+      environment.new(schema),
       runtime.new(),
       parameter_to_resolve,
       reference.Parameter(0),
@@ -84,7 +85,7 @@ pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
 
   let assert Error(error) =
     resolve_parameter.resolve(
-      schema.new(),
+      environment.new(schema.new()),
       runtime,
       parameter_to_resolve,
       reference.Parameter(1),

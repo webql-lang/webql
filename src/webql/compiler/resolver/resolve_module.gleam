@@ -1,24 +1,24 @@
 import gleam/result
+import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_operation
 import webql/compiler/runtime
-import webql/loader/schema
 
 /// Resolves a top-level module.
 pub fn resolve(
-  schema: schema.Schema,
+  environment: environment.Environment,
   runtime: runtime.Runtime,
   module: parser_ast.Module,
   reference: reference.Module,
-) -> Result(ast.Module, diagnostic.Diagnostic) {
-  use operation <- result.try(resolve_operation.resolve(
-    schema,
+) -> Result(#(ast.Module, runtime.Runtime), diagnostic.Diagnostic) {
+  use #(operation, runtime) <- result.try(resolve_operation.resolve(
+    environment,
     runtime,
     module.operation,
   ))
 
-  Ok(ast.Module(operation:, reference:, span: module.span))
+  Ok(#(ast.Module(operation:, reference:, span: module.span), runtime))
 }
