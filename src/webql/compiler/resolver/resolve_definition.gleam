@@ -19,7 +19,7 @@ pub fn resolve(
   let parser_ast.Definition(name:, operation:, span:) = definition
 
   use <- bool.guard(
-    when: result.is_ok(runtime.get_definition(runtime, definition.name)),
+    when: result.is_ok(schema.get_node(schema, definition.name)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateDefinition(definition.name),
       span: definition.span,
@@ -37,7 +37,11 @@ pub fn resolve(
       edges: dict.new(),
     )
 
-  use operation <- result.try(resolve_operation(schema, runtime, operation))
+  use #(operation, runtime) <- result.try(resolve_operation(
+    schema,
+    runtime,
+    operation,
+  ))
 
   Ok(#(ast.Definition(name:, operation:, reference:, span:), runtime))
 }

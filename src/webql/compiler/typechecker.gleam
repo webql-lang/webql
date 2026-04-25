@@ -32,6 +32,8 @@ fn build_operation_runtime(
   operation: ast.Operation,
   schema: schema.Schema,
 ) -> runtime.Runtime {
+  let schema = register_definition_nodes(schema, operation.definitions)
+
   runtime.new()
   |> register_parameters(operation.parameters)
   |> register_returns(operation.returns)
@@ -91,6 +93,28 @@ fn register_bindings(
 
       ast.PrimitiveValue(..) -> runtime
     }
+  })
+}
+
+fn register_definition_nodes(
+  schema: schema.Schema,
+  definitions: List(ast.Definition),
+) -> schema.Schema {
+  list.fold(definitions, schema, fn(schema, definition) {
+    let schema = schema.add_node(schema, definition.name)
+    let assert Ok(node) = schema.get_node(schema, definition.name)
+
+    let schema =
+      list.fold(definition.operation.parameters, schema, fn(schema, parameter) {
+        schema.add_input(schema, node, #(
+          parameter.name,
+          parameter.typename.reference,
+        ))
+      })
+
+    list.fold(definition.operation.returns, schema, fn(schema, return) {
+      schema.add_output(schema, node, #(return.name, return.typename.reference))
+    })
   })
 }
 

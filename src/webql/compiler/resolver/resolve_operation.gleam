@@ -1,3 +1,4 @@
+import gleam/list
 import gleam/result
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
@@ -21,12 +22,26 @@ pub fn resolve(
   runtime: runtime.Runtime,
   operation: parser_ast.Operation,
 ) -> Result(ast.Operation, diagnostic.Diagnostic) {
-  use #(operation, _runtime) <- result.try(resolve_body(
+  use #(operation, _runtime) <- result.try(resolve_with_runtime(
     schema,
     runtime,
     operation,
   ))
   Ok(operation)
+}
+
+/// Resolves an operation body and returns its populated runtime.
+pub fn resolve_with_runtime(
+  schema: schema.Schema,
+  runtime: runtime.Runtime,
+  operation: parser_ast.Operation,
+) -> Result(#(ast.Operation, runtime.Runtime), diagnostic.Diagnostic) {
+  use #(operation, runtime, _schema) <- result.try(resolve_body(
+    schema,
+    runtime,
+    operation,
+  ))
+  Ok(#(operation, runtime))
 }
 
 // PRIVATE FUNCTIONS
@@ -35,6 +50,9 @@ fn resolve_body(
   schema: schema.Schema,
   runtime: runtime.Runtime,
   operation: parser_ast.Operation,
+) -> Result(
+  #(ast.Operation, runtime.Runtime, schema.Schema),
+  diagnostic.Diagnostic,
 ) {
   let parser_ast.Operation(
     parameters:,
@@ -57,7 +75,7 @@ fn resolve_body(
     returns,
   ))
 
-  use #(definitions, runtime) <- result.try(resolve_definitions(
+  use #(definitions, runtime, schema) <- result.try(resolve_definitions(
     schema,
     runtime,
     definitions,
@@ -74,6 +92,7 @@ fn resolve_body(
   Ok(#(
     ast.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
     runtime,
+    schema,
   ))
 }
 
@@ -137,6 +156,9 @@ fn resolve_definitions(
   schema: schema.Schema,
   runtime: runtime.Runtime,
   definitions: List(parser_ast.Definition),
+) -> Result(
+  #(List(ast.Definition), runtime.Runtime, schema.Schema),
+  diagnostic.Diagnostic,
 ) {
   case definitions {
     [definition, ..definitions] -> {
@@ -147,23 +169,45 @@ fn resolve_definitions(
         runtime,
         definition,
         reference,
-        resolve,
+        resolve_with_runtime,
       ))
 
       let runtime =
         register_definiton.register(runtime, definition, sub_runtime)
 
-      use #(definitions, runtime) <- result.try(resolve_definitions(
+      let schema = register_definition_node(schema, definition)
+
+      use #(definitions, runtime, schema) <- result.try(resolve_definitions(
         schema,
         runtime,
         definitions,
       ))
 
-      Ok(#([definition, ..definitions], runtime))
+      Ok(#([definition, ..definitions], runtime, schema))
     }
 
-    [] -> Ok(#([], runtime))
+    [] -> Ok(#([], runtime, schema))
   }
+}
+
+fn register_definition_node(
+  schema: schema.Schema,
+  definition: ast.Definition,
+) -> schema.Schema {
+  let schema = schema.add_node(schema, definition.name)
+  let assert Ok(node) = schema.get_node(schema, definition.name)
+
+  let schema =
+    list.fold(definition.operation.parameters, schema, fn(schema, parameter) {
+      schema.add_input(schema, node, #(
+        parameter.name,
+        parameter.typename.reference,
+      ))
+    })
+
+  list.fold(definition.operation.returns, schema, fn(schema, return) {
+    schema.add_output(schema, node, #(return.name, return.typename.reference))
+  })
 }
 
 fn resolve_bindings(

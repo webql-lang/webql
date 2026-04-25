@@ -61,7 +61,7 @@ pub fn resolve_definition_resolves_nested_operation_test() {
       runtime.new(),
       definition_to_resolve,
       reference.Definition(0),
-      resolve_operation.resolve,
+      resolve_operation.resolve_with_runtime,
     )
 
   assert definition
@@ -118,7 +118,7 @@ pub fn resolve_definition_resolves_nested_operation_test() {
 }
 
 pub fn resolve_definition_returns_duplicate_definition_test() {
-  let runtime = runtime.add_definition(runtime.new(), "Inner")
+  let schema = schema.add_node(schema.new(), "Inner")
 
   let definition_to_resolve =
     parser_ast.Definition(
@@ -136,16 +136,49 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
 
   let assert Error(error) =
     resolve_definition.resolve(
-      schema.new(),
-      runtime,
+      schema,
+      runtime.new(),
       definition_to_resolve,
       reference.Definition(1),
-      resolve_operation.resolve,
+      resolve_operation.resolve_with_runtime,
     )
 
   assert error
     == diagnostic.Diagnostic(
       kind: diagnostic.DuplicateDefinition("Inner"),
       span: source.Span(start: 0, end: 10),
+    )
+}
+
+pub fn resolve_definition_returns_duplicate_definition_for_schema_node_test() {
+  let schema = schema.add_node(schema.new(), "Math")
+
+  let definition_to_resolve =
+    parser_ast.Definition(
+      name: "Math",
+      operation: parser_ast.Operation(
+        parameters: [],
+        returns: [],
+        definitions: [],
+        bindings: [],
+        edges: [],
+        span: source.Span(start: 7, end: 9),
+      ),
+      span: source.Span(start: 0, end: 9),
+    )
+
+  let assert Error(error) =
+    resolve_definition.resolve(
+      schema,
+      runtime.new(),
+      definition_to_resolve,
+      reference.Definition(0),
+      resolve_operation.resolve_with_runtime,
+    )
+
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.DuplicateDefinition("Math"),
+      span: source.Span(start: 0, end: 9),
     )
 }

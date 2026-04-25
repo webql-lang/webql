@@ -133,6 +133,75 @@ pub fn compile_materializes_node_binding_ports_test() {
   ] = operation.edges
 }
 
+pub fn compile_materializes_definition_binding_ports_test() {
+  let operation_source =
+    "in: Int -> out: Int { SubOperation = in: String -> out: Int { ti = ToInt .in -> ti.value ti.value -> .out } m = Math so = SubOperation \"123\" -> so.in so.out -> m.l .in -> m.r m.value -> .out }"
+
+  let compiler = compiler.new()
+  let assert Ok(schema) =
+    loader.load(
+      loader.new(),
+      "{\"typenames\":[\"Int\",\"String\"],\"nodes\":[{\"name\":\"ToInt\",\"inputs\":[{\"name\":\"value\",\"typename\":\"String\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]},{\"name\":\"Math\",\"inputs\":[{\"name\":\"l\",\"typename\":\"Int\"},{\"name\":\"r\",\"typename\":\"Int\"}],\"outputs\":[{\"name\":\"value\",\"typename\":\"Int\"}]}]}",
+    )
+
+  let assert Ok(ast.Module(operation:, ..)) =
+    compiler.compile(compiler, schema, operation_source)
+
+  let assert [
+    ast.Binding(
+      name: "m",
+      value: ast.NodeValue(name: "Math", reference: reference.Node(1), ..),
+      reference: reference.Binding(0),
+      ..,
+    ),
+    ast.Binding(
+      name: "so",
+      value: ast.NodeValue(
+        name: "SubOperation",
+        reference: reference.Node(2),
+        ..,
+      ),
+      reference: reference.Binding(1),
+      ..,
+    ),
+  ] = operation.bindings
+
+  let assert [
+    ast.Edge(
+      from: ast.PrimitiveOutput(typename: reference.Typename(1), ..),
+      to: ast.PortInput(path: ["so", "in"], reference: reference.Input(3), ..),
+      reference: reference.Edge(0),
+      ..,
+    ),
+    ast.Edge(
+      from: ast.PortOutput(
+        path: ["so", "out"],
+        reference: reference.Output(2),
+        ..,
+      ),
+      to: ast.PortInput(path: ["m", "l"], reference: reference.Input(1), ..),
+      reference: reference.Edge(1),
+      ..,
+    ),
+    ast.Edge(
+      from: ast.PortOutput(path: ["in"], reference: reference.Output(0), ..),
+      to: ast.PortInput(path: ["m", "r"], reference: reference.Input(2), ..),
+      reference: reference.Edge(2),
+      ..,
+    ),
+    ast.Edge(
+      from: ast.PortOutput(
+        path: ["m", "value"],
+        reference: reference.Output(1),
+        ..,
+      ),
+      to: ast.PortInput(path: ["out"], reference: reference.Input(0), ..),
+      reference: reference.Edge(3),
+      ..,
+    ),
+  ] = operation.edges
+}
+
 pub fn compile_ignores_unknown_node_port_registration_test() {
   let operation_source =
     "in: Int -> out: Int { m = Math .in -> m.l m.value -> .out }"
