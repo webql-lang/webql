@@ -1,12 +1,12 @@
+import webql/compiler/context
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 
 /// Registers a parameter.
 pub fn register(
-  runtime: runtime.Runtime,
+  context: context.Context,
   parameter: ast.Parameter,
-) -> runtime.Runtime {
-  runtime
-  |> runtime.add_parameter(parameter.name)
-  |> runtime.add_output([parameter.name], parameter.typename.reference)
+) -> context.Context {
+  context
+  |> context.add_parameter(parameter.name)
+  |> context.add_output([parameter.name], parameter.typename.reference)
 }

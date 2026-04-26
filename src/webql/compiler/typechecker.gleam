@@ -1,5 +1,5 @@
+import webql/compiler/context
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_module
 
@@ -15,7 +15,7 @@ pub fn new(module: ast.Module) -> Typechecker {
 /// Resolves a resolver instance.
 pub fn resolve(
   typechecker: Typechecker,
-  runtime: runtime.Runtime,
+  context: context.Context,
 ) -> Result(ast.Module, diagnostic.Diagnostic) {
-  typecheck_module.typecheck(typechecker.module, runtime)
+  typecheck_module.typecheck(typechecker.module, context)
 }

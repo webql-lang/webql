@@ -1,15 +1,15 @@
+import webql/compiler/context
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
 pub fn resolve_module_through_public_entrypoint_test() {
   let schema = schema.add_typename(schema.new(), "Int")
-  let runtime = runtime.new()
+  let context = context.new()
 
   let module_to_resolve =
     parser_ast.Module(
@@ -49,10 +49,10 @@ pub fn resolve_module_through_public_entrypoint_test() {
       span: source.Span(start: 0, end: 26),
     )
 
-  let assert Ok(#(module, _runtime)) =
+  let assert Ok(#(module, _context)) =
     module_to_resolve
     |> resolver.new()
-    |> resolver.resolve(schema, runtime)
+    |> resolver.resolve(schema, context)
 
   assert module
     == ast.Module(
@@ -101,7 +101,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
 
 pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
   let schema = schema.add_typename(schema.new(), "Int")
-  let runtime = runtime.new()
+  let context = context.new()
 
   let module_to_resolve =
     parser_ast.Module(
@@ -159,7 +159,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
   let assert Error(error) =
     module_to_resolve
     |> resolver.new()
-    |> resolver.resolve(schema, runtime)
+    |> resolver.resolve(schema, context)
 
   assert error
     == diagnostic.Diagnostic(

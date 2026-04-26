@@ -1,13 +1,13 @@
+import webql/compiler/context
 import webql/compiler/reference
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_edge
 
 pub fn typecheck_accepts_matching_primitive_edge_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let edge =
     ast.Edge(
@@ -29,12 +29,12 @@ pub fn typecheck_accepts_matching_primitive_edge_test() {
       span: source.Span(start: 0, end: 15),
     )
 
-  assert typecheck_edge.typecheck(edge, runtime) == Ok(Nil)
+  assert typecheck_edge.typecheck(edge, context) == Ok(Nil)
 }
 
 pub fn typecheck_rejects_mismatched_primitive_edge_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let edge =
     ast.Edge(
@@ -56,7 +56,7 @@ pub fn typecheck_rejects_mismatched_primitive_edge_test() {
       span: source.Span(start: 0, end: 12),
     )
 
-  assert typecheck_edge.typecheck(edge, runtime)
+  assert typecheck_edge.typecheck(edge, context)
     == Error(diagnostic.Diagnostic(
       kind: diagnostic.TypeMismatch(
         expected: reference.Typename(1),
@@ -67,10 +67,10 @@ pub fn typecheck_rejects_mismatched_primitive_edge_test() {
 }
 
 pub fn typecheck_accepts_matching_port_edge_test() {
-  let runtime =
-    runtime.new()
-    |> runtime.add_output(["math", "out"], reference.Typename(0))
-    |> runtime.add_input(["out"], reference.Typename(0))
+  let context =
+    context.new()
+    |> context.add_output(["math", "out"], reference.Typename(0))
+    |> context.add_input(["out"], reference.Typename(0))
 
   let edge =
     ast.Edge(
@@ -88,5 +88,5 @@ pub fn typecheck_accepts_matching_port_edge_test() {
       span: source.Span(start: 0, end: 16),
     )
 
-  assert typecheck_edge.typecheck(edge, runtime) == Ok(Nil)
+  assert typecheck_edge.typecheck(edge, context) == Ok(Nil)
 }

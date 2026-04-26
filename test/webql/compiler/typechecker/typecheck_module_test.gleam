@@ -1,13 +1,13 @@
+import webql/compiler/context
 import webql/compiler/reference
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_module
 
 pub fn typecheck_accepts_matching_edge_types_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let module =
     ast.Module(
@@ -42,12 +42,12 @@ pub fn typecheck_accepts_matching_edge_types_test() {
       span: source.Span(start: 0, end: 15),
     )
 
-  assert typecheck_module.typecheck(module, runtime) == Ok(module)
+  assert typecheck_module.typecheck(module, context) == Ok(module)
 }
 
 pub fn typecheck_rejects_mismatched_edge_types_test() {
-  let runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let module =
     ast.Module(
@@ -82,7 +82,7 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
       span: source.Span(start: 0, end: 12),
     )
 
-  let assert Error(error) = typecheck_module.typecheck(module, runtime)
+  let assert Error(error) = typecheck_module.typecheck(module, context)
 
   assert error
     == diagnostic.Diagnostic(
@@ -95,11 +95,11 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
 }
 
 pub fn typecheck_rejects_nested_definition_mismatch_test() {
-  let nested_runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let nested_context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
-  let runtime =
-    runtime.add_runtime(runtime.new(), reference.Definition(0), nested_runtime)
+  let context =
+    context.add_context(context.new(), reference.Definition(0), nested_context)
 
   let module =
     ast.Module(
@@ -148,7 +148,7 @@ pub fn typecheck_rejects_nested_definition_mismatch_test() {
       span: source.Span(start: 0, end: 12),
     )
 
-  let assert Error(error) = typecheck_module.typecheck(module, runtime)
+  let assert Error(error) = typecheck_module.typecheck(module, context)
 
   assert error
     == diagnostic.Diagnostic(
@@ -161,11 +161,11 @@ pub fn typecheck_rejects_nested_definition_mismatch_test() {
 }
 
 pub fn typecheck_accepts_matching_nested_definition_test() {
-  let nested_runtime =
-    runtime.add_input(runtime.new(), ["string"], reference.Typename(1))
+  let nested_context =
+    context.add_input(context.new(), ["string"], reference.Typename(1))
 
-  let runtime =
-    runtime.add_runtime(runtime.new(), reference.Definition(0), nested_runtime)
+  let context =
+    context.add_context(context.new(), reference.Definition(0), nested_context)
 
   let module =
     ast.Module(
@@ -214,5 +214,5 @@ pub fn typecheck_accepts_matching_nested_definition_test() {
       span: source.Span(start: 0, end: 15),
     )
 
-  assert typecheck_module.typecheck(module, runtime) == Ok(module)
+  assert typecheck_module.typecheck(module, context) == Ok(module)
 }

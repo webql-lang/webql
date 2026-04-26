@@ -1,9 +1,9 @@
 import gleam/dict
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/register_binding
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
@@ -26,9 +26,9 @@ pub fn register_registers_node_binding_ports_from_schema_test() {
       span: source.Span(start: 0, end: 11),
     )
 
-  let runtime =
-    register_binding.register(environment.new(schema), runtime.new(), binding)
-  let runtime.Runtime(bindings:, inputs:, outputs:, ..) = runtime
+  let context =
+    register_binding.register(environment.new(schema), context.new(), binding)
+  let context.Context(bindings:, inputs:, outputs:, ..) = context
 
   assert bindings == dict.from_list([#("math", reference.Binding(0))])
   assert inputs

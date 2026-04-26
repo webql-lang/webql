@@ -1,10 +1,10 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_module
-import webql/compiler/runtime
 import webql/loader/schema
 
 pub opaque type Resolver {
@@ -20,12 +20,12 @@ pub fn new(module: parser_ast.Module) -> Resolver {
 pub fn resolve(
   resolver: Resolver,
   schema: schema.Schema,
-  runtime: runtime.Runtime,
-) -> Result(#(ast.Module, runtime.Runtime), diagnostic.Diagnostic) {
+  context: context.Context,
+) -> Result(#(ast.Module, context.Context), diagnostic.Diagnostic) {
   let reference = reference.Module(0)
   resolve_module.resolve(
     environment.new(schema),
-    runtime,
+    context,
     resolver.module,
     reference,
   )

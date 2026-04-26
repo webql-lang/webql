@@ -1,9 +1,9 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/resolve_module
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
@@ -32,10 +32,10 @@ pub fn resolve_module_wraps_resolved_operation_test() {
       span: source.Span(start: 0, end: 14),
     )
 
-  let assert Ok(#(module, _runtime)) =
+  let assert Ok(#(module, _context)) =
     resolve_module.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       module_to_resolve,
       reference.Module(0),
     )

@@ -1,60 +1,60 @@
 import gleam/list
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/reference
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 
 /// Registers a binding.
 pub fn register(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   binding: ast.Binding,
-) -> runtime.Runtime {
-  let runtime = runtime.add_binding(runtime, binding.name)
+) -> context.Context {
+  let context = context.add_binding(context, binding.name)
 
   case binding.value {
     ast.NodeValue(reference: node, ..) ->
-      register_node_value(runtime, environment, binding.name, node)
+      register_node_value(context, environment, binding.name, node)
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
 fn register_node_value(
-  runtime: runtime.Runtime,
+  context: context.Context,
   environment: environment.Environment,
   name: String,
   node: reference.Node,
 ) {
-  let runtime = case environment.get_inputs(environment, node) {
-    Ok(inputs) -> register_inputs(runtime, name, inputs)
-    Error(_nil) -> runtime
+  let context = case environment.get_inputs(environment, node) {
+    Ok(inputs) -> register_inputs(context, name, inputs)
+    Error(_nil) -> context
   }
 
   case environment.get_outputs(environment, node) {
-    Ok(outputs) -> register_outputs(runtime, name, outputs)
-    Error(_nil) -> runtime
+    Ok(outputs) -> register_outputs(context, name, outputs)
+    Error(_nil) -> context
   }
 }
 
 fn register_inputs(
-  runtime: runtime.Runtime,
+  context: context.Context,
   name: String,
   inputs: List(#(String, reference.Typename)),
 ) {
-  list.fold(inputs, runtime, fn(runtime, input) {
+  list.fold(inputs, context, fn(context, input) {
     let #(port, typename) = input
-    runtime.add_input(runtime, [name, port], typename)
+    context.add_input(context, [name, port], typename)
   })
 }
 
 fn register_outputs(
-  runtime: runtime.Runtime,
+  context: context.Context,
   name: String,
   outputs: List(#(String, reference.Typename)),
 ) {
-  list.fold(outputs, runtime, fn(runtime, output) {
+  list.fold(outputs, context, fn(context, output) {
     let #(port, typename) = output
-    runtime.add_output(runtime, [name, port], typename)
+    context.add_output(context, [name, port], typename)
   })
 }

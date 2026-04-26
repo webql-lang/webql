@@ -1,16 +1,16 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_output
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
 pub fn resolve_port_output_test() {
-  let runtime =
-    runtime.add_output(runtime.new(), ["math", "out"], reference.Typename(0))
+  let context =
+    context.add_output(context.new(), ["math", "out"], reference.Typename(0))
 
   let output_to_resolve =
     parser_ast.PortOutput(
@@ -21,7 +21,7 @@ pub fn resolve_port_output_test() {
   let assert Ok(output) =
     resolve_output.resolve(
       environment.new(schema.new()),
-      runtime,
+      context,
       output_to_resolve,
     )
 
@@ -34,7 +34,7 @@ pub fn resolve_port_output_test() {
 }
 
 pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
-  let runtime = runtime.new()
+  let context = context.new()
 
   let output_to_resolve =
     parser_ast.PortOutput(
@@ -45,7 +45,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
   let assert Error(error) =
     resolve_output.resolve(
       environment.new(schema.new()),
-      runtime,
+      context,
       output_to_resolve,
     )
 
@@ -72,7 +72,7 @@ pub fn resolve_primitive_output_test() {
   let assert Ok(output) =
     resolve_output.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       output_to_resolve,
     )
 
@@ -104,7 +104,7 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test()
   let assert Error(error) =
     resolve_output.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       output_to_resolve,
     )
 

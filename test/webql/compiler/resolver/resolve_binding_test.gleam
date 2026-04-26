@@ -1,10 +1,10 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_binding
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
@@ -24,7 +24,7 @@ pub fn resolve_node_binding_test() {
   let assert Ok(binding) =
     resolve_binding.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       binding_to_resolve,
       reference.Binding(0),
     )
@@ -43,7 +43,7 @@ pub fn resolve_node_binding_test() {
 }
 
 pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
-  let runtime = runtime.add_binding(runtime.new(), "math")
+  let context = context.add_binding(context.new(), "math")
 
   let binding_to_resolve =
     parser_ast.Binding(
@@ -58,7 +58,7 @@ pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
   let assert Error(error) =
     resolve_binding.resolve(
       environment.new(schema.new()),
-      runtime,
+      context,
       binding_to_resolve,
       reference.Binding(1),
     )

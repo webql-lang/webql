@@ -1,9 +1,9 @@
+import webql/compiler/context
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 
 /// Registers a return.
-pub fn register(runtime: runtime.Runtime, return: ast.Return) -> runtime.Runtime {
-  runtime
-  |> runtime.add_return(return.name)
-  |> runtime.add_input([return.name], return.typename.reference)
+pub fn register(context: context.Context, return: ast.Return) -> context.Context {
+  context
+  |> context.add_return(return.name)
+  |> context.add_input([return.name], return.typename.reference)
 }
