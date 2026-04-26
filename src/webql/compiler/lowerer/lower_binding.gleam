@@ -11,6 +11,6 @@ pub fn lower(
       ir.InlineNode(name: binding.name, operation:)
 
     [_definition, ..definitions] -> lower(binding, definitions)
-    [] -> ir.ExternalNode(name: binding.name, node: binding.name)
+    [] -> ir.ExternalNode(name: binding.name, node: binding.value.name)
   }
 }
