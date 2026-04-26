@@ -8,7 +8,10 @@ import webql/compiler/resolver/ast
 
 /// Lowers a resolved operation into IR.
 pub fn lower(operation: ast.Operation) -> ir.Operation {
-  let definitions = lower_definitions(operation.definitions)
+  let definitions =
+    list.map(operation.definitions, fn(definition) {
+      #(definition.name, lower(definition.operation))
+    })
 
   ir.Operation(
     inputs: list.map(operation.parameters, lower_parameter.lower),
@@ -20,14 +23,6 @@ pub fn lower(operation: ast.Operation) -> ir.Operation {
 
 // PRIVATE FUNCTIONS
 // =================
-fn lower_definitions(
-  definitions: List(ast.Definition),
-) -> List(#(String, ir.Operation)) {
-  list.map(definitions, fn(definition) {
-    #(definition.name, lower(definition.operation))
-  })
-}
-
 fn lower_nodes(
   bindings: List(ast.Binding),
   definitions: List(#(String, ir.Operation)),
@@ -35,9 +30,10 @@ fn lower_nodes(
   case bindings {
     [binding, ..bindings] -> {
       let nodes = lower_nodes(bindings, definitions)
-      [lower_binding.lower(binding, definitions), ..nodes]
-    }
+      let node = lower_binding.lower(binding, definitions)
 
+      [node, ..nodes]
+    }
     [] -> []
   }
 }
