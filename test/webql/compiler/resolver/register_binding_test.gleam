@@ -7,36 +7,6 @@ import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
-pub fn register_registers_primitive_binding_name_only_test() {
-  let binding =
-    ast.Binding(
-      name: "count",
-      value: ast.PrimitiveValue(
-        value: ast.Int(
-          name: "Int",
-          value: 123,
-          span: source.Span(start: 8, end: 11),
-        ),
-        typename: reference.Typename(0),
-        span: source.Span(start: 8, end: 11),
-      ),
-      reference: reference.Binding(0),
-      span: source.Span(start: 0, end: 11),
-    )
-
-  let runtime =
-    register_binding.register(
-      environment.new(schema.new()),
-      runtime.new(),
-      binding,
-    )
-  let runtime.Runtime(bindings:, inputs:, outputs:, ..) = runtime
-
-  assert bindings == dict.from_list([#("count", reference.Binding(0))])
-  assert inputs == dict.new()
-  assert outputs == dict.new()
-}
-
 pub fn register_registers_node_binding_ports_from_schema_test() {
   let schema =
     schema.new()

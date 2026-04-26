@@ -6,12 +6,10 @@ import webql/compiler/resolver/ast
 pub fn lower(
   binding: ast.Binding,
   definitions: List(#(String, ir.Operation)),
-) -> option.Option(ir.Node) {
+) -> ir.Node {
   case binding.value {
     ast.NodeValue(name: node, ..) ->
-      option.Some(lower_node_binding(binding.name, node, definitions))
-
-    ast.PrimitiveValue(..) -> option.None
+      lower_node_binding(binding.name, node, definitions)
   }
 }
 

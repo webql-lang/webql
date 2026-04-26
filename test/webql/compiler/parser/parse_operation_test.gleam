@@ -206,7 +206,7 @@ pub fn parse_parses_operation_body_with_lowercase_binding_and_edge_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 38, end: 38))]
 }
 
-pub fn parse_parses_binding_when_spaces_exist_before_equal_test() {
+pub fn parse_rejects_primitive_binding_when_spaces_exist_before_equal_test() {
   let source = "-> out: Int { value   = 123 }"
 
   let assert Ok(tokens) =
@@ -214,42 +214,13 @@ pub fn parse_parses_binding_when_spaces_exist_before_equal_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(#(operation, _, rest)) = parse_operation.parse(source, tokens)
+  let assert Error(error) = parse_operation.parse(source, tokens)
 
-  assert operation
-    == ast.Operation(
-      span: source.Span(start: 0, end: 29),
-      parameters: [],
-      returns: [
-        ast.Return(
-          span: source.Span(start: 3, end: 11),
-          name: "out",
-          typename: ast.Typename(
-            span: source.Span(start: 8, end: 11),
-            name: "Int",
-          ),
-        ),
-      ],
-      definitions: [],
-      bindings: [
-        ast.Binding(
-          span: source.Span(start: 14, end: 27),
-          name: "value",
-          value: ast.PrimitiveValue(
-            span: source.Span(start: 24, end: 27),
-            value: ast.Int(
-              name: "Int",
-              span: source.Span(start: 24, end: 27),
-              value: 123,
-            ),
-          ),
-        ),
-      ],
-      edges: [],
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.Int),
+      span: source.Span(start: 24, end: 27),
     )
-
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 29, end: 29))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_operation_test() {

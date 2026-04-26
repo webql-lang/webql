@@ -1,5 +1,4 @@
 import gleam/list
-import gleam/option
 import webql/compiler/ir
 import webql/compiler/lowerer/lower_binding
 import webql/compiler/lowerer/lower_edge
@@ -36,11 +35,7 @@ fn lower_nodes(
   case bindings {
     [binding, ..bindings] -> {
       let nodes = lower_nodes(bindings, definitions)
-
-      case lower_binding.lower(binding, definitions) {
-        option.Some(node) -> [node, ..nodes]
-        option.None -> nodes
-      }
+      [lower_binding.lower(binding, definitions), ..nodes]
     }
 
     [] -> []

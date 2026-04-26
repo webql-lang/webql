@@ -22,7 +22,7 @@ pub fn parse_node_value_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
 }
 
-pub fn parse_primitive_value_test() {
+pub fn parse_returns_unexpected_token_for_primitive_value_test() {
   let source = "123"
 
   let assert Ok(tokens) =
@@ -30,20 +30,13 @@ pub fn parse_primitive_value_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(#(value, span, rest)) = parse_value.parse(source, tokens)
+  let assert Error(error) = parse_value.parse(source, tokens)
 
-  assert span == source.Span(start: 0, end: 3)
-  assert value
-    == ast.PrimitiveValue(
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.Int),
       span: source.Span(start: 0, end: 3),
-      value: ast.Int(
-        name: "Int",
-        span: source.Span(start: 0, end: 3),
-        value: 123,
-      ),
     )
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_node_value_test() {
