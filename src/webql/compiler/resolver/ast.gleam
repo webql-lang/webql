@@ -106,14 +106,8 @@ pub type Edge {
 /// ## Examples
 ///
 ///     Math
-///     "hello"
 pub type Value {
   NodeValue(name: String, reference: reference.Node, span: source.Span)
-  PrimitiveValue(
-    value: Primitive,
-    typename: reference.Typename,
-    span: source.Span,
-  )
 }
 
 /// A location that can receive data from an edge.

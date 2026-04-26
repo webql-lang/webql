@@ -58,16 +58,12 @@ pub fn resolve_operation_resolves_body_test() {
       ],
       bindings: [
         parser_ast.Binding(
-          name: "count",
-          value: parser_ast.PrimitiveValue(
-            value: parser_ast.Int(
-              name: "Int",
-              value: 123,
-              span: source.Span(start: 50, end: 53),
-            ),
-            span: source.Span(start: 50, end: 53),
+          name: "inner",
+          value: parser_ast.NodeValue(
+            name: "Inner",
+            span: source.Span(start: 50, end: 55),
           ),
-          span: source.Span(start: 42, end: 53),
+          span: source.Span(start: 42, end: 55),
         ),
       ],
       edges: [
@@ -147,18 +143,14 @@ pub fn resolve_operation_resolves_body_test() {
       ],
       bindings: [
         ast.Binding(
-          name: "count",
-          value: ast.PrimitiveValue(
-            value: ast.Int(
-              name: "Int",
-              value: 123,
-              span: source.Span(start: 50, end: 53),
-            ),
-            typename: reference.Typename(0),
-            span: source.Span(start: 50, end: 53),
+          name: "inner",
+          value: ast.NodeValue(
+            name: "Inner",
+            reference: reference.Node(0),
+            span: source.Span(start: 50, end: 55),
           ),
           reference: reference.Binding(0),
-          span: source.Span(start: 42, end: 53),
+          span: source.Span(start: 42, end: 55),
         ),
       ],
       edges: [

@@ -26,7 +26,7 @@ pub fn parse_binding_definition_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 8, end: 8))]
 }
 
-pub fn parse_binding_primitive_value_test() {
+pub fn parse_returns_unexpected_token_for_primitive_binding_value_test() {
   let source = "count = 123"
 
   let assert Ok(tokens) =
@@ -34,24 +34,13 @@ pub fn parse_binding_primitive_value_test() {
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(#(binding, _, rest)) = parse_binding.parse(source, tokens)
+  let assert Error(error) = parse_binding.parse(source, tokens)
 
-  assert binding
-    == ast.Binding(
-      span: source.Span(start: 0, end: 11),
-      name: "count",
-      value: ast.PrimitiveValue(
-        span: source.Span(start: 8, end: 11),
-        value: ast.Int(
-          name: "Int",
-          span: source.Span(start: 8, end: 11),
-          value: 123,
-        ),
-      ),
+  assert error
+    == diagnostic.Diagnostic(
+      kind: diagnostic.UnexpectedToken(token.Int),
+      span: source.Span(start: 8, end: 11),
     )
-
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 11, end: 11))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_binding_test() {

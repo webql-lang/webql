@@ -1,9 +1,10 @@
 import gleam/result
 import webql/compiler/diagnostic
+import webql/compiler/ir
 import webql/compiler/lexer
+import webql/compiler/lowerer
 import webql/compiler/parser
 import webql/compiler/resolver
-import webql/compiler/resolver/ast as resolver_ast
 import webql/compiler/runtime
 import webql/compiler/typechecker
 import webql/loader/schema
@@ -21,7 +22,7 @@ pub fn new(schema: schema.Schema) -> Compiler {
 pub fn compile(
   compiler: Compiler,
   source: String,
-) -> Result(resolver_ast.Module, diagnostic.Diagnostic) {
+) -> Result(ir.Module, diagnostic.Diagnostic) {
   let runtime = runtime.new()
 
   let lexer = lexer.new(source)
@@ -38,7 +39,10 @@ pub fn compile(
   ))
 
   let typechecker = typechecker.new(module)
-  compile_typecheck(typechecker, runtime)
+  use module <- result.try(compile_typecheck(typechecker, runtime))
+
+  let lowerer = lowerer.new(module)
+  Ok(lowerer.lower(lowerer))
 }
 
 // PRIVATE FUNCTIONS

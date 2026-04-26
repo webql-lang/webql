@@ -15,8 +15,6 @@ pub fn register(
   case binding.value {
     ast.NodeValue(reference: node, ..) ->
       register_node_value(runtime, environment, binding.name, node)
-
-    _primative -> runtime
   }
 }
 
