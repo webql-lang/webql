@@ -1,10 +1,10 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_operation
-import webql/compiler/runtime
 import webql/compiler/source
 import webql/loader/schema
 
@@ -82,10 +82,10 @@ pub fn resolve_operation_resolves_body_test() {
       span: source.Span(start: 0, end: 67),
     )
 
-  let assert Ok(#(operation, _runtime)) =
+  let assert Ok(#(operation, _context)) =
     resolve_operation.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       operation_to_resolve,
     )
 
@@ -214,7 +214,7 @@ pub fn resolve_operation_returns_duplicate_definition_test() {
   let assert Error(error) =
     resolve_operation.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       operation_to_resolve,
     )
 
@@ -281,7 +281,7 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
   let assert Error(error) =
     resolve_operation.resolve(
       environment.new(schema),
-      runtime.new(),
+      context.new(),
       operation_to_resolve,
     )
 

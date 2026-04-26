@@ -1,20 +1,20 @@
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/resolve_primitive
-import webql/compiler/runtime
 import webql/compiler/source
 
 /// Resolves an edge output.
 pub fn resolve(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   output: parser_ast.Output,
 ) -> Result(ast.Output, diagnostic.Diagnostic) {
   case output {
     parser_ast.PortOutput(path:, span:) ->
-      resolve_port_output(runtime, path, span)
+      resolve_port_output(context, path, span)
 
     parser_ast.PrimitiveOutput(value:, span:) ->
       resolve_primitive_output(environment, value, span)
@@ -24,11 +24,11 @@ pub fn resolve(
 // PRIVATE FUNCTIONS
 // =================
 fn resolve_port_output(
-  runtime: runtime.Runtime,
+  context: context.Context,
   path: List(String),
   span: source.Span,
 ) {
-  case runtime.get_output(runtime, path) {
+  case context.get_output(context, path) {
     Ok(#(reference, _typename)) -> Ok(ast.PortOutput(path:, reference:, span:))
 
     Error(_nil) ->

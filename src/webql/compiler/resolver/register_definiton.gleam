@@ -1,13 +1,13 @@
+import webql/compiler/context
 import webql/compiler/resolver/ast
-import webql/compiler/runtime
 
 /// Registers a definition.
 pub fn register(
-  runtime: runtime.Runtime,
+  context: context.Context,
   definition: ast.Definition,
-  sub_runtime: runtime.Runtime,
-) -> runtime.Runtime {
-  runtime
-  |> runtime.add_definition(definition.name)
-  |> runtime.add_runtime(definition.reference, sub_runtime)
+  sub_context: context.Context,
+) -> context.Context {
+  context
+  |> context.add_definition(definition.name)
+  |> context.add_context(definition.reference, sub_context)
 }

@@ -1,5 +1,6 @@
 import gleam/list
 import gleam/result
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/resolver/ast
@@ -14,30 +15,29 @@ import webql/compiler/resolver/resolve_definition
 import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
-import webql/compiler/runtime
 
 /// Resolves an operation body and its nested declarations.
 pub fn resolve(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   operation: parser_ast.Operation,
-) -> Result(#(ast.Operation, runtime.Runtime), diagnostic.Diagnostic) {
-  use #(operation, runtime, _environment) <- result.try(resolve_body(
+) -> Result(#(ast.Operation, context.Context), diagnostic.Diagnostic) {
+  use #(operation, context, _environment) <- result.try(resolve_body(
     environment,
-    runtime,
+    context,
     operation,
   ))
-  Ok(#(operation, runtime))
+  Ok(#(operation, context))
 }
 
 // PRIVATE FUNCTIONS
 // =================
 fn resolve_body(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   operation: parser_ast.Operation,
 ) -> Result(
-  #(ast.Operation, runtime.Runtime, environment.Environment),
+  #(ast.Operation, context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   let parser_ast.Operation(
@@ -49,132 +49,132 @@ fn resolve_body(
     span:,
   ) = operation
 
-  use #(parameters, runtime) <- result.try(resolve_parameters(
+  use #(parameters, context) <- result.try(resolve_parameters(
     environment,
-    runtime,
+    context,
     parameters,
   ))
 
-  use #(returns, runtime) <- result.try(resolve_returns(
+  use #(returns, context) <- result.try(resolve_returns(
     environment,
-    runtime,
+    context,
     returns,
   ))
 
-  use #(definitions, runtime, environment) <- result.try(resolve_definitions(
+  use #(definitions, context, environment) <- result.try(resolve_definitions(
     environment,
-    runtime,
+    context,
     definitions,
   ))
 
-  use #(bindings, runtime) <- result.try(resolve_bindings(
+  use #(bindings, context) <- result.try(resolve_bindings(
     environment,
-    runtime,
+    context,
     bindings,
   ))
 
-  use #(edges, runtime) <- result.try(resolve_edges(environment, runtime, edges))
+  use #(edges, context) <- result.try(resolve_edges(environment, context, edges))
 
   Ok(#(
     ast.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
-    runtime,
+    context,
     environment,
   ))
 }
 
 fn resolve_parameters(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   parameters: List(parser_ast.Parameter),
 ) {
   case parameters {
     [parameter, ..rest] -> {
-      let reference = runtime.next_parameter(runtime)
+      let reference = context.next_parameter(context)
 
       use parameter <- result.try(resolve_parameter.resolve(
         environment,
-        runtime,
+        context,
         parameter,
         reference,
       ))
 
-      let runtime = register_parameter.register(runtime, parameter)
+      let context = register_parameter.register(context, parameter)
 
-      use #(rest, runtime) <- result.try(resolve_parameters(
+      use #(rest, context) <- result.try(resolve_parameters(
         environment,
-        runtime,
+        context,
         rest,
       ))
-      Ok(#([parameter, ..rest], runtime))
+      Ok(#([parameter, ..rest], context))
     }
 
-    [] -> Ok(#([], runtime))
+    [] -> Ok(#([], context))
   }
 }
 
 fn resolve_returns(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   returns: List(parser_ast.Return),
 ) {
   case returns {
     [return, ..rest] -> {
-      let reference = runtime.next_return(runtime)
+      let reference = context.next_return(context)
 
       use return <- result.try(resolve_return.resolve(
         environment,
-        runtime,
+        context,
         return,
         reference,
       ))
 
-      let runtime = register_return.register(runtime, return)
+      let context = register_return.register(context, return)
 
-      use #(rest, runtime) <- result.try(resolve_returns(
+      use #(rest, context) <- result.try(resolve_returns(
         environment,
-        runtime,
+        context,
         rest,
       ))
-      Ok(#([return, ..rest], runtime))
+      Ok(#([return, ..rest], context))
     }
 
-    [] -> Ok(#([], runtime))
+    [] -> Ok(#([], context))
   }
 }
 
 fn resolve_definitions(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   definitions: List(parser_ast.Definition),
 ) -> Result(
-  #(List(ast.Definition), runtime.Runtime, environment.Environment),
+  #(List(ast.Definition), context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   case definitions {
     [definition, ..definitions] -> {
-      let reference = runtime.next_definition(runtime)
+      let reference = context.next_definition(context)
 
-      use #(definition, sub_runtime) <- result.try(resolve_definition.resolve(
+      use #(definition, sub_context) <- result.try(resolve_definition.resolve(
         environment,
-        runtime,
+        context,
         definition,
         reference,
         resolve,
       ))
 
-      let runtime =
-        register_definiton.register(runtime, definition, sub_runtime)
+      let context =
+        register_definiton.register(context, definition, sub_context)
 
       let environment = register_definition_node(environment, definition)
 
-      use #(definitions, runtime, environment) <- result.try(
-        resolve_definitions(environment, runtime, definitions),
+      use #(definitions, context, environment) <- result.try(
+        resolve_definitions(environment, context, definitions),
       )
 
-      Ok(#([definition, ..definitions], runtime, environment))
+      Ok(#([definition, ..definitions], context, environment))
     }
 
-    [] -> Ok(#([], runtime, environment))
+    [] -> Ok(#([], context, environment))
   }
 }
 
@@ -207,60 +207,60 @@ fn register_definition_node(
 
 fn resolve_bindings(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   bindings: List(parser_ast.Binding),
 ) {
   case bindings {
     [binding, ..bindings] -> {
-      let reference = runtime.next_binding(runtime)
+      let reference = context.next_binding(context)
 
       use binding <- result.try(resolve_binding.resolve(
         environment,
-        runtime,
+        context,
         binding,
         reference,
       ))
 
-      let runtime = register_binding.register(environment, runtime, binding)
+      let context = register_binding.register(environment, context, binding)
 
-      use #(bindings, runtime) <- result.try(resolve_bindings(
+      use #(bindings, context) <- result.try(resolve_bindings(
         environment,
-        runtime,
+        context,
         bindings,
       ))
 
-      Ok(#([binding, ..bindings], runtime))
+      Ok(#([binding, ..bindings], context))
     }
 
-    [] -> Ok(#([], runtime))
+    [] -> Ok(#([], context))
   }
 }
 
 fn resolve_edges(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   edges: List(parser_ast.Edge),
 ) {
   case edges {
     [edge, ..edges] -> {
-      let reference = runtime.next_edge(runtime)
+      let reference = context.next_edge(context)
       use edge <- result.try(resolve_edge.resolve(
         environment,
-        runtime,
+        context,
         edge,
         reference,
       ))
 
-      let runtime = register_edge.register(runtime, edge)
+      let context = register_edge.register(context, edge)
 
-      use #(edges, runtime) <- result.try(resolve_edges(
+      use #(edges, context) <- result.try(resolve_edges(
         environment,
-        runtime,
+        context,
         edges,
       ))
-      Ok(#([edge, ..edges], runtime))
+      Ok(#([edge, ..edges], context))
     }
 
-    [] -> Ok(#([], runtime))
+    [] -> Ok(#([], context))
   }
 }

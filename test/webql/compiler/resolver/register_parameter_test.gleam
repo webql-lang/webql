@@ -1,8 +1,8 @@
 import gleam/dict
+import webql/compiler/context
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/register_parameter
-import webql/compiler/runtime
 import webql/compiler/source
 
 pub fn register_registers_parameter_and_output_test() {
@@ -18,8 +18,8 @@ pub fn register_registers_parameter_and_output_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  let runtime = register_parameter.register(runtime.new(), parameter)
-  let runtime.Runtime(parameters:, outputs:, ..) = runtime
+  let context = register_parameter.register(context.new(), parameter)
+  let context.Context(parameters:, outputs:, ..) = context
 
   assert parameters == dict.from_list([#("in", reference.Parameter(0))])
   assert outputs

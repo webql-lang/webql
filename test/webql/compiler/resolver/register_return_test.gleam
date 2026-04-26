@@ -1,8 +1,8 @@
 import gleam/dict
+import webql/compiler/context
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/register_return
-import webql/compiler/runtime
 import webql/compiler/source
 
 pub fn register_registers_return_and_input_test() {
@@ -18,8 +18,8 @@ pub fn register_registers_return_and_input_test() {
       span: source.Span(start: 0, end: 8),
     )
 
-  let runtime = register_return.register(runtime.new(), return)
-  let runtime.Runtime(returns:, inputs:, ..) = runtime
+  let context = register_return.register(context.new(), return)
+  let context.Context(returns:, inputs:, ..) = context
 
   assert returns == dict.from_list([#("out", reference.Return(0))])
   assert inputs

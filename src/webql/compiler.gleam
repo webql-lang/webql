@@ -1,11 +1,11 @@
 import gleam/result
+import webql/compiler/context
 import webql/compiler/diagnostic
 import webql/compiler/ir
 import webql/compiler/lexer
 import webql/compiler/lowerer
 import webql/compiler/parser
 import webql/compiler/resolver
-import webql/compiler/runtime
 import webql/compiler/typechecker
 import webql/loader/schema
 
@@ -23,7 +23,7 @@ pub fn compile(
   compiler: Compiler,
   source: String,
 ) -> Result(ir.Module, diagnostic.Diagnostic) {
-  let runtime = runtime.new()
+  let context = context.new()
 
   let lexer = lexer.new(source)
   use tokens <- result.try(compile_lex(lexer))
@@ -32,14 +32,14 @@ pub fn compile(
   use module <- result.try(compile_parse(parser))
 
   let resolver = resolver.new(module)
-  use #(module, runtime) <- result.try(compile_resolve(
+  use #(module, context) <- result.try(compile_resolve(
     compiler,
-    runtime,
+    context,
     resolver,
   ))
 
   let typechecker = typechecker.new(module)
-  use module <- result.try(compile_typecheck(typechecker, runtime))
+  use module <- result.try(compile_typecheck(typechecker, context))
 
   let lowerer = lowerer.new(module)
   Ok(lowerer.lower(lowerer))
@@ -73,10 +73,10 @@ fn compile_parse(parser: parser.Parser) {
 
 fn compile_resolve(
   compiler: Compiler,
-  runtime: runtime.Runtime,
+  context: context.Context,
   resolver: resolver.Resolver,
 ) {
-  case resolver.resolve(resolver, compiler.schema, runtime) {
+  case resolver.resolve(resolver, compiler.schema, context) {
     Ok(module) -> Ok(module)
 
     Error(error) ->
@@ -89,9 +89,9 @@ fn compile_resolve(
 
 fn compile_typecheck(
   typechecker: typechecker.Typechecker,
-  runtime: runtime.Runtime,
+  context: context.Context,
 ) {
-  case typechecker.resolve(typechecker, runtime) {
+  case typechecker.resolve(typechecker, context) {
     Ok(module) -> Ok(module)
 
     Error(error) ->

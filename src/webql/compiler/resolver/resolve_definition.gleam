@@ -1,21 +1,21 @@
 import gleam/bool
 import gleam/dict
 import gleam/result
+import webql/compiler/context
 import webql/compiler/environment
 import webql/compiler/parser/ast as parser_ast
 import webql/compiler/reference
 import webql/compiler/resolver/ast
 import webql/compiler/resolver/diagnostic
-import webql/compiler/runtime
 
 /// Resolves a nested operation definition.
 pub fn resolve(
   environment: environment.Environment,
-  runtime: runtime.Runtime,
+  context: context.Context,
   definition: parser_ast.Definition,
   reference: reference.Definition,
   resolve_operation,
-) -> Result(#(ast.Definition, runtime.Runtime), diagnostic.Diagnostic) {
+) -> Result(#(ast.Definition, context.Context), diagnostic.Diagnostic) {
   let parser_ast.Definition(name:, operation:, span:) = definition
 
   use <- bool.guard(
@@ -26,9 +26,9 @@ pub fn resolve(
     )),
   )
 
-  let runtime =
-    runtime.Runtime(
-      ..runtime,
+  let context =
+    context.Context(
+      ..context,
       parameters: dict.new(),
       returns: dict.new(),
       inputs: dict.new(),
@@ -37,11 +37,11 @@ pub fn resolve(
       edges: dict.new(),
     )
 
-  use #(operation, runtime) <- result.try(resolve_operation(
+  use #(operation, context) <- result.try(resolve_operation(
     environment,
-    runtime,
+    context,
     operation,
   ))
 
-  Ok(#(ast.Definition(name:, operation:, reference:, span:), runtime))
+  Ok(#(ast.Definition(name:, operation:, reference:, span:), context))
 }
