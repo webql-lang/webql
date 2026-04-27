@@ -1,21 +1,24 @@
-import webql/loader/load_json
+import gleam/dynamic
+import gleam/dynamic/decode as dynamic_decode
+import webql/loader/builder
+import webql/loader/decoder as loader_decoder
+import webql/loader/diagnostic
+import webql/loader/schema
 
-type LoaderMode {
-  Json
-}
+/// Decode dynamic data into a schema.
+pub fn load(
+  data: dynamic.Dynamic,
+) -> Result(schema.Schema, diagnostic.Diagnostic) {
+  let decoder = decoder()
 
-pub opaque type Loader {
-  Loader(mode: LoaderMode)
-}
-
-/// Creates a new loader instance.
-pub fn new() {
-  Loader(mode: Json)
-}
-
-/// Grabs a loader instance and a document and converts it into a schema.
-pub fn load(loader: Loader, document: String) {
-  case loader.mode {
-    Json -> load_json.load(document)
+  case dynamic_decode.run(data, decoder) {
+    Ok(schema) -> Ok(schema)
+    Error(errors) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.DynamicDecodeError(errors:)))
   }
+}
+
+/// Create a schema decoder for use with other dynamic data sources.
+pub fn decoder() -> dynamic_decode.Decoder(schema.Schema) {
+  loader_decoder.decode(builder.build)
 }

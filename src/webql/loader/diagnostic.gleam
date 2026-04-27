@@ -1,7 +1,7 @@
-import gleam/json
+import gleam/dynamic/decode
 
 pub type DiagnosticKind {
-  JsonDecodeError(kind: json.DecodeError)
+  DynamicDecodeError(errors: List(decode.DecodeError))
 }
 
 pub type Diagnostic {
