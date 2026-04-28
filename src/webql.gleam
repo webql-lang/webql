@@ -1,4 +1,4 @@
-import webql/graph
+import webql/graph/ir
 import webql/lang
 import webql/lang/diagnostic
 import webql/lang/loader/preschema
@@ -7,6 +7,6 @@ import webql/lang/loader/preschema
 pub fn compile(
   source: String,
   preschema: preschema.Preschema,
-) -> Result(graph.Module, diagnostic.Diagnostic) {
+) -> Result(ir.Module, diagnostic.Diagnostic) {
   lang.compile(source, preschema)
 }

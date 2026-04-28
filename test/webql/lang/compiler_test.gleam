@@ -1,4 +1,4 @@
-import webql/graph
+import webql/graph/ir
 import webql/lang/compiler
 import webql/lang/compiler/diagnostic
 import webql/lang/compiler/lexer/diagnostic as lexer_diagnostic
@@ -19,10 +19,10 @@ pub fn compile_resolves_module_test() {
   let assert Ok(module) = compiler.compile(compiler, operation_source)
 
   assert module
-    == graph.Module(
-      operation: graph.Operation(
+    == ir.Module(
+      operation: ir.Operation(
         inputs: [],
-        outputs: [graph.Return(name: "out", typename: "Int")],
+        outputs: [ir.Return(name: "out", typename: "Int")],
         nodes: [],
         edges: [],
       ),
@@ -47,22 +47,16 @@ pub fn compile_materializes_node_binding_ports_from_singular_adders_test() {
       ]),
     )
 
-  let assert Ok(graph.Module(operation:)) =
+  let assert Ok(ir.Module(operation:)) =
     compiler.compile(compiler, operation_source)
 
   let assert [
-    graph.Edge(
-      from: graph.Output(path: ["in"]),
-      to: graph.Input(path: ["m", "l"]),
+    ir.Edge(from: ir.Output(path: ["in"]), to: ir.Input(path: ["m", "l"])),
+    ir.Edge(
+      from: ir.PrimitiveOutput(value: ir.IntPrimitive(1)),
+      to: ir.Input(path: ["m", "r"]),
     ),
-    graph.Edge(
-      from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-      to: graph.Input(path: ["m", "r"]),
-    ),
-    graph.Edge(
-      from: graph.Output(path: ["m", "value"]),
-      to: graph.Input(path: ["out"]),
-    ),
+    ir.Edge(from: ir.Output(path: ["m", "value"]), to: ir.Input(path: ["out"])),
   ] = operation.edges
 }
 
@@ -84,24 +78,18 @@ pub fn compile_materializes_node_binding_ports_test() {
       ]),
     )
 
-  let assert Ok(graph.Module(operation:)) =
+  let assert Ok(ir.Module(operation:)) =
     compiler.compile(compiler, operation_source)
 
-  let assert [graph.ExternalNode(name: "m", node: "Math")] = operation.nodes
+  let assert [ir.ExternalNode(name: "m", node: "Math")] = operation.nodes
 
   let assert [
-    graph.Edge(
-      from: graph.Output(path: ["in"]),
-      to: graph.Input(path: ["m", "l"]),
+    ir.Edge(from: ir.Output(path: ["in"]), to: ir.Input(path: ["m", "l"])),
+    ir.Edge(
+      from: ir.PrimitiveOutput(value: ir.IntPrimitive(1)),
+      to: ir.Input(path: ["m", "r"]),
     ),
-    graph.Edge(
-      from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-      to: graph.Input(path: ["m", "r"]),
-    ),
-    graph.Edge(
-      from: graph.Output(path: ["m", "value"]),
-      to: graph.Input(path: ["out"]),
-    ),
+    ir.Edge(from: ir.Output(path: ["m", "value"]), to: ir.Input(path: ["out"])),
   ] = operation.edges
 }
 
@@ -130,35 +118,28 @@ pub fn compile_materializes_definition_binding_ports_test() {
       ]),
     )
 
-  let assert Ok(graph.Module(operation:)) =
+  let assert Ok(ir.Module(operation:)) =
     compiler.compile(compiler, operation_source)
 
   let assert [
-    graph.ExternalNode(name: "m", node: "Math"),
-    graph.InlineNode(name: "so", operation: sub_operation),
+    ir.ExternalNode(name: "m", node: "Math"),
+    ir.InlineNode(name: "so", operation: sub_operation),
   ] = operation.nodes
 
-  assert sub_operation.inputs
-    == [graph.Parameter(name: "in", typename: "String")]
-  assert sub_operation.outputs == [graph.Return(name: "out", typename: "Int")]
+  assert sub_operation.inputs == [ir.Parameter(name: "in", typename: "String")]
+  assert sub_operation.outputs == [ir.Return(name: "out", typename: "Int")]
 
   let assert [
-    graph.Edge(
-      from: graph.PrimitiveOutput(value: graph.StringPrimitive("123")),
-      to: graph.Input(path: ["so", "in"]),
+    ir.Edge(
+      from: ir.PrimitiveOutput(value: ir.StringPrimitive("123")),
+      to: ir.Input(path: ["so", "in"]),
     ),
-    graph.Edge(
-      from: graph.Output(path: ["so", "out"]),
-      to: graph.Input(path: ["m", "l"]),
+    ir.Edge(
+      from: ir.Output(path: ["so", "out"]),
+      to: ir.Input(path: ["m", "l"]),
     ),
-    graph.Edge(
-      from: graph.Output(path: ["in"]),
-      to: graph.Input(path: ["m", "r"]),
-    ),
-    graph.Edge(
-      from: graph.Output(path: ["m", "value"]),
-      to: graph.Input(path: ["out"]),
-    ),
+    ir.Edge(from: ir.Output(path: ["in"]), to: ir.Input(path: ["m", "r"])),
+    ir.Edge(from: ir.Output(path: ["m", "value"]), to: ir.Input(path: ["out"])),
   ] = operation.edges
 }
 

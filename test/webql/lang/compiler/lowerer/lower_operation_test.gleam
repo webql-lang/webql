@@ -1,4 +1,4 @@
-import webql/graph
+import webql/graph/ir
 import webql/lang/compiler/lowerer/lower_operation
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -64,14 +64,14 @@ pub fn lower_operation_test() {
     )
 
   assert lower_operation.lower(operation)
-    == graph.Operation(
-      inputs: [graph.Parameter(name: "in", typename: "Int")],
-      outputs: [graph.Return(name: "out", typename: "Int")],
-      nodes: [graph.ExternalNode(name: "m", node: "Math")],
+    == ir.Operation(
+      inputs: [ir.Parameter(name: "in", typename: "Int")],
+      outputs: [ir.Return(name: "out", typename: "Int")],
+      nodes: [ir.ExternalNode(name: "m", node: "Math")],
       edges: [
-        graph.Edge(
-          from: graph.Output(path: ["m", "value"]),
-          to: graph.Input(path: ["out"]),
+        ir.Edge(
+          from: ir.Output(path: ["m", "value"]),
+          to: ir.Input(path: ["out"]),
         ),
       ],
     )

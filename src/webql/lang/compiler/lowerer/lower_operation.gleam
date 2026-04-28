@@ -1,5 +1,5 @@
 import gleam/list
-import webql/graph
+import webql/graph/ir
 import webql/lang/compiler/lowerer/lower_binding
 import webql/lang/compiler/lowerer/lower_edge
 import webql/lang/compiler/lowerer/lower_parameter
@@ -7,13 +7,13 @@ import webql/lang/compiler/lowerer/lower_return
 import webql/lang/compiler/resolver/ast
 
 /// Lowers a resolved operation into IR.
-pub fn lower(operation: ast.Operation) -> graph.Operation {
+pub fn lower(operation: ast.Operation) -> ir.Operation {
   let definitions =
     list.map(operation.definitions, fn(definition) {
       #(definition.name, lower(definition.operation))
     })
 
-  graph.Operation(
+  ir.Operation(
     inputs: list.map(operation.parameters, lower_parameter.lower),
     outputs: list.map(operation.returns, lower_return.lower),
     nodes: lower_nodes(operation.bindings, definitions),
@@ -25,8 +25,8 @@ pub fn lower(operation: ast.Operation) -> graph.Operation {
 // =================
 fn lower_nodes(
   bindings: List(ast.Binding),
-  definitions: List(#(String, graph.Operation)),
-) -> List(graph.Node) {
+  definitions: List(#(String, ir.Operation)),
+) -> List(ir.Node) {
   case bindings {
     [binding, ..bindings] -> {
       let nodes = lower_nodes(bindings, definitions)

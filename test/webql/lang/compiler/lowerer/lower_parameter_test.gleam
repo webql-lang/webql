@@ -1,4 +1,4 @@
-import webql/graph
+import webql/graph/ir
 import webql/lang/compiler/lowerer/lower_parameter
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -18,5 +18,5 @@ pub fn lower_parameter_test() {
     )
 
   assert lower_parameter.lower(parameter)
-    == graph.Parameter(name: "in", typename: "Int")
+    == ir.Parameter(name: "in", typename: "Int")
 }
