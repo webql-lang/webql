@@ -137,7 +137,7 @@ pub type Output {
   )
 }
 
-/// A literal value embedded in the ir.
+/// A literal value embedded in the graph.
 ///
 /// ## Examples
 ///

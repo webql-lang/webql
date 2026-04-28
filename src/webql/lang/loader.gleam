@@ -1,15 +1,15 @@
 import gleam/dict
 import gleam/list
-import webql/lang/loader/preschema
+import webql/lang/loader/blueprint
 import webql/lang/loader/schema
 
 /// Loads a schema from literal nodes and typenames.
-pub fn load(preschema: preschema.Preschema) -> schema.Schema {
+pub fn load(blueprint: blueprint.Blueprint) -> schema.Schema {
   let schema = schema.new()
 
   schema
-  |> schema.add_typenames(preschema.typenames)
-  |> load_nodes(preschema.nodes)
+  |> schema.add_typenames(blueprint.typenames)
+  |> load_nodes(blueprint.nodes)
 }
 
 // PRIVATE FUNCTIONS

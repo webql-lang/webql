@@ -1,34 +1,37 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang
-import webql/lang/loader/preschema
+import webql/lang/loader/blueprint
 
-pub fn compile_loads_preschema_and_compiles_source_test() {
+pub fn compile_loads_blueprint_and_compiles_source_test() {
   let source =
     "in: Int -> out: Int { m = Math .in -> m.l 1 -> m.r m.value -> .out }"
 
   let assert Ok(module) =
     lang.compile(
       source,
-      preschema.Preschema(typenames: ["Int"], nodes: [
+      blueprint.Blueprint(typenames: ["Int"], nodes: [
         #("Math", [#("l", "Int"), #("r", "Int")], [#("value", "Int")]),
       ]),
     )
 
   assert module
-    == ir.Module(
-      operation: ir.Operation(
-        inputs: [ir.Parameter(name: "in", typename: "Int")],
-        outputs: [ir.Return(name: "out", typename: "Int")],
-        nodes: [ir.ExternalNode(name: "m", node: "Math")],
+    == graph.Module(
+      operation: graph.Operation(
+        inputs: [graph.Parameter(name: "in", typename: "Int")],
+        outputs: [graph.Return(name: "out", typename: "Int")],
+        nodes: [graph.ExternalNode(name: "m", node: "Math")],
         edges: [
-          ir.Edge(from: ir.Output(path: ["in"]), to: ir.Input(path: ["m", "l"])),
-          ir.Edge(
-            from: ir.PrimitiveOutput(value: ir.IntPrimitive(1)),
-            to: ir.Input(path: ["m", "r"]),
+          graph.Edge(
+            from: graph.Output(path: ["in"]),
+            to: graph.Input(path: ["m", "l"]),
           ),
-          ir.Edge(
-            from: ir.Output(path: ["m", "value"]),
-            to: ir.Input(path: ["out"]),
+          graph.Edge(
+            from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
+            to: graph.Input(path: ["m", "r"]),
+          ),
+          graph.Edge(
+            from: graph.Output(path: ["m", "value"]),
+            to: graph.Input(path: ["out"]),
           ),
         ],
       ),

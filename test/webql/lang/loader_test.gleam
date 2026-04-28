@@ -1,12 +1,12 @@
 import gleam/dict
 import webql/lang/compiler/reference
 import webql/lang/loader
-import webql/lang/loader/preschema
+import webql/lang/loader/blueprint
 import webql/lang/loader/schema
 
 pub fn load_creates_schema_from_typenames_and_nodes_test() {
   assert loader.load(
-      preschema.Preschema(typenames: ["Int"], nodes: [
+      blueprint.Blueprint(typenames: ["Int"], nodes: [
         #("Node", [#("input", "Int")], [#("output", "Int")]),
       ]),
     )
@@ -24,7 +24,7 @@ pub fn load_creates_schema_from_typenames_and_nodes_test() {
 
 pub fn load_uses_next_typename_for_unknown_input_typename_test() {
   assert loader.load(
-      preschema.Preschema(typenames: ["Int"], nodes: [
+      blueprint.Blueprint(typenames: ["Int"], nodes: [
         #("Node", [#("input", "String")], []),
       ]),
     )
@@ -40,7 +40,7 @@ pub fn load_uses_next_typename_for_unknown_input_typename_test() {
 
 pub fn load_uses_next_typename_for_unknown_output_typename_test() {
   assert loader.load(
-      preschema.Preschema(typenames: ["Int"], nodes: [
+      blueprint.Blueprint(typenames: ["Int"], nodes: [
         #("Node", [], [#("output", "String")]),
       ]),
     )

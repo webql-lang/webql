@@ -1,16 +1,16 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang/compiler/resolver/ast
 
 /// Lowers a resolved binding into an IR node when it binds a node value.
 pub fn lower(
   binding: ast.Binding,
-  definitions: List(#(String, ir.Operation)),
-) -> ir.Node {
+  definitions: List(#(String, graph.Operation)),
+) -> graph.Node {
   case definitions {
     [#(definition, operation), ..] if definition == binding.value.name ->
-      ir.InlineNode(name: binding.name, operation:)
+      graph.InlineNode(name: binding.name, operation:)
 
     [_definition, ..definitions] -> lower(binding, definitions)
-    [] -> ir.ExternalNode(name: binding.name, node: binding.value.name)
+    [] -> graph.ExternalNode(name: binding.name, node: binding.value.name)
   }
 }

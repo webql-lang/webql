@@ -1,4 +1,4 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang/compiler/lowerer/lower_edge
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -22,9 +22,9 @@ pub fn lower_port_edge_test() {
     )
 
   assert lower_edge.lower(edge)
-    == ir.Edge(
-      from: ir.Output(path: ["m", "value"]),
-      to: ir.Input(path: ["out"]),
+    == graph.Edge(
+      from: graph.Output(path: ["m", "value"]),
+      to: graph.Input(path: ["out"]),
     )
 }
 
@@ -50,8 +50,8 @@ pub fn lower_primitive_edge_output_test() {
     )
 
   assert lower_edge.lower(edge)
-    == ir.Edge(
-      from: ir.PrimitiveOutput(value: ir.IntPrimitive(1)),
-      to: ir.Input(path: ["m", "left"]),
+    == graph.Edge(
+      from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
+      to: graph.Input(path: ["m", "left"]),
     )
 }

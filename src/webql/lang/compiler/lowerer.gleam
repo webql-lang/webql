@@ -1,4 +1,4 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang/compiler/lowerer/lower_module
 import webql/lang/compiler/resolver/ast
 
@@ -12,6 +12,6 @@ pub fn new(module: ast.Module) -> Lowerer {
 }
 
 /// Lowers a resolver module into compiler IR.
-pub fn lower(lowerer: Lowerer) -> ir.Module {
+pub fn lower(lowerer: Lowerer) -> graph.Module {
   lower_module.lower(lowerer.module)
 }
