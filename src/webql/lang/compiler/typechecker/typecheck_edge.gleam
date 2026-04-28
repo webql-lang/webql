@@ -1,0 +1,41 @@
+import webql/lang/compiler/context
+import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/typechecker/diagnostic
+
+/// Typechecks an edge from resolver AST.
+pub fn typecheck(
+  edge: ast.Edge,
+  context: context.Context,
+) -> Result(Nil, diagnostic.Diagnostic) {
+  let ast.Edge(from:, to:, span:, ..) = edge
+  let expected = get_typename_input(context, to)
+  let found = get_typename_output(context, from)
+
+  case expected, found {
+    expected, found if expected == found -> Ok(Nil)
+    _expected, _found ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.TypeMismatch(expected:, found:),
+        span:,
+      ))
+  }
+}
+
+// PRIVATE FUNCTIONS
+// =================
+fn get_typename_output(context: context.Context, output: ast.Output) {
+  case output {
+    ast.PortOutput(path:, ..) -> {
+      let assert Ok(#(_reference, typename)) = context.get_output(context, path)
+      typename
+    }
+
+    ast.PrimitiveOutput(typename:, ..) -> typename
+  }
+}
+
+fn get_typename_input(context: context.Context, input: ast.Input) {
+  let ast.PortInput(path:, ..) = input
+  let assert Ok(#(_reference, typename)) = context.get_input(context, path)
+  typename
+}
