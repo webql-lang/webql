@@ -1,5 +1,5 @@
 import gleam/list
-import webql/lang/compiler/ir
+import webql/graph/ir
 import webql/lang/compiler/lowerer/lower_binding
 import webql/lang/compiler/lowerer/lower_edge
 import webql/lang/compiler/lowerer/lower_parameter

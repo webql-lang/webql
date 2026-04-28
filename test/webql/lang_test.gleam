@@ -1,5 +1,5 @@
+import webql/graph/ir
 import webql/lang
-import webql/lang/compiler/ir
 import webql/lang/loader/preschema
 
 pub fn compile_loads_preschema_and_compiles_source_test() {

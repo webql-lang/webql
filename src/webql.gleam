@@ -1,5 +1,5 @@
+import webql/graph/ir
 import webql/lang
-import webql/lang/compiler/ir
 import webql/lang/diagnostic
 import webql/lang/loader/preschema
 

@@ -1,7 +1,7 @@
 import gleam/result
+import webql/graph/ir
 import webql/lang/compiler/context
 import webql/lang/compiler/diagnostic
-import webql/lang/compiler/ir
 import webql/lang/compiler/lexer
 import webql/lang/compiler/lowerer
 import webql/lang/compiler/parser

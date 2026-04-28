@@ -1,6 +1,6 @@
+import webql/graph/ir
 import webql/lang/compiler
 import webql/lang/compiler/diagnostic
-import webql/lang/compiler/ir
 import webql/lang/compiler/lexer/diagnostic as lexer_diagnostic
 import webql/lang/compiler/lexer/token
 import webql/lang/compiler/parser/diagnostic as parser_diagnostic

@@ -1,4 +1,4 @@
-import webql/lang/compiler/ir
+import webql/graph/ir
 import webql/lang/compiler/lowerer/lower_parameter
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast

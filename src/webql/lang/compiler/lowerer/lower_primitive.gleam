@@ -1,4 +1,4 @@
-import webql/lang/compiler/ir
+import webql/graph/ir
 import webql/lang/compiler/resolver/ast
 
 /// Lowers a resolved primitive into an IR primitive.

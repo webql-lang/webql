@@ -111,7 +111,7 @@ pub type Output {
   PrimitiveOutput(value: Primitive, span: source.Span)
 }
 
-/// A literal value embedded in the graph.
+/// A literal value embedded in the ir.
 ///
 /// ## Examples
 ///
