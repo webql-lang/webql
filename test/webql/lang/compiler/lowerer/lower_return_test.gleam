@@ -1,4 +1,4 @@
-import webql/lang/compiler/ir
+import webql/graph
 import webql/lang/compiler/lowerer/lower_return
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -17,5 +17,6 @@ pub fn lower_return_test() {
       span: source.Span(start: 3, end: 11),
     )
 
-  assert lower_return.lower(return) == ir.Return(name: "out", typename: "Int")
+  assert lower_return.lower(return)
+    == graph.Return(name: "out", typename: "Int")
 }

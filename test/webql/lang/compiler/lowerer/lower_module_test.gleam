@@ -1,4 +1,4 @@
-import webql/lang/compiler/ir
+import webql/graph
 import webql/lang/compiler/lowerer/lower_module
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -20,7 +20,7 @@ pub fn lower_module_test() {
     )
 
   assert lower_module.lower(module)
-    == ir.Module(
-      operation: ir.Operation(inputs: [], outputs: [], nodes: [], edges: []),
+    == graph.Module(
+      operation: graph.Operation(inputs: [], outputs: [], nodes: [], edges: []),
     )
 }
