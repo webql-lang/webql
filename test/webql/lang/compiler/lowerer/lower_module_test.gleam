@@ -1,0 +1,26 @@
+import webql/lang/compiler/ir
+import webql/lang/compiler/lowerer/lower_module
+import webql/lang/compiler/reference
+import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/source
+
+pub fn lower_module_test() {
+  let module =
+    ast.Module(
+      operation: ast.Operation(
+        parameters: [],
+        returns: [],
+        definitions: [],
+        bindings: [],
+        edges: [],
+        span: source.Span(start: 0, end: 2),
+      ),
+      reference: reference.Module(0),
+      span: source.Span(start: 0, end: 2),
+    )
+
+  assert lower_module.lower(module)
+    == ir.Module(
+      operation: ir.Operation(inputs: [], outputs: [], nodes: [], edges: []),
+    )
+}
