@@ -165,7 +165,7 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
     )
 }
 
-pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
+pub fn resolve_returns_duplicate_input_edge_for_existing_edge_test() {
   let context =
     context.new()
     |> context.add_output(["math", "out"], reference.Typename(0))
@@ -195,7 +195,7 @@ pub fn resolve_returns_duplicate_edge_for_existing_edge_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.DuplicateEdge(reference.Input(0)),
+      kind: diagnostic.DuplicateEdgeInput(["out"]),
       span: source.Span(start: 0, end: 16),
     )
 }

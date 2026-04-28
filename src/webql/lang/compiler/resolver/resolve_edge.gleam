@@ -24,7 +24,7 @@ pub fn resolve(
   use <- bool.guard(
     when: result.is_ok(context.get_edge(context, to.reference)),
     return: Error(diagnostic.Diagnostic(
-      kind: diagnostic.DuplicateEdge(to.reference),
+      kind: diagnostic.DuplicateEdgeInput(to.path),
       span:,
     )),
   )
