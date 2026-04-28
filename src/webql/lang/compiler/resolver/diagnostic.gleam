@@ -1,4 +1,3 @@
-import webql/lang/compiler/reference
 import webql/lang/compiler/source
 
 pub type DiagnosticKind {
@@ -11,7 +10,7 @@ pub type DiagnosticKind {
   DuplicateParameter(name: String)
   DuplicateDefinition(name: String)
   DuplicateBinding(name: String)
-  DuplicateEdge(input: reference.Input)
+  DuplicateEdgeInput(path: List(String))
 }
 
 pub type Diagnostic {

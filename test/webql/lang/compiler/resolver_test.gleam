@@ -163,7 +163,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.DuplicateEdge(reference.Input(0)),
+      kind: diagnostic.DuplicateEdgeInput(["out"]),
       span: source.Span(start: 25, end: 34),
     )
 }

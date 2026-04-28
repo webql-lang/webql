@@ -287,7 +287,7 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.DuplicateEdge(reference.Input(0)),
+      kind: diagnostic.DuplicateEdgeInput(["out"]),
       span: source.Span(start: 23, end: 32),
     )
 }
