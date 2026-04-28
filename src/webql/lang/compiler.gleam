@@ -1,5 +1,5 @@
 import gleam/result
-import webql/graph/ir
+import webql/graph
 import webql/lang/compiler/context
 import webql/lang/compiler/diagnostic
 import webql/lang/compiler/lexer
@@ -22,7 +22,7 @@ pub fn new(schema: schema.Schema) -> Compiler {
 pub fn compile(
   compiler: Compiler,
   source: String,
-) -> Result(ir.Module, diagnostic.Diagnostic) {
+) -> Result(graph.Module, diagnostic.Diagnostic) {
   let context = context.new()
 
   let lexer = lexer.new(source)

@@ -1,12 +1,12 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang
 import webql/lang/diagnostic
-import webql/lang/loader/preschema
+import webql/lang/loader/blueprint
 
-/// Compiles a WebQL source file with a preschema.
+/// Compiles a WebQL source file with a blueprint.
 pub fn compile(
   source: String,
-  preschema: preschema.Preschema,
-) -> Result(ir.Module, diagnostic.Diagnostic) {
-  lang.compile(source, preschema)
+  blueprint: blueprint.Blueprint,
+) -> Result(graph.Module, diagnostic.Diagnostic) {
+  lang.compile(source, blueprint)
 }

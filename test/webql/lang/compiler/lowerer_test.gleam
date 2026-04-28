@@ -1,4 +1,4 @@
-import webql/graph/ir
+import webql/graph
 import webql/lang/compiler/lowerer
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
@@ -33,10 +33,10 @@ pub fn lowerer_lowers_module_test() {
   let lowerer = lowerer.new(module)
 
   assert lowerer.lower(lowerer)
-    == ir.Module(
-      operation: ir.Operation(
+    == graph.Module(
+      operation: graph.Operation(
         inputs: [],
-        outputs: [ir.Return(name: "out", typename: "Int")],
+        outputs: [graph.Return(name: "out", typename: "Int")],
         nodes: [],
         edges: [],
       ),
