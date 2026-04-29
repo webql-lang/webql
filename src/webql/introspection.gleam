@@ -5,12 +5,29 @@ import webql/introspection/schema
 
 /// Builds the public schema exposed by a document.
 pub fn introspect(document: document.Document) -> schema.Schema {
-  let document.Document(operators:) = document
-  schema.Schema(operators: dict.map_values(operators, introspect_operator))
+  let document.Document(operators:, typenames:) = document
+
+  let operators = introspect_operators(operators)
+  let typenames = introspect_typenames(typenames)
+
+  schema.Schema(operators:, typenames:)
 }
 
 // PRIVATE FUNCTIONS
 // =================
+fn introspect_typenames(typenames: List(document.Typename)) {
+  list.map(typenames, fn(typename) { typename.name })
+}
+
+fn introspect_operators(operators: dict.Dict(String, document.Operator)) {
+  operators
+  |> dict.to_list()
+  |> list.map(fn(entry) {
+    let #(name, operator) = entry
+    introspect_operator(name, operator)
+  })
+}
+
 fn introspect_operator(name: String, operator: document.Operator) {
   let document.Operator(inputs:, outputs:, ..) = operator
 

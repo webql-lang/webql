@@ -1,4 +1,3 @@
-import gleam/dict
 import webql/graph
 import webql/introspection/schema
 import webql/lang/compiler
@@ -17,14 +16,12 @@ pub fn compile_resolves_module_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Types",
-            schema.Operator(name: "Types", inputs: [], outputs: [
-              schema.Output(name: "value", typename: "Int"),
-            ]),
-          ),
-        ]),
+        operators: [
+          schema.Operator(name: "Types", inputs: [], outputs: [
+            schema.Output(name: "value", typename: "Int"),
+          ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -48,19 +45,17 @@ pub fn compile_materializes_node_binding_ports_from_singular_adders_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Math",
-            schema.Operator(
-              name: "Math",
-              inputs: [
-                schema.Input(name: "r", typename: "Int"),
-                schema.Input(name: "l", typename: "Int"),
-              ],
-              outputs: [schema.Output(name: "value", typename: "Int")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Math",
+            inputs: [
+              schema.Input(name: "r", typename: "Int"),
+              schema.Input(name: "l", typename: "Int"),
+            ],
+            outputs: [schema.Output(name: "value", typename: "Int")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -90,19 +85,17 @@ pub fn compile_materializes_node_binding_ports_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Math",
-            schema.Operator(
-              name: "Math",
-              inputs: [
-                schema.Input(name: "r", typename: "Int"),
-                schema.Input(name: "l", typename: "Int"),
-              ],
-              outputs: [schema.Output(name: "value", typename: "Int")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Math",
+            inputs: [
+              schema.Input(name: "r", typename: "Int"),
+              schema.Input(name: "l", typename: "Int"),
+            ],
+            outputs: [schema.Output(name: "value", typename: "Int")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -134,27 +127,22 @@ pub fn compile_materializes_definition_binding_ports_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "ToInt",
-            schema.Operator(
-              name: "ToInt",
-              inputs: [schema.Input(name: "value", typename: "String")],
-              outputs: [schema.Output(name: "value", typename: "Int")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "ToInt",
+            inputs: [schema.Input(name: "value", typename: "String")],
+            outputs: [schema.Output(name: "value", typename: "Int")],
           ),
-          #(
-            "Math",
-            schema.Operator(
-              name: "Math",
-              inputs: [
-                schema.Input(name: "l", typename: "Int"),
-                schema.Input(name: "r", typename: "Int"),
-              ],
-              outputs: [schema.Output(name: "value", typename: "Int")],
-            ),
+          schema.Operator(
+            name: "Math",
+            inputs: [
+              schema.Input(name: "l", typename: "Int"),
+              schema.Input(name: "r", typename: "Int"),
+            ],
+            outputs: [schema.Output(name: "value", typename: "Int")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -197,14 +185,12 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Math",
-            schema.Operator(name: "Math", inputs: [], outputs: [
-              schema.Output(name: "value", typename: "Int"),
-            ]),
-          ),
-        ]),
+        operators: [
+          schema.Operator(name: "Math", inputs: [], outputs: [
+            schema.Output(name: "value", typename: "Int"),
+          ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -227,16 +213,14 @@ pub fn compile_rejects_port_typename_mismatch_test() {
   let compiler =
     compiler.new(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Math",
-            schema.Operator(
-              name: "Math",
-              inputs: [schema.Input(name: "unused", typename: "Int")],
-              outputs: [schema.Output(name: "value", typename: "String")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Math",
+            inputs: [schema.Input(name: "unused", typename: "Int")],
+            outputs: [schema.Output(name: "value", typename: "String")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
 
@@ -255,7 +239,7 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let compiler = compiler.new(schema.Schema(operators: dict.new()))
+  let compiler = compiler.new(schema.Schema(operators: [], typenames: []))
 
   let assert Error(error) = compiler.compile(compiler, "!")
 
@@ -267,7 +251,7 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let compiler = compiler.new(schema.Schema(operators: dict.new()))
+  let compiler = compiler.new(schema.Schema(operators: [], typenames: []))
 
   let assert Error(error) = compiler.compile(compiler, "{")
 
@@ -282,7 +266,7 @@ pub fn compile_wraps_parser_diagnostic_test() {
 
 pub fn compile_wraps_resolver_diagnostic_test() {
   let operation_source = "-> out: Int {}"
-  let compiler = compiler.new(schema.Schema(operators: dict.new()))
+  let compiler = compiler.new(schema.Schema(operators: [], typenames: []))
 
   let assert Error(error) = compiler.compile(compiler, operation_source)
 

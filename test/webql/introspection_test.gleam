@@ -4,8 +4,10 @@ import webql/introspection
 import webql/introspection/schema
 
 pub fn introspect_empty_document_test() {
-  assert introspection.introspect(document.Document(operators: dict.new()))
-    == schema.Schema(operators: dict.new())
+  assert introspection.introspect(
+      document.Document(operators: dict.new(), typenames: []),
+    )
+    == schema.Schema(operators: [], typenames: [])
 }
 
 pub fn introspect_document_operator_test() {
@@ -25,11 +27,13 @@ pub fn introspect_document_operator_test() {
           ),
         ),
       ]),
+      typenames: [document.Typename(name: "Text")],
     )
 
-  let schema.Schema(operators:) = introspection.introspect(document)
-  let assert Ok(operator) = dict.get(operators, "Test")
+  let schema.Schema(operators:, typenames:) = introspection.introspect(document)
+  let assert [operator] = operators
 
+  assert typenames == ["Text"]
   assert operator
     == schema.Operator(
       name: "Test",

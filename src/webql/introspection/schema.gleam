@@ -1,7 +1,5 @@
-import gleam/dict
-
 pub type Schema {
-  Schema(operators: dict.Dict(String, Operator))
+  Schema(operators: List(Operator), typenames: List(String))
 }
 
 pub type Operator {

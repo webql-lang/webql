@@ -2,7 +2,7 @@ import gleam/dict
 import gleam/dynamic
 
 pub type Document {
-  Document(operators: dict.Dict(String, Operator))
+  Document(operators: dict.Dict(String, Operator), typenames: List(Typename))
 }
 
 pub type Operator {
@@ -11,6 +11,10 @@ pub type Operator {
     resolver: Resolver,
     outputs: dict.Dict(String, Output),
   )
+}
+
+pub type Typename {
+  Typename(name: String)
 }
 
 pub type Resolver {
