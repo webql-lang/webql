@@ -8,9 +8,15 @@ pub type Document {
 pub type Operator {
   Operator(
     inputs: dict.Dict(String, Input),
+    resolver: Resolver,
+    outputs: dict.Dict(String, Output),
+  )
+}
+
+pub type Resolver {
+  Resolver(
     resolver: fn(dict.Dict(String, dynamic.Dynamic)) ->
       dict.Dict(String, dynamic.Dynamic),
-    outputs: dict.Dict(String, Output),
   )
 }
 

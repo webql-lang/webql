@@ -1,7 +1,7 @@
 import gleam/dict
 import webql/graph
+import webql/introspection/schema
 import webql/lang
-import webql/system/introspection/schema
 
 pub fn compile_loads_spec_and_compiles_source_test() {
   let source =

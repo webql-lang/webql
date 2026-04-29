@@ -1,11 +1,11 @@
 import gleam/dict
-import webql/lang/compiler/bootstrapper
+import webql/introspection/schema
+import webql/lang/compiler/bootstrap
 import webql/lang/compiler/environment
 import webql/lang/compiler/reference
-import webql/system/introspection/schema
 
 pub fn load_creates_environment_from_spec_test() {
-  assert bootstrapper.bootstrap(
+  assert bootstrap.bootstrap(
       schema.Schema(
         operators: dict.from_list([
           #(
@@ -32,7 +32,7 @@ pub fn load_creates_environment_from_spec_test() {
 }
 
 pub fn load_registers_input_typenames_from_spec_test() {
-  assert bootstrapper.bootstrap(
+  assert bootstrap.bootstrap(
       schema.Schema(
         operators: dict.from_list([
           #(
@@ -57,7 +57,7 @@ pub fn load_registers_input_typenames_from_spec_test() {
 }
 
 pub fn load_registers_output_typenames_from_spec_test() {
-  assert bootstrapper.bootstrap(
+  assert bootstrap.bootstrap(
       schema.Schema(
         operators: dict.from_list([
           #(

@@ -1,7 +1,7 @@
 import gleam/dict
 import gleam/list
+import webql/introspection/schema
 import webql/lang/compiler/environment
-import webql/system/introspection/schema
 
 /// Bootstraps a compiler environment from a WebQL schema.
 pub fn bootstrap(schema: schema.Schema) -> environment.Environment {
