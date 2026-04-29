@@ -1,12 +1,12 @@
 import webql/graph
 import webql/lang
 import webql/lang/diagnostic
-import webql/lang/loader/blueprint
+import webql/system/introspection/schema
 
-/// Compiles a WebQL source file with a blueprint.
+/// Compiles a WebQL source file with a schema.
 pub fn compile(
   source: String,
-  blueprint: blueprint.Blueprint,
+  schema: schema.Schema,
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
-  lang.compile(source, blueprint)
+  lang.compile(source, schema)
 }

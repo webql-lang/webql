@@ -6,7 +6,6 @@ import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_output
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_port_output_test() {
   let context =
@@ -19,11 +18,7 @@ pub fn resolve_port_output_test() {
     )
 
   let assert Ok(output) =
-    resolve_output.resolve(
-      environment.new(schema.new()),
-      context,
-      output_to_resolve,
-    )
+    resolve_output.resolve(environment.new(), context, output_to_resolve)
 
   assert output
     == ast.PortOutput(
@@ -43,11 +38,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
     )
 
   let assert Error(error) =
-    resolve_output.resolve(
-      environment.new(schema.new()),
-      context,
-      output_to_resolve,
-    )
+    resolve_output.resolve(environment.new(), context, output_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
@@ -57,7 +48,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
 }
 
 pub fn resolve_primitive_output_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+  let schema = environment.add_typename(environment.new(), "Int")
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
@@ -70,11 +61,7 @@ pub fn resolve_primitive_output_test() {
     )
 
   let assert Ok(output) =
-    resolve_output.resolve(
-      environment.new(schema),
-      context.new(),
-      output_to_resolve,
-    )
+    resolve_output.resolve(schema, context.new(), output_to_resolve)
 
   assert output
     == ast.PrimitiveOutput(
@@ -89,7 +76,7 @@ pub fn resolve_primitive_output_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test() {
-  let schema = schema.new()
+  let schema = environment.new()
 
   let output_to_resolve =
     parser_ast.PrimitiveOutput(
@@ -102,11 +89,7 @@ pub fn resolve_returns_unknown_type_for_missing_primitive_output_typename_test()
     )
 
   let assert Error(error) =
-    resolve_output.resolve(
-      environment.new(schema),
-      context.new(),
-      output_to_resolve,
-    )
+    resolve_output.resolve(schema, context.new(), output_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(

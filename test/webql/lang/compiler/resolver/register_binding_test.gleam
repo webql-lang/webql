@@ -5,14 +5,17 @@ import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/register_binding
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn register_registers_node_binding_ports_from_schema_test() {
   let schema =
-    schema.new()
-    |> schema.add_node("Math")
-    |> schema.add_inputs(reference.Node(0), [#("left", reference.Typename(0))])
-    |> schema.add_outputs(reference.Node(0), [#("value", reference.Typename(0))])
+    environment.new()
+    |> environment.add_node("Math")
+    |> environment.add_inputs(reference.Node(0), [
+      #("left", reference.Typename(0)),
+    ])
+    |> environment.add_outputs(reference.Node(0), [
+      #("value", reference.Typename(0)),
+    ])
 
   let binding =
     ast.Binding(
@@ -26,8 +29,7 @@ pub fn register_registers_node_binding_ports_from_schema_test() {
       span: source.Span(start: 0, end: 11),
     )
 
-  let context =
-    register_binding.register(environment.new(schema), context.new(), binding)
+  let context = register_binding.register(schema, context.new(), binding)
   let context.Context(bindings:, inputs:, outputs:, ..) = context
 
   assert bindings == dict.from_list([#("math", reference.Binding(0))])

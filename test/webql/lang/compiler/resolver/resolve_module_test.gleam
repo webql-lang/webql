@@ -5,10 +5,9 @@ import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/resolve_module
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_module_wraps_resolved_operation_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+  let schema = environment.add_typename(environment.new(), "Int")
 
   let module_to_resolve =
     parser_ast.Module(
@@ -34,7 +33,7 @@ pub fn resolve_module_wraps_resolved_operation_test() {
 
   let assert Ok(#(module, _context)) =
     resolve_module.resolve(
-      environment.new(schema),
+      schema,
       context.new(),
       module_to_resolve,
       reference.Module(0),

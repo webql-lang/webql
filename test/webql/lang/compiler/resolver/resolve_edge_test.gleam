@@ -6,7 +6,6 @@ import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_edge
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_port_edge_test() {
   let context =
@@ -29,7 +28,7 @@ pub fn resolve_port_edge_test() {
 
   let assert Ok(edge) =
     resolve_edge.resolve(
-      environment.new(schema.new()),
+      environment.new(),
       context,
       edge_to_resolve,
       reference.Edge(0),
@@ -53,7 +52,7 @@ pub fn resolve_port_edge_test() {
 }
 
 pub fn resolve_primitive_output_edge_test() {
-  let schema = schema.add_typename(schema.new(), "String")
+  let schema = environment.add_typename(environment.new(), "String")
   let context = context.add_input(context.new(), ["out"], reference.Typename(0))
 
   let edge_to_resolve =
@@ -74,12 +73,7 @@ pub fn resolve_primitive_output_edge_test() {
     )
 
   let assert Ok(edge) =
-    resolve_edge.resolve(
-      environment.new(schema),
-      context,
-      edge_to_resolve,
-      reference.Edge(0),
-    )
+    resolve_edge.resolve(schema, context, edge_to_resolve, reference.Edge(0))
 
   assert edge
     == ast.Edge(
@@ -120,7 +114,7 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
 
   let assert Error(error) =
     resolve_edge.resolve(
-      environment.new(schema.new()),
+      environment.new(),
       context,
       edge_to_resolve,
       reference.Edge(0),
@@ -152,7 +146,7 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
 
   let assert Error(error) =
     resolve_edge.resolve(
-      environment.new(schema.new()),
+      environment.new(),
       context,
       edge_to_resolve,
       reference.Edge(0),
@@ -187,7 +181,7 @@ pub fn resolve_returns_duplicate_input_edge_for_existing_edge_test() {
 
   let assert Error(error) =
     resolve_edge.resolve(
-      environment.new(schema.new()),
+      environment.new(),
       context,
       edge_to_resolve,
       reference.Edge(1),

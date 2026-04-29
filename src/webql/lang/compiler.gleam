@@ -1,21 +1,24 @@
 import gleam/result
 import webql/graph
+import webql/lang/compiler/bootstrapper
 import webql/lang/compiler/context
 import webql/lang/compiler/diagnostic
+import webql/lang/compiler/environment
 import webql/lang/compiler/lexer
 import webql/lang/compiler/lowerer
 import webql/lang/compiler/parser
 import webql/lang/compiler/resolver
 import webql/lang/compiler/typechecker
-import webql/lang/loader/schema
+import webql/system/introspection/schema
 
 pub opaque type Compiler {
-  Compiler(schema: schema.Schema)
+  Compiler(environment: environment.Environment)
 }
 
 /// Creates a compiler instance with resolver context.
 pub fn new(schema: schema.Schema) -> Compiler {
-  Compiler(schema:)
+  let environment = bootstrapper.bootstrap(schema)
+  Compiler(environment:)
 }
 
 /// Compiles a text source into a finalized module.
@@ -76,7 +79,7 @@ fn compile_resolve(
   context: context.Context,
   resolver: resolver.Resolver,
 ) {
-  case resolver.resolve(resolver, compiler.schema, context) {
+  case resolver.resolve(resolver, compiler.environment, context) {
     Ok(module) -> Ok(module)
 
     Error(error) ->

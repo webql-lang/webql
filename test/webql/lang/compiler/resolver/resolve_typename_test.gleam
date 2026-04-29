@@ -5,16 +5,15 @@ import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_typename
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_named_type_annotation_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+  let schema = environment.add_typename(environment.new(), "Int")
 
   let annotation_to_resolve =
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Ok(annotation) =
-    resolve_typename.resolve(environment.new(schema), annotation_to_resolve)
+    resolve_typename.resolve(schema, annotation_to_resolve)
 
   assert annotation
     == ast.Typename(
@@ -25,13 +24,13 @@ pub fn resolve_named_type_annotation_test() {
 }
 
 pub fn resolve_returns_unknown_type_for_missing_named_type_annotation_test() {
-  let schema = schema.new()
+  let schema = environment.new()
 
   let annotation_to_resolve =
     parser_ast.Typename(name: "Int", span: source.Span(start: 0, end: 3))
 
   let assert Error(error) =
-    resolve_typename.resolve(environment.new(schema), annotation_to_resolve)
+    resolve_typename.resolve(schema, annotation_to_resolve)
 
   assert error
     == diagnostic.Diagnostic(
