@@ -1,7 +1,6 @@
-import gleam/dict
 import webql/graph
+import webql/introspection/schema
 import webql/lang
-import webql/system/introspection/schema
 
 pub fn compile_loads_spec_and_compiles_source_test() {
   let source =
@@ -11,19 +10,17 @@ pub fn compile_loads_spec_and_compiles_source_test() {
     lang.compile(
       source,
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Math",
-            schema.Operator(
-              name: "Math",
-              inputs: [
-                schema.Input(name: "l", typename: "Int"),
-                schema.Input(name: "r", typename: "Int"),
-              ],
-              outputs: [schema.Output(name: "value", typename: "Int")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Math",
+            inputs: [
+              schema.Input(name: "l", typename: "Int"),
+              schema.Input(name: "r", typename: "Int"),
+            ],
+            outputs: [schema.Output(name: "value", typename: "Int")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
 

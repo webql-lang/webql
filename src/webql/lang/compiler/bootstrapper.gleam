@@ -1,15 +1,16 @@
-import gleam/dict
 import gleam/list
+import webql/introspection/schema
 import webql/lang/compiler/environment
-import webql/system/introspection/schema
 
 /// Bootstraps a compiler environment from a WebQL schema.
 pub fn bootstrap(schema: schema.Schema) -> environment.Environment {
-  let schema.Schema(operators:) = schema
+  let schema.Schema(operators:, typenames:) = schema
 
-  operators
-  |> dict.values()
-  |> list.fold(environment.new(), bootstrap_operator)
+  list.fold(
+    operators,
+    environment.add_typenames(environment.new(), typenames),
+    bootstrap_operator,
+  )
 }
 
 // PRIVATE FUNCTIONS

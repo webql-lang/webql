@@ -1,7 +1,7 @@
 import webql/graph
+import webql/introspection/schema
 import webql/lang/compiler
 import webql/lang/diagnostic
-import webql/system/introspection/schema
 
 /// Compiles a WebQL source file with a schema.
 pub fn compile(

@@ -1,22 +1,20 @@
 import gleam/dict
+import webql/introspection/schema
 import webql/lang/compiler/bootstrapper
 import webql/lang/compiler/environment
 import webql/lang/compiler/reference
-import webql/system/introspection/schema
 
 pub fn load_creates_environment_from_spec_test() {
   assert bootstrapper.bootstrap(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Node",
-            schema.Operator(
-              name: "Node",
-              inputs: [schema.Input(name: "input", typename: "Int")],
-              outputs: [schema.Output(name: "output", typename: "Int")],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Node",
+            inputs: [schema.Input(name: "input", typename: "Int")],
+            outputs: [schema.Output(name: "output", typename: "Int")],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
     == environment.Environment(
@@ -34,16 +32,14 @@ pub fn load_creates_environment_from_spec_test() {
 pub fn load_registers_input_typenames_from_spec_test() {
   assert bootstrapper.bootstrap(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Node",
-            schema.Operator(
-              name: "Node",
-              inputs: [schema.Input(name: "input", typename: "String")],
-              outputs: [],
-            ),
+        operators: [
+          schema.Operator(
+            name: "Node",
+            inputs: [schema.Input(name: "input", typename: "String")],
+            outputs: [],
           ),
-        ]),
+        ],
+        typenames: [],
       ),
     )
     == environment.Environment(
@@ -59,14 +55,12 @@ pub fn load_registers_input_typenames_from_spec_test() {
 pub fn load_registers_output_typenames_from_spec_test() {
   assert bootstrapper.bootstrap(
       schema.Schema(
-        operators: dict.from_list([
-          #(
-            "Node",
-            schema.Operator(name: "Node", inputs: [], outputs: [
-              schema.Output(name: "output", typename: "String"),
-            ]),
-          ),
-        ]),
+        operators: [
+          schema.Operator(name: "Node", inputs: [], outputs: [
+            schema.Output(name: "output", typename: "String"),
+          ]),
+        ],
+        typenames: [],
       ),
     )
     == environment.Environment(
@@ -76,5 +70,17 @@ pub fn load_registers_output_typenames_from_spec_test() {
       outputs: dict.from_list([
         #(reference.Node(0), [#("output", reference.Typename(0))]),
       ]),
+    )
+}
+
+pub fn load_registers_declared_typenames_from_spec_test() {
+  assert bootstrapper.bootstrap(
+      schema.Schema(operators: [], typenames: ["Boolean"]),
+    )
+    == environment.Environment(
+      typenames: dict.from_list([#("Boolean", reference.Typename(0))]),
+      nodes: dict.new(),
+      inputs: dict.new(),
+      outputs: dict.new(),
     )
 }
