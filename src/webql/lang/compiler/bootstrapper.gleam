@@ -42,7 +42,7 @@ fn bootstrap_inputs(
     Ok(node), Ok(typename) ->
       environment.add_input(environment, node, #(name, typename))
 
-    _, _ -> environment
+    _node, _typename -> environment
   }
 }
 
@@ -62,6 +62,6 @@ fn bootstrap_outputs(
     Ok(node), Ok(typename) ->
       environment.add_output(environment, node, #(name, typename))
 
-    _, _ -> environment
+    _node, _typename -> environment
   }
 }
