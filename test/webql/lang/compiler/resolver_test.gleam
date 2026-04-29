@@ -1,11 +1,11 @@
 import webql/lang/compiler/context
+import webql/lang/compiler/environment as schema
 import webql/lang/compiler/parser/ast as parser_ast
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver
 import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_module_through_public_entrypoint_test() {
   let schema = schema.add_typename(schema.new(), "Int")

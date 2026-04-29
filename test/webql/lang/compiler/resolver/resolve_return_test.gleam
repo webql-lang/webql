@@ -6,10 +6,9 @@ import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_return
 import webql/lang/compiler/source
-import webql/lang/loader/schema
 
 pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+  let schema = environment.add_typename(environment.new(), "Int")
 
   let return_to_resolve =
     parser_ast.Return(
@@ -23,7 +22,7 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
 
   let assert Ok(value) =
     resolve_return.resolve(
-      environment.new(schema),
+      schema,
       context.new(),
       return_to_resolve,
       reference.Return(0),
@@ -57,7 +56,7 @@ pub fn resolve_returns_duplicate_return_for_existing_return_test() {
 
   let assert Error(error) =
     resolve_return.resolve(
-      environment.new(schema.new()),
+      environment.new(),
       context,
       return_to_resolve,
       reference.Return(1),
