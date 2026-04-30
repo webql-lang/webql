@@ -16,12 +16,12 @@ pub fn introspect_document_operator_test() {
         #(
           "Test",
           document.Operator(
-            inputs: dict.from_list([
-              #("input", document.Input(name: "input", typename: "Text")),
+            parameters: dict.from_list([
+              #("in", document.Parameter(name: "in", typename: "Text")),
             ]),
-            resolver: document.Resolver(resolver: fn(_inputs) { dict.new() }),
-            outputs: dict.from_list([
-              #("output", document.Output(name: "output", typename: "Text")),
+            resolver: document.Resolver(resolver: fn(_parameters) { dict.new() }),
+            returns: dict.from_list([
+              #("out", document.Return(name: "out", typename: "Text")),
             ]),
           ),
         ),
@@ -37,7 +37,7 @@ pub fn introspect_document_operator_test() {
   assert operator
     == introspection.Operator(
       name: "Test",
-      inputs: [introspection.Input(name: "input", typename: "Text")],
-      outputs: [introspection.Output(name: "output", typename: "Text")],
+      parameters: [introspection.Parameter(name: "in", typename: "Text")],
+      returns: [introspection.Return(name: "out", typename: "Text")],
     )
 }

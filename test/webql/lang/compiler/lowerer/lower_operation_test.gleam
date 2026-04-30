@@ -65,8 +65,8 @@ pub fn lower_operation_test() {
 
   assert lower_operation.lower(operation)
     == graph.Operation(
-      inputs: [graph.Parameter(name: "in", typename: "Int")],
-      outputs: [graph.Return(name: "out", typename: "Int")],
+      parameters: [graph.Parameter(name: "in", typename: "Int")],
+      returns: [graph.Return(name: "out", typename: "Int")],
       nodes: [graph.ExternalNode(name: "m", node: "Math")],
       edges: [
         graph.Edge(

@@ -7,9 +7,9 @@ pub type Document {
 
 pub type Operator {
   Operator(
-    inputs: dict.Dict(String, Input),
+    parameters: dict.Dict(String, Parameter),
+    returns: dict.Dict(String, Return),
     resolver: Resolver,
-    outputs: dict.Dict(String, Output),
   )
 }
 
@@ -24,10 +24,10 @@ pub type Resolver {
   )
 }
 
-pub type Input {
-  Input(name: String, typename: String)
+pub type Parameter {
+  Parameter(name: String, typename: String)
 }
 
-pub type Output {
-  Output(name: String, typename: String)
+pub type Return {
+  Return(name: String, typename: String)
 }

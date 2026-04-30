@@ -13,11 +13,11 @@ pub fn compile_loads_spec_and_compiles_source_test() {
         operators: [
           schema.Operator(
             name: "Math",
-            inputs: [
-              schema.Input(name: "l", typename: "Int"),
-              schema.Input(name: "r", typename: "Int"),
+            parameters: [
+              schema.Parameter(name: "l", typename: "Int"),
+              schema.Parameter(name: "r", typename: "Int"),
             ],
-            outputs: [schema.Output(name: "value", typename: "Int")],
+            returns: [schema.Return(name: "value", typename: "Int")],
           ),
         ],
         typenames: [],
@@ -27,8 +27,8 @@ pub fn compile_loads_spec_and_compiles_source_test() {
   assert module
     == graph.Module(
       operation: graph.Operation(
-        inputs: [graph.Parameter(name: "in", typename: "Int")],
-        outputs: [graph.Return(name: "out", typename: "Int")],
+        parameters: [graph.Parameter(name: "in", typename: "Int")],
+        returns: [graph.Return(name: "out", typename: "Int")],
         nodes: [graph.ExternalNode(name: "m", node: "Math")],
         edges: [
           graph.Edge(

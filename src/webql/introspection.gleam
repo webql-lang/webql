@@ -7,15 +7,15 @@ pub type Schema {
 }
 
 pub type Operator {
-  Operator(name: String, inputs: List(Input), outputs: List(Output))
+  Operator(name: String, parameters: List(Parameter), returns: List(Return))
 }
 
-pub type Input {
-  Input(name: String, typename: String)
+pub type Parameter {
+  Parameter(name: String, typename: String)
 }
 
-pub type Output {
-  Output(name: String, typename: String)
+pub type Return {
+  Return(name: String, typename: String)
 }
 
 /// Builds the public schema exposed by a document.
@@ -44,29 +44,29 @@ fn introspect_operators(operators: dict.Dict(String, document.Operator)) {
 }
 
 fn introspect_operator(name: String, operator: document.Operator) {
-  let document.Operator(inputs:, outputs:, ..) = operator
+  let document.Operator(parameters:, returns:, ..) = operator
 
   Operator(
     name:,
-    inputs: introspect_inputs(inputs),
-    outputs: introspect_outputs(outputs),
+    parameters: introspect_parameters(parameters),
+    returns: introspect_returns(returns),
   )
 }
 
-fn introspect_inputs(inputs: dict.Dict(String, document.Input)) {
-  inputs
+fn introspect_parameters(parameters: dict.Dict(String, document.Parameter)) {
+  parameters
   |> dict.values()
   |> list.map(fn(input) {
-    let document.Input(name:, typename:) = input
-    Input(name:, typename:)
+    let document.Parameter(name:, typename:) = input
+    Parameter(name:, typename:)
   })
 }
 
-fn introspect_outputs(outputs: dict.Dict(String, document.Output)) {
-  outputs
+fn introspect_returns(returns: dict.Dict(String, document.Return)) {
+  returns
   |> dict.values()
   |> list.map(fn(output) {
-    let document.Output(name:, typename:) = output
-    Output(name:, typename:)
+    let document.Return(name:, typename:) = output
+    Return(name:, typename:)
   })
 }

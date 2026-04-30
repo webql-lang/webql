@@ -7,8 +7,8 @@ pub type Module {
 /// edges between concrete ports.
 pub type Operation {
   Operation(
-    inputs: List(Parameter),
-    outputs: List(Return),
+    parameters: List(Parameter),
+    returns: List(Return),
     nodes: List(Node),
     edges: List(Edge),
   )

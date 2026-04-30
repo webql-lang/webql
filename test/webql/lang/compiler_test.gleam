@@ -17,8 +17,8 @@ pub fn compile_resolves_module_test() {
     compiler.new(
       schema.Schema(
         operators: [
-          schema.Operator(name: "Types", inputs: [], outputs: [
-            schema.Output(name: "value", typename: "Int"),
+          schema.Operator(name: "Types", parameters: [], returns: [
+            schema.Return(name: "value", typename: "Int"),
           ]),
         ],
         typenames: [],
@@ -30,8 +30,8 @@ pub fn compile_resolves_module_test() {
   assert module
     == graph.Module(
       operation: graph.Operation(
-        inputs: [],
-        outputs: [graph.Return(name: "out", typename: "Int")],
+        parameters: [],
+        returns: [graph.Return(name: "out", typename: "Int")],
         nodes: [],
         edges: [],
       ),
@@ -48,11 +48,11 @@ pub fn compile_materializes_node_binding_ports_from_singular_adders_test() {
         operators: [
           schema.Operator(
             name: "Math",
-            inputs: [
-              schema.Input(name: "r", typename: "Int"),
-              schema.Input(name: "l", typename: "Int"),
+            parameters: [
+              schema.Parameter(name: "r", typename: "Int"),
+              schema.Parameter(name: "l", typename: "Int"),
             ],
-            outputs: [schema.Output(name: "value", typename: "Int")],
+            returns: [schema.Return(name: "value", typename: "Int")],
           ),
         ],
         typenames: [],
@@ -88,11 +88,11 @@ pub fn compile_materializes_node_binding_ports_test() {
         operators: [
           schema.Operator(
             name: "Math",
-            inputs: [
-              schema.Input(name: "r", typename: "Int"),
-              schema.Input(name: "l", typename: "Int"),
+            parameters: [
+              schema.Parameter(name: "r", typename: "Int"),
+              schema.Parameter(name: "l", typename: "Int"),
             ],
-            outputs: [schema.Output(name: "value", typename: "Int")],
+            returns: [schema.Return(name: "value", typename: "Int")],
           ),
         ],
         typenames: [],
@@ -130,16 +130,16 @@ pub fn compile_materializes_definition_binding_ports_test() {
         operators: [
           schema.Operator(
             name: "ToInt",
-            inputs: [schema.Input(name: "value", typename: "String")],
-            outputs: [schema.Output(name: "value", typename: "Int")],
+            parameters: [schema.Parameter(name: "value", typename: "String")],
+            returns: [schema.Return(name: "value", typename: "Int")],
           ),
           schema.Operator(
             name: "Math",
-            inputs: [
-              schema.Input(name: "l", typename: "Int"),
-              schema.Input(name: "r", typename: "Int"),
+            parameters: [
+              schema.Parameter(name: "l", typename: "Int"),
+              schema.Parameter(name: "r", typename: "Int"),
             ],
-            outputs: [schema.Output(name: "value", typename: "Int")],
+            returns: [schema.Return(name: "value", typename: "Int")],
           ),
         ],
         typenames: [],
@@ -154,9 +154,9 @@ pub fn compile_materializes_definition_binding_ports_test() {
     graph.InlineNode(name: "so", operation: sub_operation),
   ] = operation.nodes
 
-  assert sub_operation.inputs
+  assert sub_operation.parameters
     == [graph.Parameter(name: "in", typename: "String")]
-  assert sub_operation.outputs == [graph.Return(name: "out", typename: "Int")]
+  assert sub_operation.returns == [graph.Return(name: "out", typename: "Int")]
 
   let assert [
     graph.Edge(
@@ -186,8 +186,8 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
     compiler.new(
       schema.Schema(
         operators: [
-          schema.Operator(name: "Math", inputs: [], outputs: [
-            schema.Output(name: "value", typename: "Int"),
+          schema.Operator(name: "Math", parameters: [], returns: [
+            schema.Return(name: "value", typename: "Int"),
           ]),
         ],
         typenames: [],
@@ -216,8 +216,8 @@ pub fn compile_rejects_port_typename_mismatch_test() {
         operators: [
           schema.Operator(
             name: "Math",
-            inputs: [schema.Input(name: "unused", typename: "Int")],
-            outputs: [schema.Output(name: "value", typename: "String")],
+            parameters: [schema.Parameter(name: "unused", typename: "Int")],
+            returns: [schema.Return(name: "value", typename: "String")],
           ),
         ],
         typenames: [],
