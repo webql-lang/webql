@@ -35,8 +35,8 @@ pub fn lowerer_lowers_module_test() {
   assert lowerer.lower(lowerer)
     == graph.Module(
       operation: graph.Operation(
-        inputs: [],
-        outputs: [graph.Return(name: "out", typename: "Int")],
+        parameters: [],
+        returns: [graph.Return(name: "out", typename: "Int")],
         nodes: [],
         edges: [],
       ),

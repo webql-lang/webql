@@ -4,6 +4,10 @@ import webql/document
 import webql/graph
 import webql/lang/diagnostic
 
-pub type Runtime =
+pub type Resolver =
   fn(graph.Module, document.Document, dict.Dict(String, dynamic.Dynamic)) ->
     Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic)
+
+pub type Runtime {
+  Runtime(resolver: Resolver)
+}

@@ -62,21 +62,21 @@ fn load_operator(
   environment: environment.Environment,
   operator: introspection.Operator,
 ) -> environment.Environment {
-  let introspection.Operator(name:, inputs:, outputs:) = operator
+  let introspection.Operator(name:, parameters:, returns:) = operator
 
   environment
   |> environment.add_node(name)
-  |> load_inputs(name, inputs)
-  |> load_outputs(name, outputs)
+  |> load_parameters(name, parameters)
+  |> load_returns(name, returns)
 }
 
-fn load_inputs(
+fn load_parameters(
   environment: environment.Environment,
   operator: String,
-  inputs: List(introspection.Input),
+  parameters: List(introspection.Parameter),
 ) -> environment.Environment {
-  use environment, input <- list.fold(inputs, environment)
-  let introspection.Input(name:, typename:) = input
+  use environment, input <- list.fold(parameters, environment)
+  let introspection.Parameter(name:, typename:) = input
 
   let environment = environment.add_typename(environment, typename)
   let node = environment.get_node(environment, operator)
@@ -90,13 +90,13 @@ fn load_inputs(
   }
 }
 
-fn load_outputs(
+fn load_returns(
   environment: environment.Environment,
   operator: String,
-  outputs: List(introspection.Output),
+  returns: List(introspection.Return),
 ) -> environment.Environment {
-  use environment, output <- list.fold(outputs, environment)
-  let introspection.Output(name:, typename:) = output
+  use environment, output <- list.fold(returns, environment)
+  let introspection.Return(name:, typename:) = output
 
   let environment = environment.add_typename(environment, typename)
   let node = environment.get_node(environment, operator)

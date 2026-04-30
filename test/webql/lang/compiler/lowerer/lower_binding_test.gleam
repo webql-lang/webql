@@ -22,7 +22,8 @@ pub fn lower_external_node_binding_test() {
 }
 
 pub fn lower_inline_node_binding_test() {
-  let operation = graph.Operation(inputs: [], outputs: [], nodes: [], edges: [])
+  let operation =
+    graph.Operation(parameters: [], returns: [], nodes: [], edges: [])
 
   let binding =
     ast.Binding(

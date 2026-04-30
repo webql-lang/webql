@@ -14,8 +14,8 @@ pub fn lower(operation: ast.Operation) -> graph.Operation {
     })
 
   graph.Operation(
-    inputs: list.map(operation.parameters, lower_parameter.lower),
-    outputs: list.map(operation.returns, lower_return.lower),
+    parameters: list.map(operation.parameters, lower_parameter.lower),
+    returns: list.map(operation.returns, lower_return.lower),
     nodes: lower_nodes(operation.bindings, definitions),
     edges: list.map(operation.edges, lower_edge.lower),
   )
