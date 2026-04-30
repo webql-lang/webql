@@ -1,5 +1,5 @@
 import webql/graph
-import webql/introspection/schema
+import webql/introspection as schema
 import webql/lang
 
 pub fn compile_loads_spec_and_compiles_source_test() {

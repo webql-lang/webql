@@ -1,5 +1,5 @@
 import webql/graph
-import webql/introspection/schema
+import webql/introspection as schema
 import webql/lang/compiler
 import webql/lang/compiler/diagnostic
 import webql/lang/compiler/lexer/diagnostic as lexer_diagnostic

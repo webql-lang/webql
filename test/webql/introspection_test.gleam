@@ -1,13 +1,12 @@
 import gleam/dict
 import webql/document
 import webql/introspection
-import webql/introspection/schema
 
 pub fn introspect_empty_document_test() {
   assert introspection.introspect(
       document.Document(operators: dict.new(), typenames: []),
     )
-    == schema.Schema(operators: [], typenames: [])
+    == introspection.Schema(operators: [], typenames: [])
 }
 
 pub fn introspect_document_operator_test() {
@@ -30,14 +29,15 @@ pub fn introspect_document_operator_test() {
       typenames: [document.Typename(name: "Text")],
     )
 
-  let schema.Schema(operators:, typenames:) = introspection.introspect(document)
+  let introspection.Schema(operators:, typenames:) =
+    introspection.introspect(document)
   let assert [operator] = operators
 
   assert typenames == ["Text"]
   assert operator
-    == schema.Operator(
+    == introspection.Operator(
       name: "Test",
-      inputs: [schema.Input(name: "input", typename: "Text")],
-      outputs: [schema.Output(name: "output", typename: "Text")],
+      inputs: [introspection.Input(name: "input", typename: "Text")],
+      outputs: [introspection.Output(name: "output", typename: "Text")],
     )
 }
