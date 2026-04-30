@@ -3,4 +3,4 @@
 /build
 erl_crash.dump
 
-.ds_store
+.DS_Store
