@@ -5,7 +5,7 @@ import webql/engine/plan
 import webql/engine/scheduler
 
 pub fn scheduler_returns_executable_plan_test() {
-  let resolver = document.Resolver(resolver: fn(_inputs) { dict.new() })
+  let resolver = document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
 
   let linker_plan =
     linker_plan.Plan(
@@ -55,7 +55,7 @@ pub fn scheduler_returns_executable_plan_test() {
 }
 
 pub fn scheduler_schedules_inline_resolvers_test() {
-  let resolver = document.Resolver(resolver: fn(_inputs) { dict.new() })
+  let resolver = document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
 
   let inline_plan =
     linker_plan.Plan(

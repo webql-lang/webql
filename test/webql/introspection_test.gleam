@@ -19,7 +19,9 @@ pub fn introspect_document_operator_test() {
             parameters: dict.from_list([
               #("in", document.Parameter(name: "in", typename: "Text")),
             ]),
-            resolver: document.Resolver(resolver: fn(_parameters) { dict.new() }),
+            resolver: document.Resolver(resolver: fn(_parameters) {
+              Ok(dict.new())
+            }),
             returns: dict.from_list([
               #("out", document.Return(name: "out", typename: "Text")),
             ]),

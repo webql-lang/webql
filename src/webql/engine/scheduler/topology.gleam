@@ -28,17 +28,17 @@ fn toposort(
   )
 
   case toposort_batch(dependencies) {
+    [_batch, ..] as batch ->
+      dependencies
+      |> drop_dependencies(batch)
+      |> toposort([batch, ..batches])
+
     [] ->
       Error(
         diagnostic.Diagnostic(
           kind: diagnostic.CycleDetected(remaining: dict.keys(dependencies)),
         ),
       )
-
-    batch ->
-      dependencies
-      |> drop_dependencies(batch)
-      |> toposort([batch, ..batches])
   }
 }
 
@@ -48,10 +48,8 @@ fn toposort_batch(dependencies: dict.Dict(String, set.Set(String))) {
   |> list.filter_map(fn(pair) {
     let #(node, upstream) = pair
 
-    case set.is_empty(upstream) {
-      True -> Ok(node)
-      False -> Error(Nil)
-    }
+    use <- bool.guard(when: !set.is_empty(upstream), return: Error(Nil))
+    Ok(node)
   })
 }
 

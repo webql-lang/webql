@@ -7,10 +7,6 @@ import webql/engine/plan
 import webql/engine/scheduler/diagnostic
 import webql/engine/scheduler/schedule_plan
 
-fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dict.new() })
-}
-
 pub fn schedule_plan_builds_executable_plan_test() {
   let linker_plan =
     linker_plan.Plan(
@@ -115,4 +111,8 @@ pub fn schedule_plan_reports_cycles_test() {
 
   assert list.contains(remaining, "left")
   assert list.contains(remaining, "right")
+}
+
+fn resolver() {
+  document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
 }
