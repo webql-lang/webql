@@ -1,6 +1,6 @@
 pub type DiagnosticKind {
   CycleDetected(remaining: List(String))
-  InvalidGraph
+  InvalidPlan
 }
 
 pub type Diagnostic {

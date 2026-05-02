@@ -78,7 +78,7 @@ fn schedule_batch(
 fn schedule_step(nodes: dict.Dict(String, linker_plan.Resolver), node: String) {
   case dict.get(nodes, node) {
     Ok(resolver) -> schedule_resolver(resolver)
-    Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.InvalidGraph))
+    Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.InvalidPlan))
   }
 }
 
