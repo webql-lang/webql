@@ -1,0 +1,42 @@
+import gleam/dict
+import webql/document
+import webql/engine/linker/link_module
+import webql/engine/linker/plan
+import webql/graph
+
+pub fn link_module_links_operation_test() {
+  let module =
+    graph.Module(
+      operation: graph.Operation(
+        parameters: [],
+        returns: [],
+        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
+        edges: [],
+      ),
+    )
+
+  let assert Ok(plan.Plan(nodes:, routes:)) =
+    link_module.link(module, document())
+
+  let assert Ok(plan.FunctionResolver(_)) = dict.get(nodes, "user")
+  assert routes == []
+}
+
+fn resolver() {
+  document.Resolver(resolver: fn(_inputs) { dict.new() })
+}
+
+fn operator() {
+  document.Operator(
+    parameters: dict.new(),
+    returns: dict.new(),
+    resolver: resolver(),
+  )
+}
+
+fn document() {
+  document.Document(
+    operators: dict.from_list([#("GetUser", operator())]),
+    typenames: [],
+  )
+}

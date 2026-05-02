@@ -7,7 +7,7 @@ pub type Plan {
 }
 
 pub type Resolver {
-  FunctionResolver(document.Resolver)
+  FunctionResolver(function: document.Resolver)
   InlineResolver(plan: Plan)
 }
 
