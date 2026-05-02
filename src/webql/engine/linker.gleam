@@ -1,6 +1,6 @@
 import webql/document
 import webql/engine/linker/diagnostic
-import webql/engine/linker/link_module
+import webql/engine/linker/link_plan
 import webql/engine/linker/plan
 import webql/graph
 
@@ -18,5 +18,5 @@ pub fn link(
   linker: Linker,
   document: document.Document,
 ) -> Result(plan.Plan, diagnostic.Diagnostic) {
-  link_module.link(linker.module, document)
+  link_plan.link(linker.module, document)
 }

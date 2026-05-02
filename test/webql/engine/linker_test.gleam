@@ -48,7 +48,7 @@ pub fn linker_reports_unknown_operators_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dict.new() })
+  document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
 }
 
 fn operator() {

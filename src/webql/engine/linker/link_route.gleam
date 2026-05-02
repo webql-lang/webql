@@ -13,14 +13,14 @@ pub fn link(edges: List(graph.Edge)) -> List(plan.Route) {
       graph.Edge(
         from: graph.PrimitiveOutput(value: value),
         to: graph.Input(path: to),
-      ) -> plan.Constant(value: link_primitive(value), to:)
+      ) -> plan.Constant(value: link_constant(value), to:)
     }
   })
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn link_primitive(primitive: graph.Primitive) -> dynamic.Dynamic {
+fn link_constant(primitive: graph.Primitive) -> dynamic.Dynamic {
   case primitive {
     graph.IntPrimitive(value:) -> dynamic.int(value)
     graph.FloatPrimitive(value:) -> dynamic.float(value)

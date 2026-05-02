@@ -1,10 +1,10 @@
 import gleam/dict
 import webql/document
-import webql/engine/linker/link_module
+import webql/engine/linker/link_plan
 import webql/engine/linker/plan
 import webql/graph
 
-pub fn link_module_links_operation_test() {
+pub fn link_plan_links_operation_test() {
   let module =
     graph.Module(
       operation: graph.Operation(
@@ -15,15 +15,14 @@ pub fn link_module_links_operation_test() {
       ),
     )
 
-  let assert Ok(plan.Plan(nodes:, routes:)) =
-    link_module.link(module, document())
+  let assert Ok(plan.Plan(nodes:, routes:)) = link_plan.link(module, document())
 
   let assert Ok(plan.FunctionResolver(_)) = dict.get(nodes, "user")
   assert routes == []
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dict.new() })
+  document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
 }
 
 fn operator() {

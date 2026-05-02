@@ -7,11 +7,17 @@ import webql/engine/linker/link_route
 import webql/engine/linker/plan
 import webql/graph
 
-/// Links a graph operation into a scheduler plan.
+/// Links a graph module into a scheduler plan.
 pub fn link(
-  operation: graph.Operation,
+  module: graph.Module,
   document: document.Document,
 ) -> Result(plan.Plan, diagnostic.Diagnostic) {
+  link_plan(module.operation, document)
+}
+
+// PRIVATE FUNCTIONS
+// =================
+pub fn link_plan(operation: graph.Operation, document: document.Document) {
   let graph.Operation(nodes:, edges:, ..) = operation
 
   use nodes <- result.try(link_nodes(nodes, document, dict.new()))
@@ -29,7 +35,7 @@ fn link_nodes(
 ) {
   case nodes {
     [node, ..nodes] -> {
-      use #(name, resolver) <- result.try(link_operation_node(node, document))
+      use #(name, resolver) <- result.try(link_node(node, document))
       link_nodes(nodes, document, dict.insert(linked, name, resolver))
     }
 
@@ -37,12 +43,12 @@ fn link_nodes(
   }
 }
 
-fn link_operation_node(node: graph.Node, document: document.Document) {
+fn link_node(node: graph.Node, document: document.Document) {
   case node {
     graph.ExternalNode(name:, node:) -> link_node.link(name, node, document)
 
     graph.InlineNode(name:, operation:) -> {
-      use plan <- result.try(link(operation, document))
+      use plan <- result.try(link_plan(operation, document))
       Ok(#(name, plan.InlineResolver(plan:)))
     }
   }

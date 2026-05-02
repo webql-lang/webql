@@ -20,7 +20,7 @@ pub type Typename {
 pub type Resolver {
   Resolver(
     resolver: fn(dict.Dict(String, dynamic.Dynamic)) ->
-      dict.Dict(String, dynamic.Dynamic),
+      Result(dict.Dict(String, dynamic.Dynamic), String),
   )
 }
 
