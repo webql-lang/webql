@@ -1,7 +1,7 @@
 import webql/graph
-import webql/introspection as schema
 import webql/lang/compiler
 import webql/lang/diagnostic
+import webql/lang/introspection as schema
 
 /// Compiles a WebQL source file with a schema.
 pub fn compile(
@@ -14,7 +14,7 @@ pub fn compile(
     Ok(ir) -> Ok(ir)
     Error(diagnostic) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.CompilerError(
+        diagnostic.Diagnostic(kind: diagnostic.CompilerDiagnostic(
           kind: diagnostic.kind,
         )),
       )

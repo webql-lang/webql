@@ -1,5 +1,4 @@
 import webql/graph
-import webql/introspection as schema
 import webql/lang/compiler
 import webql/lang/compiler/diagnostic
 import webql/lang/compiler/lexer/diagnostic as lexer_diagnostic
@@ -9,6 +8,7 @@ import webql/lang/compiler/reference
 import webql/lang/compiler/resolver/diagnostic as resolver_diagnostic
 import webql/lang/compiler/source
 import webql/lang/compiler/typechecker/diagnostic as typechecker_diagnostic
+import webql/lang/introspection as schema
 
 pub fn compile_resolves_module_test() {
   let operation_source = "-> out: Int {}"

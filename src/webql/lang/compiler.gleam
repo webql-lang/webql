@@ -1,7 +1,6 @@
 import gleam/list
 import gleam/result
 import webql/graph
-import webql/introspection
 import webql/lang/compiler/context
 import webql/lang/compiler/diagnostic
 import webql/lang/compiler/environment
@@ -10,6 +9,7 @@ import webql/lang/compiler/lowerer
 import webql/lang/compiler/parser
 import webql/lang/compiler/resolver
 import webql/lang/compiler/typechecker
+import webql/lang/introspection
 
 pub opaque type Compiler {
   Compiler(environment: environment.Environment)
