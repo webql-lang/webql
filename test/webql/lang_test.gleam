@@ -1,6 +1,6 @@
 import webql/graph
-import webql/introspection as schema
 import webql/lang
+import webql/lang/introspection as schema
 
 pub fn compile_loads_spec_and_compiles_source_test() {
   let source =

@@ -3,7 +3,7 @@ import webql/lang/compiler/lexer/diagnostic
 import webql/lang/compiler/lexer/token
 import webql/lang/compiler/source
 
-pub fn run_lexer_on_empty_input_test() {
+pub fn traverse_lexer_on_empty_input_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new(""))
 
   assert tokens
@@ -12,7 +12,7 @@ pub fn run_lexer_on_empty_input_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_integer_test() {
+pub fn traverse_lexer_on_a_single_integer_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("123"))
 
   assert tokens
@@ -22,7 +22,7 @@ pub fn run_lexer_on_a_single_integer_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_float_test() {
+pub fn traverse_lexer_on_a_single_float_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("1.23"))
 
   assert tokens
@@ -32,7 +32,7 @@ pub fn run_lexer_on_a_single_float_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_string_test() {
+pub fn traverse_lexer_on_a_single_string_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("\"hello world\""))
 
   assert tokens
@@ -42,7 +42,7 @@ pub fn run_lexer_on_a_single_string_test() {
     ]
 }
 
-pub fn run_lexer_on_the_full_symbol_set_test() {
+pub fn traverse_lexer_on_the_full_symbol_set_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("(){}[]:,=->."))
 
   assert tokens
@@ -62,7 +62,7 @@ pub fn run_lexer_on_the_full_symbol_set_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_comment_test() {
+pub fn traverse_lexer_on_a_single_comment_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("# hello"))
 
   assert tokens
@@ -75,7 +75,7 @@ pub fn run_lexer_on_a_single_comment_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_whitespace_test() {
+pub fn traverse_lexer_on_a_single_whitespace_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new(" \t\n"))
 
   assert tokens
@@ -85,7 +85,7 @@ pub fn run_lexer_on_a_single_whitespace_test() {
     ]
 }
 
-pub fn run_lexer_on_a_mixed_stream_test() {
+pub fn traverse_lexer_on_a_mixed_stream_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("(123) -> \"hi\", # ok\n[]"))
 
   assert tokens
@@ -110,7 +110,7 @@ pub fn run_lexer_on_a_mixed_stream_test() {
     ]
 }
 
-pub fn run_lexer_skips_comments_when_disabled_test() {
+pub fn traverse_lexer_skips_comments_when_disabled_test() {
   let lexer = lexer.with_comments(lexer.new("# hello\n123"), enabled: False)
 
   let assert Ok(tokens) = lexer.lex(lexer)
@@ -123,7 +123,7 @@ pub fn run_lexer_skips_comments_when_disabled_test() {
     ]
 }
 
-pub fn run_lexer_skips_whitespace_when_disabled_test() {
+pub fn traverse_lexer_skips_whitespace_when_disabled_test() {
   let lexer = lexer.with_whitespace(lexer.new(" \t123"), enabled: False)
 
   let assert Ok(tokens) = lexer.lex(lexer)
@@ -135,7 +135,7 @@ pub fn run_lexer_skips_whitespace_when_disabled_test() {
     ]
 }
 
-pub fn run_lexer_skips_comments_and_whitespace_when_disabled_test() {
+pub fn traverse_lexer_skips_comments_and_whitespace_when_disabled_test() {
   let lexer =
     lexer.new("# hello\n\t123")
     |> lexer.with_comments(enabled: False)
@@ -150,7 +150,7 @@ pub fn run_lexer_skips_comments_and_whitespace_when_disabled_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_upper_identifier_test() {
+pub fn traverse_lexer_on_a_single_upper_identifier_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("Abc"))
 
   assert tokens
@@ -163,7 +163,7 @@ pub fn run_lexer_on_a_single_upper_identifier_test() {
     ]
 }
 
-pub fn run_lexer_on_a_single_lower_identifier_test() {
+pub fn traverse_lexer_on_a_single_lower_identifier_test() {
   let assert Ok(tokens) = lexer.lex(lexer.new("abc_2"))
 
   assert tokens
@@ -176,21 +176,21 @@ pub fn run_lexer_on_a_single_lower_identifier_test() {
     ]
 }
 
-pub fn run_lexer_fails_on_invalid_symbol_test() {
+pub fn traverse_lexer_fails_on_invalid_symbol_test() {
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.IllegalToken,
     span: source.Span(start: 0, end: 1),
   )) = lexer.lex(lexer.new("!"))
 }
 
-pub fn run_lexer_fails_on_invalid_symbol_after_valid_tokens_test() {
+pub fn traverse_lexer_fails_on_invalid_symbol_after_valid_tokens_test() {
   let assert Error(diagnostic.Diagnostic(
     kind: diagnostic.IllegalToken,
     span: source.Span(start: 3, end: 4),
   )) = lexer.lex(lexer.new("123!"))
 }
 
-pub fn run_lexer_recovers_on_invalid_symbol_test() {
+pub fn traverse_lexer_recovers_on_invalid_symbol_test() {
   let lexer = lexer.with_mode(lexer.new("!"), lexer.Recover)
 
   let assert Ok(tokens) = lexer.lex(lexer)
@@ -205,7 +205,7 @@ pub fn run_lexer_recovers_on_invalid_symbol_test() {
     ]
 }
 
-pub fn run_lexer_recovers_on_invalid_symbol_after_valid_tokens_test() {
+pub fn traverse_lexer_recovers_on_invalid_symbol_after_valid_tokens_test() {
   let lexer = lexer.with_mode(lexer.new("123!"), lexer.Recover)
 
   let assert Ok(tokens) = lexer.lex(lexer)
@@ -221,7 +221,7 @@ pub fn run_lexer_recovers_on_invalid_symbol_after_valid_tokens_test() {
     ]
 }
 
-pub fn run_lexer_on_basic_syntax_test() {
+pub fn traverse_lexer_on_basic_syntax_test() {
   let source =
     "Addition = in: Int -> out: Int {
   m = Math
