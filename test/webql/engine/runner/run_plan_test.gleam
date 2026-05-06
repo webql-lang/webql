@@ -114,9 +114,6 @@ pub fn run_plan_reports_missing_return_test() {
       batches: [],
     )
 
-  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(
-    output: o,
-  ))) = run_plan.run(p, dict.new())
-
-  assert o == "output"
+  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn)) =
+    run_plan.run(p, dict.new())
 }

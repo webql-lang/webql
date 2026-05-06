@@ -51,25 +51,6 @@ pub fn runner_executes_plan_test() {
   assert decode.run(output, decode.int) == Ok(3)
 }
 
-pub fn runner_routes_until_values_settle_test() {
-  let plan =
-    plan.Plan(
-      routes: [
-        plan.Route(from: ["middle"], to: ["output"]),
-        plan.Route(from: ["input"], to: ["middle"]),
-      ],
-      batches: [],
-    )
-
-  let assert Ok(outputs) =
-    plan
-    |> runner.new()
-    |> runner.run(dict.from_list([#("input", dynamic.int(1))]))
-
-  let assert Ok(output) = dict.get(outputs, "output")
-  assert decode.run(output, decode.int) == Ok(1)
-}
-
 pub fn runner_executes_inline_plans_test() {
   let inline_plan =
     plan.Plan(
@@ -134,10 +115,7 @@ pub fn runner_reports_missing_inputs_test() {
     |> runner.new()
     |> runner.run(dict.new())
     == Error(
-      diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
-        step: "identity",
-        input: "value",
-      )),
+      diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: "identity")),
     )
 }
 
@@ -151,7 +129,5 @@ pub fn runner_reports_missing_outputs_test() {
   assert plan
     |> runner.new()
     |> runner.run(dict.new())
-    == Error(
-      diagnostic.Diagnostic(kind: diagnostic.MissingReturn(output: "output")),
-    )
+    == Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn))
 }

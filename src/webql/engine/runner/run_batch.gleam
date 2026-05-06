@@ -13,7 +13,6 @@ pub fn run(
   case batch {
     [step, ..batch] -> {
       use progress <- result.try(run_step.run(step, routes, progress, run_plan))
-
       run(batch, routes, progress, run_plan)
     }
 

@@ -1,6 +1,6 @@
 pub type DiagnosticKind {
-  MissingStepInput(step: String, input: String)
-  MissingReturn(output: String)
+  MissingStepInput(step: String)
+  MissingReturn
   RuntimeError(step: String, message: String)
 }
 
