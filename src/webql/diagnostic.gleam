@@ -1,8 +1,8 @@
+import webql/engine/diagnostic as engine_diagnostic
 import webql/lang/diagnostic as lang_diagnostic
-import webql/runtime/engine/diagnostic as runtime_diagnostic
 
 pub type DiagnosticKind {
-  RuntimeDiagnostic(kind: runtime_diagnostic.DiagnosticKind)
+  EngineDiagnostic(kind: engine_diagnostic.DiagnosticKind)
   LangDiagnostic(kind: lang_diagnostic.DiagnosticKind)
 }
 

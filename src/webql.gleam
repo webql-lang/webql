@@ -3,10 +3,10 @@ import gleam/dynamic
 import gleam/result
 import webql/diagnostic
 import webql/document
+import webql/engine
 import webql/graph
 import webql/lang
 import webql/lang/introspection
-import webql/runtime/engine
 
 /// Runs a WebQL source against a document.
 pub fn run(
@@ -17,11 +17,11 @@ pub fn run(
   let schema = introspect(document)
   use graph <- result.try(compile(source, schema))
 
-  case engine.traverse(engine.Engine, document, graph, parameters) {
+  case engine.run(document, graph, parameters) {
     Ok(result) -> Ok(result)
     Error(error) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.RuntimeDiagnostic(error.kind)),
+        diagnostic.Diagnostic(kind: diagnostic.EngineDiagnostic(error.kind)),
       )
   }
 }
