@@ -2,6 +2,7 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/document
+import webql/engine/memory/kv
 import webql/engine/system/plan
 import webql/engine/system/traverser
 import webql/engine/system/traverser/diagnostic
@@ -45,7 +46,10 @@ pub fn traverser_executes_plan_test() {
   let assert Ok(outputs) =
     plan
     |> traverser.new()
-    |> traverser.traverse(dict.from_list([#("input", dynamic.int(2))]))
+    |> traverser.traverse(
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(2))]),
+    )
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
@@ -88,7 +92,10 @@ pub fn traverser_executes_inline_plans_test() {
   let assert Ok(outputs) =
     plan
     |> traverser.new()
-    |> traverser.traverse(dict.from_list([#("input", dynamic.int(2))]))
+    |> traverser.traverse(
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(2))]),
+    )
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
@@ -113,7 +120,7 @@ pub fn traverser_reports_missing_inputs_test() {
 
   assert plan
     |> traverser.new()
-    |> traverser.traverse(dict.new())
+    |> traverser.traverse(kv.new(), dict.new())
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: "identity")),
     )
@@ -128,6 +135,6 @@ pub fn traverser_reports_missing_outputs_test() {
 
   assert plan
     |> traverser.new()
-    |> traverser.traverse(dict.new())
+    |> traverser.traverse(kv.new(), dict.new())
     == Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn))
 }

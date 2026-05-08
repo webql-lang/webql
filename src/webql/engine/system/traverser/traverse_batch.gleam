@@ -1,13 +1,13 @@
 import gleam/result
+import webql/engine/memory
 import webql/engine/system/plan
-import webql/engine/system/progress
 import webql/engine/system/traverser/traverse_step
 
 /// Runs the next batch in a plan.
 pub fn traverse(
   batch: List(plan.Step),
   routes: List(plan.Route),
-  progress: progress.Progress,
+  memory: memory.Memory(a, b),
   traverse_plan,
 ) {
   case batch {
@@ -15,12 +15,12 @@ pub fn traverse(
       use progress <- result.try(traverse_step.traverse(
         step,
         routes,
-        progress,
+        memory,
         traverse_plan,
       ))
       traverse(batch, routes, progress, traverse_plan)
     }
 
-    [] -> Ok(progress)
+    [] -> Ok(memory)
   }
 }
