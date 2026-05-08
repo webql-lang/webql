@@ -2,6 +2,7 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/document
+import webql/engine/memory/kv
 import webql/engine/system/linker
 import webql/engine/system/scheduler
 import webql/engine/system/traverser
@@ -71,7 +72,10 @@ pub fn engine_executes_graph_module_test() {
   let assert Ok(outputs) =
     executable_plan
     |> traverser.new()
-    |> traverser.traverse(dict.from_list([#("input", dynamic.int(2))]))
+    |> traverser.traverse(
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(2))]),
+    )
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)

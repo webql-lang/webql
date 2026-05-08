@@ -1,12 +1,13 @@
+import webql/document
 import webql/graph
 import webql/lang/compiler
 import webql/lang/diagnostic
-import webql/lang/introspection as schema
+import webql/lang/introspection
 
 /// Compiles a WebQL source file with a schema.
 pub fn compile(
   source: String,
-  schema: schema.Schema,
+  schema: introspection.Schema,
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
   let compiler = compiler.new(schema)
 
@@ -19,4 +20,9 @@ pub fn compile(
         )),
       )
   }
+}
+
+/// Converts a WebQL document into a schema.
+pub fn introspect(document: document.Document) -> introspection.Schema {
+  introspection.introspect(document)
 }

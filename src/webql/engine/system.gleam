@@ -2,19 +2,25 @@ import gleam/dict
 import gleam/dynamic
 import gleam/result
 import webql/document
+import webql/engine/memory
 import webql/engine/system/diagnostic
 import webql/engine/system/linker
 import webql/engine/system/scheduler
 import webql/engine/system/traverser
 import webql/graph
 
-pub type System {
-  System
+pub type System(a, b) {
+  System(memory: memory.Memory(a, b))
+}
+
+/// Creates a new system instance.
+pub fn new(memory: memory.Memory(a, b)) {
+  System(memory:)
 }
 
 /// Runs a graph based from a document and a graph.
 pub fn run(
-  _system: System,
+  system: System(a, b),
   document: document.Document,
   graph: graph.Module,
   parameters: dict.Dict(String, dynamic.Dynamic),
@@ -26,7 +32,7 @@ pub fn run(
   use plan <- result.try(run_scheduler(scheduler))
 
   let traverser = traverser.new(plan)
-  run_traverser(traverser, parameters)
+  run_traverser(traverser, system.memory, parameters)
 }
 
 // PRIVATE FUNCTIONS
@@ -55,9 +61,10 @@ fn run_scheduler(scheduler: scheduler.Scheduler) {
 
 fn run_traverser(
   traverser: traverser.Traverser,
+  memory: memory.Memory(a, b),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
-  case traverser.traverse(traverser, parameters) {
+  case traverser.traverse(traverser, memory, parameters) {
     Ok(result) -> Ok(result)
 
     Error(error) ->

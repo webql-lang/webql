@@ -2,6 +2,7 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/document
+import webql/engine/memory/kv
 import webql/engine/system/plan
 import webql/engine/system/traverser/diagnostic
 import webql/engine/system/traverser/traverse_plan
@@ -14,7 +15,11 @@ pub fn traverse_plan_routes_parameter_to_output_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(p, dict.from_list([#("input", dynamic.int(7))]))
+    traverse_plan.traverse(
+      p,
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(7))]),
+    )
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(7)
@@ -27,7 +32,7 @@ pub fn traverse_plan_routes_constant_to_output_test() {
       batches: [],
     )
 
-  let assert Ok(returns) = traverse_plan.traverse(p, dict.new())
+  let assert Ok(returns) = traverse_plan.traverse(p, kv.new(), dict.new())
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(99)
@@ -56,7 +61,11 @@ pub fn traverse_plan_runs_step_and_returns_output_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(p, dict.from_list([#("input", dynamic.int(4))]))
+    traverse_plan.traverse(
+      p,
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(4))]),
+    )
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(5)
@@ -101,7 +110,11 @@ pub fn traverse_plan_runs_multiple_batches_in_sequence_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(p, dict.from_list([#("input", dynamic.int(3))]))
+    traverse_plan.traverse(
+      p,
+      kv.new(),
+      dict.from_list([#("input", dynamic.int(3))]),
+    )
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(7)
@@ -115,5 +128,5 @@ pub fn traverse_plan_reports_missing_return_test() {
     )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn)) =
-    traverse_plan.traverse(p, dict.new())
+    traverse_plan.traverse(p, kv.new(), dict.new())
 }

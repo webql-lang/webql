@@ -4,20 +4,30 @@ import gleam/result
 import webql/diagnostic
 import webql/document
 import webql/engine
+import webql/engine/memory
 import webql/graph
 import webql/lang
-import webql/lang/introspection
+
+pub type Webql(a, b) {
+  Webql(engine: engine.Engine(a, b))
+}
+
+/// Creates a new WebQL instance.
+pub fn new(memory: memory.Memory(a, b)) -> Webql(a, b) {
+  let engine = engine.new(memory)
+  Webql(engine:)
+}
 
 /// Runs a WebQL source against a document.
 pub fn run(
+  webql: Webql(a, b),
   source: String,
   document: document.Document,
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
-  let schema = introspect(document)
-  use graph <- result.try(compile(source, schema))
+  use graph <- result.try(compile(source, document))
 
-  case engine.run(document, graph, parameters) {
+  case engine.run(webql.engine, document, graph, parameters) {
     Ok(result) -> Ok(result)
     Error(error) ->
       Error(
@@ -29,8 +39,9 @@ pub fn run(
 /// Compiles a WebQL source into a executable graph.
 pub fn compile(
   source: String,
-  schema: introspection.Schema,
+  document: document.Document,
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
+  let schema = lang.introspect(document)
   case lang.compile(source, schema) {
     Ok(output) -> Ok(output)
     Error(diagnostic) ->
@@ -38,9 +49,4 @@ pub fn compile(
         diagnostic.Diagnostic(kind: diagnostic.LangDiagnostic(diagnostic.kind)),
       )
   }
-}
-
-/// Converts a WebQL document into a schema.
-pub fn introspect(document: document.Document) -> introspection.Schema {
-  introspection.introspect(document)
 }
