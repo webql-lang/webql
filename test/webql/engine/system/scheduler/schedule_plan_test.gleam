@@ -2,10 +2,10 @@ import gleam/dict
 import gleam/dynamic
 import gleam/list
 import webql/document
-import webql/engine/system/linker/plan as linker_plan
-import webql/engine/system/plan
-import webql/engine/system/scheduler/diagnostic
-import webql/engine/system/scheduler/schedule_plan
+import webql/vm/assembler/linker/plan as linker_plan
+import webql/vm/assembler/plan
+import webql/vm/assembler/scheduler/diagnostic
+import webql/vm/assembler/scheduler/schedule_plan
 
 pub fn schedule_plan_builds_executable_plan_test() {
   let linker_plan =

@@ -1,8 +1,8 @@
 import webql/document
-import webql/engine/system/linker/diagnostic
-import webql/engine/system/linker/link_plan
-import webql/engine/system/linker/plan
 import webql/graph
+import webql/vm/assembler/linker/diagnostic
+import webql/vm/assembler/linker/link_plan
+import webql/vm/assembler/linker/plan
 
 pub opaque type Linker {
   Linker(module: graph.Module)

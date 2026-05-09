@@ -1,6 +1,6 @@
-import webql/engine/system/linker/link_route
-import webql/engine/system/linker/plan
 import webql/graph
+import webql/vm/assembler/linker/link_route
+import webql/vm/assembler/linker/plan
 
 pub fn link_route_links_output_edges_test() {
   let edge =

@@ -2,8 +2,8 @@ import gleam/dict
 import gleam/dynamic
 import gleam/list
 import gleam/result
-import webql/engine/memory
-import webql/engine/system/plan
+import webql/vm/assembler/plan
+import webql/vm/interpreter/memory
 
 /// Stores initial plan parameters as root-level values.
 pub fn add_parameters(

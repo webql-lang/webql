@@ -1,20 +1,20 @@
 import gleam/dict
 import gleam/dynamic
 import webql/document
-import webql/engine/memory/kv
-import webql/engine/system/plan
-import webql/engine/system/traverser/diagnostic
-import webql/engine/system/traverser/traverse_batch
-import webql/engine/system/traverser/traverse_plan
+import webql/vm/assembler/plan
+import webql/vm/interpreter/diagnostic
+import webql/vm/interpreter/interpret_batch
+import webql/vm/interpreter/interpret_plan
+import webql/vm/interpreter/memory/kv
 
-pub fn traverse_batch_with_empty_batch_returns_progress_test() {
+pub fn interpret_batch_with_empty_batch_returns_progress_test() {
   let p = kv.new()
   let assert Ok(result) =
-    traverse_batch.traverse([], [], p, traverse_plan.traverse)
+    interpret_batch.interpret([], [], p, interpret_plan.interpret)
   assert result == p
 }
 
-pub fn traverse_batch_short_circuits_on_error_test() {
+pub fn interpret_batch_short_circuits_on_error_test() {
   let failing_step =
     plan.Step(
       name: "fail",
@@ -37,11 +37,11 @@ pub fn traverse_batch_short_circuits_on_error_test() {
     step: name,
     message:,
   ))) =
-    traverse_batch.traverse(
+    interpret_batch.interpret(
       [failing_step, ok_step],
       [],
       kv.new(),
-      traverse_plan.traverse,
+      interpret_plan.interpret,
     )
 
   assert name == "fail"

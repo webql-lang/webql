@@ -1,9 +1,9 @@
 import gleam/dict
 import webql/document
-import webql/engine/system/linker
-import webql/engine/system/linker/diagnostic
-import webql/engine/system/linker/plan
 import webql/graph
+import webql/vm/assembler/linker
+import webql/vm/assembler/linker/diagnostic
+import webql/vm/assembler/linker/plan
 
 pub fn linker_links_graph_module_test() {
   let module =

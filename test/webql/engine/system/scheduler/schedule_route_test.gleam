@@ -1,8 +1,8 @@
 import gleam/dict
 import gleam/dynamic
 import gleam/set
-import webql/engine/system/linker/plan
-import webql/engine/system/scheduler/schedule_route
+import webql/vm/assembler/linker/plan
+import webql/vm/assembler/scheduler/schedule_route
 
 pub fn schedule_route_builds_node_dependencies_test() {
   let dependencies =

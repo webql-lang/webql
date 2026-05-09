@@ -1,8 +1,8 @@
 import gleam/dict
 import webql/document
-import webql/engine/system/linker/plan as linker_plan
-import webql/engine/system/plan
-import webql/engine/system/scheduler
+import webql/vm/assembler/linker/plan as linker_plan
+import webql/vm/assembler/plan
+import webql/vm/assembler/scheduler
 
 pub fn scheduler_returns_executable_plan_test() {
   let resolver = document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })

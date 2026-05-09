@@ -1,11 +1,11 @@
 import gleam/dict
 import gleam/result
 import webql/document
-import webql/engine/system/linker/diagnostic
-import webql/engine/system/linker/link_node
-import webql/engine/system/linker/link_route
-import webql/engine/system/linker/plan
 import webql/graph
+import webql/vm/assembler/linker/diagnostic
+import webql/vm/assembler/linker/link_node
+import webql/vm/assembler/linker/link_route
+import webql/vm/assembler/linker/plan
 
 /// Links a graph module into a scheduler plan.
 pub fn link(

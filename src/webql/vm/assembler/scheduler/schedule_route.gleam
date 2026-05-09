@@ -2,7 +2,7 @@ import gleam/bool
 import gleam/dict
 import gleam/option
 import gleam/set
-import webql/engine/system/linker/plan
+import webql/vm/assembler/linker/plan
 
 /// Adds a scheduled dependency for a route.
 pub fn schedule(

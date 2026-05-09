@@ -1,11 +1,11 @@
 import webql/document
-import webql/engine/memory/kv
-import webql/engine/system/plan
-import webql/engine/system/traverser/diagnostic
-import webql/engine/system/traverser/traverse_plan
-import webql/engine/system/traverser/traverse_step
+import webql/vm/assembler/plan
+import webql/vm/interpreter/diagnostic
+import webql/vm/interpreter/interpret_plan
+import webql/vm/interpreter/interpret_step
+import webql/vm/interpreter/memory/kv
 
-pub fn traverse_step_reports_runtime_error_test() {
+pub fn interpret_step_reports_runtime_error_test() {
   let step =
     plan.Step(
       name: "fail",
@@ -17,13 +17,13 @@ pub fn traverse_step_reports_runtime_error_test() {
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.RuntimeError(
     step: name,
     message:,
-  ))) = traverse_step.traverse(step, [], kv.new(), traverse_plan.traverse)
+  ))) = interpret_step.interpret(step, [], kv.new(), interpret_plan.interpret)
 
   assert name == "fail"
   assert message == "oops"
 }
 
-pub fn traverse_step_reports_missing_step_input_test() {
+pub fn interpret_step_reports_missing_step_input_test() {
   let step =
     plan.Step(
       name: "op",
@@ -36,7 +36,8 @@ pub fn traverse_step_reports_missing_step_input_test() {
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
     step: s,
-  ))) = traverse_step.traverse(step, routes, kv.new(), traverse_plan.traverse)
+  ))) =
+    interpret_step.interpret(step, routes, kv.new(), interpret_plan.interpret)
 
   assert s == "op"
 }

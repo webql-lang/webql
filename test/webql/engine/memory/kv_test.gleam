@@ -1,6 +1,6 @@
 import gleam/dynamic
 import gleam/dynamic/decode
-import webql/engine/memory/kv
+import webql/vm/interpreter/memory/kv
 
 pub fn kv_gets_set_value_by_path_test() {
   let memory = kv.set(kv.new(), ["user", "name"], dynamic.string("Aydan"))

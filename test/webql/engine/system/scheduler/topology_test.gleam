@@ -1,8 +1,8 @@
 import gleam/dict
 import gleam/list
 import gleam/set
-import webql/engine/system/scheduler/diagnostic
-import webql/engine/system/scheduler/topology
+import webql/vm/assembler/scheduler/diagnostic
+import webql/vm/assembler/scheduler/topology
 
 pub fn topology_orders_dependency_batches_test() {
   let graph =

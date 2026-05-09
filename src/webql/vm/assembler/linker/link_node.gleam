@@ -1,8 +1,8 @@
 import gleam/dict
 import gleam/result
 import webql/document
-import webql/engine/system/linker/diagnostic
-import webql/engine/system/linker/plan
+import webql/vm/assembler/linker/diagnostic
+import webql/vm/assembler/linker/plan
 
 /// Links an external node into a scheduler resolver.
 pub fn link(

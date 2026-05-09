@@ -1,7 +1,7 @@
 import gleam/dynamic
 import gleam/list
-import webql/engine/system/linker/plan
 import webql/graph
+import webql/vm/assembler/linker/plan
 
 /// Links graph edges into scheduler routes.
 pub fn link(edges: List(graph.Edge)) -> List(plan.Route) {

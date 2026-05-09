@@ -1,9 +1,9 @@
 import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
-import webql/engine/memory/kv
-import webql/engine/system/plan
-import webql/engine/system/progress
+import webql/vm/assembler/plan
+import webql/vm/interpreter/memory/kv
+import webql/vm/interpreter/progress
 
 pub fn progress_gets_constant_returns_test() {
   let assert Ok(returns) =

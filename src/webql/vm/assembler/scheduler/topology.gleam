@@ -2,7 +2,7 @@ import gleam/bool
 import gleam/dict
 import gleam/list
 import gleam/set
-import webql/engine/system/scheduler/diagnostic
+import webql/vm/assembler/scheduler/diagnostic
 
 pub type Graph {
   Graph(dependencies: dict.Dict(String, set.Set(String)))

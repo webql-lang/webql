@@ -2,12 +2,12 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/document
-import webql/engine/memory/kv
-import webql/engine/system/plan
-import webql/engine/system/traverser/diagnostic
-import webql/engine/system/traverser/traverse_plan
+import webql/vm/assembler/plan
+import webql/vm/interpreter/diagnostic
+import webql/vm/interpreter/interpret_plan
+import webql/vm/interpreter/memory/kv
 
-pub fn traverse_plan_routes_parameter_to_output_test() {
+pub fn interpret_plan_routes_parameter_to_output_test() {
   let p =
     plan.Plan(
       routes: [plan.Route(from: ["input"], to: ["output"])],
@@ -15,7 +15,7 @@ pub fn traverse_plan_routes_parameter_to_output_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(
+    interpret_plan.interpret(
       p,
       kv.new(),
       dict.from_list([#("input", dynamic.int(7))]),
@@ -25,20 +25,20 @@ pub fn traverse_plan_routes_parameter_to_output_test() {
   assert decode.run(value, decode.int) == Ok(7)
 }
 
-pub fn traverse_plan_routes_constant_to_output_test() {
+pub fn interpret_plan_routes_constant_to_output_test() {
   let p =
     plan.Plan(
       routes: [plan.Constant(value: dynamic.int(99), to: ["output"])],
       batches: [],
     )
 
-  let assert Ok(returns) = traverse_plan.traverse(p, kv.new(), dict.new())
+  let assert Ok(returns) = interpret_plan.interpret(p, kv.new(), dict.new())
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(99)
 }
 
-pub fn traverse_plan_runs_step_and_returns_output_test() {
+pub fn interpret_plan_runs_step_and_returns_output_test() {
   let step =
     plan.Step(
       name: "inc",
@@ -61,7 +61,7 @@ pub fn traverse_plan_runs_step_and_returns_output_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(
+    interpret_plan.interpret(
       p,
       kv.new(),
       dict.from_list([#("input", dynamic.int(4))]),
@@ -71,7 +71,7 @@ pub fn traverse_plan_runs_step_and_returns_output_test() {
   assert decode.run(value, decode.int) == Ok(5)
 }
 
-pub fn traverse_plan_runs_multiple_batches_in_sequence_test() {
+pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
   let step_a =
     plan.Step(
       name: "double",
@@ -110,7 +110,7 @@ pub fn traverse_plan_runs_multiple_batches_in_sequence_test() {
     )
 
   let assert Ok(returns) =
-    traverse_plan.traverse(
+    interpret_plan.interpret(
       p,
       kv.new(),
       dict.from_list([#("input", dynamic.int(3))]),
@@ -120,7 +120,7 @@ pub fn traverse_plan_runs_multiple_batches_in_sequence_test() {
   assert decode.run(value, decode.int) == Ok(7)
 }
 
-pub fn traverse_plan_reports_missing_return_test() {
+pub fn interpret_plan_reports_missing_return_test() {
   let p =
     plan.Plan(
       routes: [plan.Route(from: ["missing"], to: ["output"])],
@@ -128,5 +128,5 @@ pub fn traverse_plan_reports_missing_return_test() {
     )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn)) =
-    traverse_plan.traverse(p, kv.new(), dict.new())
+    interpret_plan.interpret(p, kv.new(), dict.new())
 }

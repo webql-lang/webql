@@ -2,10 +2,10 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/document
-import webql/engine/memory/kv
-import webql/engine/system/plan
-import webql/engine/system/traverser
-import webql/engine/system/traverser/diagnostic
+import webql/vm/assembler/plan
+import webql/vm/interpreter
+import webql/vm/interpreter/diagnostic
+import webql/vm/interpreter/memory/kv
 
 fn add_resolver() {
   document.Resolver(resolver: fn(inputs) {
@@ -25,7 +25,7 @@ fn identity_resolver() {
   })
 }
 
-pub fn traverser_executes_plan_test() {
+pub fn interpreter_executes_plan_test() {
   let plan =
     plan.Plan(
       routes: [
@@ -45,8 +45,8 @@ pub fn traverser_executes_plan_test() {
 
   let assert Ok(outputs) =
     plan
-    |> traverser.new()
-    |> traverser.traverse(
+    |> interpreter.new()
+    |> interpreter.interpret(
       kv.new(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
@@ -55,7 +55,7 @@ pub fn traverser_executes_plan_test() {
   assert decode.run(output, decode.int) == Ok(3)
 }
 
-pub fn traverser_executes_inline_plans_test() {
+pub fn interpreter_executes_inline_plans_test() {
   let inline_plan =
     plan.Plan(
       routes: [
@@ -91,8 +91,8 @@ pub fn traverser_executes_inline_plans_test() {
 
   let assert Ok(outputs) =
     plan
-    |> traverser.new()
-    |> traverser.traverse(
+    |> interpreter.new()
+    |> interpreter.interpret(
       kv.new(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
@@ -101,7 +101,7 @@ pub fn traverser_executes_inline_plans_test() {
   assert decode.run(output, decode.int) == Ok(3)
 }
 
-pub fn traverser_reports_missing_inputs_test() {
+pub fn interpreter_reports_missing_inputs_test() {
   let plan =
     plan.Plan(
       routes: [
@@ -119,14 +119,14 @@ pub fn traverser_reports_missing_inputs_test() {
     )
 
   assert plan
-    |> traverser.new()
-    |> traverser.traverse(kv.new(), dict.new())
+    |> interpreter.new()
+    |> interpreter.interpret(kv.new(), dict.new())
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: "identity")),
     )
 }
 
-pub fn traverser_reports_missing_outputs_test() {
+pub fn interpreter_reports_missing_outputs_test() {
   let plan =
     plan.Plan(
       routes: [plan.Route(from: ["missing"], to: ["output"])],
@@ -134,7 +134,7 @@ pub fn traverser_reports_missing_outputs_test() {
     )
 
   assert plan
-    |> traverser.new()
-    |> traverser.traverse(kv.new(), dict.new())
+    |> interpreter.new()
+    |> interpreter.interpret(kv.new(), dict.new())
     == Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn))
 }

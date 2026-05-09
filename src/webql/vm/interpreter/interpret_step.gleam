@@ -2,20 +2,20 @@ import gleam/dict
 import gleam/dynamic
 import gleam/result
 import webql/document
-import webql/engine/memory
-import webql/engine/system/plan
-import webql/engine/system/progress
-import webql/engine/system/traverser/diagnostic
+import webql/vm/assembler/plan
+import webql/vm/interpreter/diagnostic
+import webql/vm/interpreter/memory
+import webql/vm/interpreter/progress
 
 /// Runs a step in a batch.
-pub fn traverse(
+pub fn interpret(
   step: plan.Step,
   routes: List(plan.Route),
   memory: memory.Memory(a, b),
-  traverse_plan,
+  interpret_plan,
 ) {
   case progress.get_inputs(memory, step.name, routes) {
-    Ok(inputs) -> traverse_step(step, inputs, memory, traverse_plan)
+    Ok(inputs) -> interpret_step(step, inputs, memory, interpret_plan)
     Error(_nil) ->
       Error(
         diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: step.name)),
@@ -25,26 +25,26 @@ pub fn traverse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn traverse_step(
+fn interpret_step(
   step: plan.Step,
   inputs: dict.Dict(String, dynamic.Dynamic),
   memory: memory.Memory(a, b),
-  traverse_plan,
+  interpret_plan,
 ) {
   let plan.Step(name:, resolver:) = step
 
   case resolver {
     plan.FunctionResolver(function:) ->
-      traverse_resolver(name, function, inputs, memory)
+      interpret_resolver(name, function, inputs, memory)
 
     plan.InlineResolver(plan:) -> {
-      use outputs <- result.try(traverse_plan(plan, memory.new(), inputs))
+      use outputs <- result.try(interpret_plan(plan, memory.new(), inputs))
       Ok(progress.add_outputs(memory, name, outputs))
     }
   }
 }
 
-fn traverse_resolver(
+fn interpret_resolver(
   step: String,
   function: document.Resolver,
   inputs: dict.Dict(String, dynamic.Dynamic),
