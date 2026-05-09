@@ -1,8 +1,8 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_parameter
 import webql/lang/compiler/source
@@ -11,12 +11,9 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
   let schema = environment.add_typename(environment.new(), "Int")
 
   let parameter_to_resolve =
-    parser_ast.Parameter(
+    ast.Parameter(
       name: "value",
-      typename: parser_ast.Typename(
-        name: "Int",
-        span: source.Span(start: 7, end: 10),
-      ),
+      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -29,9 +26,9 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
     )
 
   assert parameter
-    == ast.Parameter(
+    == hir.Parameter(
       name: "value",
-      typename: ast.Typename(
+      typename: hir.Typename(
         name: "Int",
         reference: reference.Typename(0),
         span: source.Span(start: 7, end: 10),
@@ -45,12 +42,9 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
   let schema = environment.new()
 
   let parameter_to_resolve =
-    parser_ast.Parameter(
+    ast.Parameter(
       name: "value",
-      typename: parser_ast.Typename(
-        name: "Int",
-        span: source.Span(start: 7, end: 10),
-      ),
+      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -73,12 +67,9 @@ pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
   let context = context.add_parameter(context.new(), "value")
 
   let parameter_to_resolve =
-    parser_ast.Parameter(
+    ast.Parameter(
       name: "value",
-      typename: parser_ast.Typename(
-        name: "Int",
-        span: source.Span(start: 7, end: 10),
-      ),
+      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 

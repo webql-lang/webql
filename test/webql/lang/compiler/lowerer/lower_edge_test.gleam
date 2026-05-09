@@ -1,18 +1,18 @@
 import webql/graph
+import webql/lang/compiler/hir
 import webql/lang/compiler/lowerer/lower_edge
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 
 pub fn lower_port_edge_test() {
   let edge =
-    ast.Edge(
-      from: ast.PortOutput(
+    hir.Edge(
+      from: hir.PortOutput(
         path: ["m", "value"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 7),
       ),
-      to: ast.PortInput(
+      to: hir.PortInput(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 11, end: 15),
@@ -30,9 +30,9 @@ pub fn lower_port_edge_test() {
 
 pub fn lower_primitive_edge_output_test() {
   let edge =
-    ast.Edge(
-      from: ast.PrimitiveOutput(
-        value: ast.Int(
+    hir.Edge(
+      from: hir.PrimitiveOutput(
+        value: hir.Int(
           name: "Int",
           value: 1,
           span: source.Span(start: 0, end: 1),
@@ -40,7 +40,7 @@ pub fn lower_primitive_edge_output_test() {
         typename: reference.Typename(0),
         span: source.Span(start: 0, end: 1),
       ),
-      to: ast.PortInput(
+      to: hir.PortInput(
         path: ["m", "left"],
         reference: reference.Input(0),
         span: source.Span(start: 5, end: 11),

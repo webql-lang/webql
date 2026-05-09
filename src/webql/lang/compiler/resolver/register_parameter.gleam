@@ -1,10 +1,10 @@
 import webql/lang/compiler/context
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
 
 /// Registers a parameter.
 pub fn register(
   context: context.Context,
-  parameter: ast.Parameter,
+  parameter: hir.Parameter,
 ) -> context.Context {
   context
   |> context.add_parameter(parameter.name)

@@ -1,15 +1,15 @@
 import gleam/dict
 import webql/lang/compiler/context
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/register_parameter
 import webql/lang/compiler/source
 
 pub fn register_registers_parameter_and_output_test() {
   let parameter =
-    ast.Parameter(
+    hir.Parameter(
       name: "in",
-      typename: ast.Typename(
+      typename: hir.Typename(
         name: "Int",
         reference: reference.Typename(0),
         span: source.Span(start: 4, end: 7),

@@ -1,10 +1,10 @@
 import webql/lang/compiler/context
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
 
 /// Registers a definition.
 pub fn register(
   context: context.Context,
-  definition: ast.Definition,
+  definition: hir.Definition,
   sub_context: context.Context,
 ) -> context.Context {
   context

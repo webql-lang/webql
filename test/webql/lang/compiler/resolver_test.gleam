@@ -1,9 +1,9 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment as schema
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
 import webql/lang/compiler/resolver
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/source
 
@@ -12,13 +12,13 @@ pub fn resolve_module_through_public_entrypoint_test() {
   let context = context.new()
 
   let module_to_resolve =
-    parser_ast.Module(
-      operation: parser_ast.Operation(
+    ast.Module(
+      operation: ast.Operation(
         parameters: [],
         returns: [
-          parser_ast.Return(
+          ast.Return(
             name: "out",
-            typename: parser_ast.Typename(
+            typename: ast.Typename(
               name: "Int",
               span: source.Span(start: 8, end: 11),
             ),
@@ -28,16 +28,16 @@ pub fn resolve_module_through_public_entrypoint_test() {
         definitions: [],
         bindings: [],
         edges: [
-          parser_ast.Edge(
-            from: parser_ast.PrimitiveOutput(
-              value: parser_ast.Int(
+          ast.Edge(
+            from: ast.PrimitiveOutput(
+              value: ast.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
               ),
               span: source.Span(start: 15, end: 16),
             ),
-            to: parser_ast.PortInput(
+            to: ast.PortInput(
               path: ["out"],
               span: source.Span(start: 20, end: 24),
             ),
@@ -55,13 +55,13 @@ pub fn resolve_module_through_public_entrypoint_test() {
     |> resolver.resolve(schema, context)
 
   assert module
-    == ast.Module(
-      operation: ast.Operation(
+    == hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [
-          ast.Return(
+          hir.Return(
             name: "out",
-            typename: ast.Typename(
+            typename: hir.Typename(
               name: "Int",
               reference: reference.Typename(0),
               span: source.Span(start: 8, end: 11),
@@ -73,9 +73,9 @@ pub fn resolve_module_through_public_entrypoint_test() {
         definitions: [],
         bindings: [],
         edges: [
-          ast.Edge(
-            from: ast.PrimitiveOutput(
-              value: ast.Int(
+          hir.Edge(
+            from: hir.PrimitiveOutput(
+              value: hir.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
@@ -83,7 +83,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
               typename: reference.Typename(0),
               span: source.Span(start: 15, end: 16),
             ),
-            to: ast.PortInput(
+            to: hir.PortInput(
               path: ["out"],
               reference: reference.Input(0),
               span: source.Span(start: 20, end: 24),
@@ -104,13 +104,13 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
   let context = context.new()
 
   let module_to_resolve =
-    parser_ast.Module(
-      operation: parser_ast.Operation(
+    ast.Module(
+      operation: ast.Operation(
         parameters: [],
         returns: [
-          parser_ast.Return(
+          ast.Return(
             name: "out",
-            typename: parser_ast.Typename(
+            typename: ast.Typename(
               name: "Int",
               span: source.Span(start: 8, end: 11),
             ),
@@ -120,31 +120,31 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
         definitions: [],
         bindings: [],
         edges: [
-          parser_ast.Edge(
-            from: parser_ast.PrimitiveOutput(
-              value: parser_ast.Int(
+          ast.Edge(
+            from: ast.PrimitiveOutput(
+              value: ast.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
               ),
               span: source.Span(start: 15, end: 16),
             ),
-            to: parser_ast.PortInput(
+            to: ast.PortInput(
               path: ["out"],
               span: source.Span(start: 20, end: 24),
             ),
             span: source.Span(start: 15, end: 24),
           ),
-          parser_ast.Edge(
-            from: parser_ast.PrimitiveOutput(
-              value: parser_ast.Int(
+          ast.Edge(
+            from: ast.PrimitiveOutput(
+              value: ast.Int(
                 name: "Int",
                 value: 2,
                 span: source.Span(start: 25, end: 26),
               ),
               span: source.Span(start: 25, end: 26),
             ),
-            to: parser_ast.PortInput(
+            to: ast.PortInput(
               path: ["out"],
               span: source.Span(start: 30, end: 34),
             ),

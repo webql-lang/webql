@@ -1,6 +1,6 @@
 import webql/lang/compiler/context
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 import webql/lang/compiler/typechecker/diagnostic
 import webql/lang/compiler/typechecker/typecheck_edge
@@ -10,9 +10,9 @@ pub fn typecheck_accepts_matching_primitive_edge_test() {
     context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let edge =
-    ast.Edge(
-      from: ast.PrimitiveOutput(
-        value: ast.String(
+    hir.Edge(
+      from: hir.PrimitiveOutput(
+        value: hir.String(
           name: "String",
           value: "ok",
           span: source.Span(start: 0, end: 4),
@@ -20,7 +20,7 @@ pub fn typecheck_accepts_matching_primitive_edge_test() {
         typename: reference.Typename(1),
         span: source.Span(start: 0, end: 4),
       ),
-      to: ast.PortInput(
+      to: hir.PortInput(
         path: ["string"],
         reference: reference.Input(0),
         span: source.Span(start: 8, end: 15),
@@ -37,9 +37,9 @@ pub fn typecheck_rejects_mismatched_primitive_edge_test() {
     context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let edge =
-    ast.Edge(
-      from: ast.PrimitiveOutput(
-        value: ast.Int(
+    hir.Edge(
+      from: hir.PrimitiveOutput(
+        value: hir.Int(
           name: "Int",
           value: 1,
           span: source.Span(start: 0, end: 1),
@@ -47,7 +47,7 @@ pub fn typecheck_rejects_mismatched_primitive_edge_test() {
         typename: reference.Typename(0),
         span: source.Span(start: 0, end: 1),
       ),
-      to: ast.PortInput(
+      to: hir.PortInput(
         path: ["string"],
         reference: reference.Input(0),
         span: source.Span(start: 5, end: 12),
@@ -73,13 +73,13 @@ pub fn typecheck_accepts_matching_port_edge_test() {
     |> context.add_input(["out"], reference.Typename(0))
 
   let edge =
-    ast.Edge(
-      from: ast.PortOutput(
+    hir.Edge(
+      from: hir.PortOutput(
         path: ["math", "out"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 8),
       ),
-      to: ast.PortInput(
+      to: hir.PortInput(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 12, end: 16),

@@ -1,8 +1,8 @@
 import gleam/dict
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/register_binding
 import webql/lang/compiler/source
 
@@ -18,9 +18,9 @@ pub fn register_registers_node_binding_ports_from_schema_test() {
     ])
 
   let binding =
-    ast.Binding(
+    hir.Binding(
       name: "math",
-      value: ast.NodeValue(
+      value: hir.NodeValue(
         name: "Math",
         reference: reference.Node(0),
         span: source.Span(start: 7, end: 11),

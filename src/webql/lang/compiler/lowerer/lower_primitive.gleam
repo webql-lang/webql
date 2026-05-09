@@ -1,11 +1,11 @@
 import webql/graph
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
 
 /// Lowers a resolved primitive into an IR primitive.
-pub fn lower(primitive: ast.Primitive) -> graph.Primitive {
+pub fn lower(primitive: hir.Primitive) -> graph.Primitive {
   case primitive {
-    ast.Int(value:, ..) -> graph.IntPrimitive(value:)
-    ast.Float(value:, ..) -> graph.FloatPrimitive(value:)
-    ast.String(value:, ..) -> graph.StringPrimitive(value:)
+    hir.Int(value:, ..) -> graph.IntPrimitive(value:)
+    hir.Float(value:, ..) -> graph.FloatPrimitive(value:)
+    hir.String(value:, ..) -> graph.StringPrimitive(value:)
   }
 }

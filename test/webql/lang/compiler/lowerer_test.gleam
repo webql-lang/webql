@@ -1,18 +1,18 @@
 import webql/graph
+import webql/lang/compiler/hir
 import webql/lang/compiler/lowerer
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 
 pub fn lowerer_lowers_module_test() {
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [
-          ast.Return(
+          hir.Return(
             name: "out",
-            typename: ast.Typename(
+            typename: hir.Typename(
               name: "Int",
               reference: reference.Typename(0),
               span: source.Span(start: 8, end: 11),

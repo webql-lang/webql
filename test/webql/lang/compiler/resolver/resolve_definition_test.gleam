@@ -1,8 +1,8 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_definition
 import webql/lang/compiler/resolver/resolve_operation
@@ -12,13 +12,13 @@ pub fn resolve_definition_resolves_nested_operation_test() {
   let schema = environment.add_typename(environment.new(), "Int")
 
   let definition_to_resolve =
-    parser_ast.Definition(
+    ast.Definition(
       name: "Inner",
-      operation: parser_ast.Operation(
+      operation: ast.Operation(
         parameters: [
-          parser_ast.Parameter(
+          ast.Parameter(
             name: "in",
-            typename: parser_ast.Typename(
+            typename: ast.Typename(
               name: "Int",
               span: source.Span(start: 15, end: 18),
             ),
@@ -26,9 +26,9 @@ pub fn resolve_definition_resolves_nested_operation_test() {
           ),
         ],
         returns: [
-          parser_ast.Return(
+          ast.Return(
             name: "out",
-            typename: parser_ast.Typename(
+            typename: ast.Typename(
               name: "Int",
               span: source.Span(start: 27, end: 30),
             ),
@@ -38,12 +38,12 @@ pub fn resolve_definition_resolves_nested_operation_test() {
         definitions: [],
         bindings: [],
         edges: [
-          parser_ast.Edge(
-            from: parser_ast.PortOutput(
+          ast.Edge(
+            from: ast.PortOutput(
               path: ["in"],
               span: source.Span(start: 34, end: 37),
             ),
-            to: parser_ast.PortInput(
+            to: ast.PortInput(
               path: ["out"],
               span: source.Span(start: 41, end: 45),
             ),
@@ -65,13 +65,13 @@ pub fn resolve_definition_resolves_nested_operation_test() {
     )
 
   assert definition
-    == ast.Definition(
+    == hir.Definition(
       name: "Inner",
-      operation: ast.Operation(
+      operation: hir.Operation(
         parameters: [
-          ast.Parameter(
+          hir.Parameter(
             name: "in",
-            typename: ast.Typename(
+            typename: hir.Typename(
               name: "Int",
               reference: reference.Typename(0),
               span: source.Span(start: 15, end: 18),
@@ -81,9 +81,9 @@ pub fn resolve_definition_resolves_nested_operation_test() {
           ),
         ],
         returns: [
-          ast.Return(
+          hir.Return(
             name: "out",
-            typename: ast.Typename(
+            typename: hir.Typename(
               name: "Int",
               reference: reference.Typename(0),
               span: source.Span(start: 27, end: 30),
@@ -95,13 +95,13 @@ pub fn resolve_definition_resolves_nested_operation_test() {
         definitions: [],
         bindings: [],
         edges: [
-          ast.Edge(
-            from: ast.PortOutput(
+          hir.Edge(
+            from: hir.PortOutput(
               path: ["in"],
               reference: reference.Output(0),
               span: source.Span(start: 34, end: 37),
             ),
-            to: ast.PortInput(
+            to: hir.PortInput(
               path: ["out"],
               reference: reference.Input(0),
               span: source.Span(start: 41, end: 45),
@@ -121,9 +121,9 @@ pub fn resolve_definition_returns_duplicate_definition_test() {
   let schema = environment.add_node(environment.new(), "Inner")
 
   let definition_to_resolve =
-    parser_ast.Definition(
+    ast.Definition(
       name: "Inner",
-      operation: parser_ast.Operation(
+      operation: ast.Operation(
         parameters: [],
         returns: [],
         definitions: [],
@@ -154,9 +154,9 @@ pub fn resolve_definition_returns_duplicate_definition_for_schema_node_test() {
   let schema = environment.add_node(environment.new(), "Math")
 
   let definition_to_resolve =
-    parser_ast.Definition(
+    ast.Definition(
       name: "Math",
-      operation: parser_ast.Operation(
+      operation: ast.Operation(
         parameters: [],
         returns: [],
         definitions: [],

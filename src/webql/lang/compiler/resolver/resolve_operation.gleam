@@ -2,8 +2,8 @@ import gleam/list
 import gleam/result
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/register_binding
 import webql/lang/compiler/resolver/register_definiton
@@ -20,8 +20,8 @@ import webql/lang/compiler/resolver/resolve_return
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  operation: parser_ast.Operation,
-) -> Result(#(ast.Operation, context.Context), diagnostic.Diagnostic) {
+  operation: ast.Operation,
+) -> Result(#(hir.Operation, context.Context), diagnostic.Diagnostic) {
   use #(operation, context, _environment) <- result.try(resolve_body(
     environment,
     context,
@@ -35,12 +35,12 @@ pub fn resolve(
 fn resolve_body(
   environment: environment.Environment,
   context: context.Context,
-  operation: parser_ast.Operation,
+  operation: ast.Operation,
 ) -> Result(
-  #(ast.Operation, context.Context, environment.Environment),
+  #(hir.Operation, context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
-  let parser_ast.Operation(
+  let ast.Operation(
     parameters:,
     returns:,
     definitions:,
@@ -76,7 +76,7 @@ fn resolve_body(
   use #(edges, context) <- result.try(resolve_edges(environment, context, edges))
 
   Ok(#(
-    ast.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
+    hir.Operation(parameters:, returns:, definitions:, bindings:, edges:, span:),
     context,
     environment,
   ))
@@ -85,7 +85,7 @@ fn resolve_body(
 fn resolve_parameters(
   environment: environment.Environment,
   context: context.Context,
-  parameters: List(parser_ast.Parameter),
+  parameters: List(ast.Parameter),
 ) {
   case parameters {
     [parameter, ..rest] -> {
@@ -115,7 +115,7 @@ fn resolve_parameters(
 fn resolve_returns(
   environment: environment.Environment,
   context: context.Context,
-  returns: List(parser_ast.Return),
+  returns: List(ast.Return),
 ) {
   case returns {
     [return, ..rest] -> {
@@ -145,9 +145,9 @@ fn resolve_returns(
 fn resolve_definitions(
   environment: environment.Environment,
   context: context.Context,
-  definitions: List(parser_ast.Definition),
+  definitions: List(ast.Definition),
 ) -> Result(
-  #(List(ast.Definition), context.Context, environment.Environment),
+  #(List(hir.Definition), context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   case definitions {
@@ -180,7 +180,7 @@ fn resolve_definitions(
 
 fn register_definition_node(
   environment: environment.Environment,
-  definition: ast.Definition,
+  definition: hir.Definition,
 ) -> environment.Environment {
   let environment = environment.add_node(environment, definition.name)
   let assert Ok(node) = environment.get_node(environment, definition.name)
@@ -208,7 +208,7 @@ fn register_definition_node(
 fn resolve_bindings(
   environment: environment.Environment,
   context: context.Context,
-  bindings: List(parser_ast.Binding),
+  bindings: List(ast.Binding),
 ) {
   case bindings {
     [binding, ..bindings] -> {
@@ -239,7 +239,7 @@ fn resolve_bindings(
 fn resolve_edges(
   environment: environment.Environment,
   context: context.Context,
-  edges: List(parser_ast.Edge),
+  edges: List(ast.Edge),
 ) {
   case edges {
     [edge, ..edges] -> {

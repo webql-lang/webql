@@ -1,16 +1,16 @@
 import webql/graph
+import webql/lang/compiler/hir
 import webql/lang/compiler/lowerer/lower_operation
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 
 pub fn lower_operation_test() {
   let operation =
-    ast.Operation(
+    hir.Operation(
       parameters: [
-        ast.Parameter(
+        hir.Parameter(
           name: "in",
-          typename: ast.Typename(
+          typename: hir.Typename(
             name: "Int",
             reference: reference.Typename(0),
             span: source.Span(start: 4, end: 7),
@@ -20,9 +20,9 @@ pub fn lower_operation_test() {
         ),
       ],
       returns: [
-        ast.Return(
+        hir.Return(
           name: "out",
-          typename: ast.Typename(
+          typename: hir.Typename(
             name: "Int",
             reference: reference.Typename(0),
             span: source.Span(start: 15, end: 18),
@@ -33,9 +33,9 @@ pub fn lower_operation_test() {
       ],
       definitions: [],
       bindings: [
-        ast.Binding(
+        hir.Binding(
           name: "m",
-          value: ast.NodeValue(
+          value: hir.NodeValue(
             name: "Math",
             reference: reference.Node(0),
             span: source.Span(start: 23, end: 27),
@@ -45,13 +45,13 @@ pub fn lower_operation_test() {
         ),
       ],
       edges: [
-        ast.Edge(
-          from: ast.PortOutput(
+        hir.Edge(
+          from: hir.PortOutput(
             path: ["m", "value"],
             reference: reference.Output(0),
             span: source.Span(start: 28, end: 35),
           ),
-          to: ast.PortInput(
+          to: hir.PortInput(
             path: ["out"],
             reference: reference.Input(0),
             span: source.Span(start: 39, end: 43),

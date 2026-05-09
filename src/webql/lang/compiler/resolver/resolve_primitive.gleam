@@ -1,11 +1,11 @@
-import webql/lang/compiler/parser/ast as parser_ast
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 
 /// Resolves a parser primitive into a resolver primitive.
-pub fn resolve(value: parser_ast.Primitive) -> ast.Primitive {
+pub fn resolve(value: ast.Primitive) -> hir.Primitive {
   case value {
-    parser_ast.Int(name:, value:, span:) -> ast.Int(name:, value:, span:)
-    parser_ast.Float(name:, value:, span:) -> ast.Float(name:, value:, span:)
-    parser_ast.String(name:, value:, span:) -> ast.String(name:, value:, span:)
+    ast.Int(name:, value:, span:) -> hir.Int(name:, value:, span:)
+    ast.Float(name:, value:, span:) -> hir.Float(name:, value:, span:)
+    ast.String(name:, value:, span:) -> hir.String(name:, value:, span:)
   }
 }

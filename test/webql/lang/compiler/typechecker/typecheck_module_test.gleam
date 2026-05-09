@@ -1,6 +1,6 @@
 import webql/lang/compiler/context
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 import webql/lang/compiler/typechecker/diagnostic
 import webql/lang/compiler/typechecker/typecheck_module
@@ -10,16 +10,16 @@ pub fn typecheck_accepts_matching_edge_types_test() {
     context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [],
         bindings: [],
         edges: [
-          ast.Edge(
-            from: ast.PrimitiveOutput(
-              value: ast.String(
+          hir.Edge(
+            from: hir.PrimitiveOutput(
+              value: hir.String(
                 name: "String",
                 value: "ok",
                 span: source.Span(start: 0, end: 4),
@@ -27,7 +27,7 @@ pub fn typecheck_accepts_matching_edge_types_test() {
               typename: reference.Typename(1),
               span: source.Span(start: 0, end: 4),
             ),
-            to: ast.PortInput(
+            to: hir.PortInput(
               path: ["string"],
               reference: reference.Input(0),
               span: source.Span(start: 8, end: 15),
@@ -50,16 +50,16 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
     context.add_input(context.new(), ["string"], reference.Typename(1))
 
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [],
         bindings: [],
         edges: [
-          ast.Edge(
-            from: ast.PrimitiveOutput(
-              value: ast.Int(
+          hir.Edge(
+            from: hir.PrimitiveOutput(
+              value: hir.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 0, end: 1),
@@ -67,7 +67,7 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
               typename: reference.Typename(0),
               span: source.Span(start: 0, end: 1),
             ),
-            to: ast.PortInput(
+            to: hir.PortInput(
               path: ["string"],
               reference: reference.Input(0),
               span: source.Span(start: 5, end: 12),
@@ -102,22 +102,22 @@ pub fn typecheck_rejects_nested_definition_mismatch_test() {
     context.add_context(context.new(), reference.Definition(0), nested_context)
 
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [
-          ast.Definition(
+          hir.Definition(
             name: "Inner",
-            operation: ast.Operation(
+            operation: hir.Operation(
               parameters: [],
               returns: [],
               definitions: [],
               bindings: [],
               edges: [
-                ast.Edge(
-                  from: ast.PrimitiveOutput(
-                    value: ast.Int(
+                hir.Edge(
+                  from: hir.PrimitiveOutput(
+                    value: hir.Int(
                       name: "Int",
                       value: 1,
                       span: source.Span(start: 0, end: 1),
@@ -125,7 +125,7 @@ pub fn typecheck_rejects_nested_definition_mismatch_test() {
                     typename: reference.Typename(0),
                     span: source.Span(start: 0, end: 1),
                   ),
-                  to: ast.PortInput(
+                  to: hir.PortInput(
                     path: ["string"],
                     reference: reference.Input(0),
                     span: source.Span(start: 5, end: 12),
@@ -168,22 +168,22 @@ pub fn typecheck_accepts_matching_nested_definition_test() {
     context.add_context(context.new(), reference.Definition(0), nested_context)
 
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [
-          ast.Definition(
+          hir.Definition(
             name: "Inner",
-            operation: ast.Operation(
+            operation: hir.Operation(
               parameters: [],
               returns: [],
               definitions: [],
               bindings: [],
               edges: [
-                ast.Edge(
-                  from: ast.PrimitiveOutput(
-                    value: ast.String(
+                hir.Edge(
+                  from: hir.PrimitiveOutput(
+                    value: hir.String(
                       name: "String",
                       value: "ok",
                       span: source.Span(start: 0, end: 4),
@@ -191,7 +191,7 @@ pub fn typecheck_accepts_matching_nested_definition_test() {
                     typename: reference.Typename(1),
                     span: source.Span(start: 0, end: 4),
                   ),
-                  to: ast.PortInput(
+                  to: hir.PortInput(
                     path: ["string"],
                     reference: reference.Input(0),
                     span: source.Span(start: 8, end: 15),
