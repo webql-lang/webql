@@ -1,27 +1,32 @@
 import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
+import gleam/list
 import webql/document
 import webql/engine/assembler/plan
 import webql/engine/interpreter
 import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/memory/kv
+import webql/engine/interpreter/runtime as interpreter_runtime
+import webql/resolution
 
 fn add_resolver() {
   document.Resolver(resolver: fn(inputs) {
+    let inputs = decode_inputs(inputs)
     let assert Ok(l) = dict.get(inputs, "l")
     let assert Ok(r) = dict.get(inputs, "r")
     let assert Ok(l) = decode.run(l, decode.int)
     let assert Ok(r) = decode.run(r, decode.int)
 
-    Ok(dict.from_list([#("value", dynamic.int(l + r))]))
+    ok(dict.from_list([#("value", dynamic.int(l + r))]))
   })
 }
 
 fn identity_resolver() {
   document.Resolver(resolver: fn(inputs) {
+    let inputs = decode_inputs(inputs)
     let assert Ok(value) = dict.get(inputs, "value")
-    Ok(dict.from_list([#("value", value)]))
+    ok(dict.from_list([#("value", value)]))
   })
 }
 
@@ -48,8 +53,11 @@ pub fn interpreter_executes_plan_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       kv.new(),
+      runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
+    |> unwrap()
+  let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
@@ -94,11 +102,59 @@ pub fn interpreter_executes_inline_plans_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       kv.new(),
+      runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
+    |> unwrap()
+  let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
+}
+
+pub fn interpreter_keeps_inline_memory_isolated_test() {
+  let inline_plan =
+    plan.Plan(
+      routes: [plan.Route(from: ["value"], to: ["normalized"])],
+      batches: [],
+    )
+
+  let plan =
+    plan.Plan(
+      routes: [
+        plan.Route(from: ["input"], to: ["normalize", "value"]),
+        plan.Route(from: ["normalize", "normalized"], to: ["output"]),
+        plan.Route(from: ["value"], to: ["outer"]),
+      ],
+      batches: [
+        plan.Batch(batch: [
+          plan.Step(
+            name: "normalize",
+            resolver: plan.InlineResolver(plan: inline_plan),
+          ),
+        ]),
+      ],
+    )
+
+  let assert Ok(outputs) =
+    plan
+    |> interpreter.new()
+    |> interpreter.interpret(
+      kv.new(),
+      runtime(),
+      dict.from_list([
+        #("input", dynamic.int(2)),
+        #("value", dynamic.int(100)),
+      ]),
+    )
+    |> unwrap()
+  let outputs = decode_inputs(outputs)
+
+  let assert Ok(output) = dict.get(outputs, "output")
+  let assert Ok(outer) = dict.get(outputs, "outer")
+
+  assert decode.run(output, decode.int) == Ok(2)
+  assert decode.run(outer, decode.int) == Ok(100)
 }
 
 pub fn interpreter_reports_missing_inputs_test() {
@@ -120,7 +176,8 @@ pub fn interpreter_reports_missing_inputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(kv.new(), dict.new())
+    |> interpreter.interpret(kv.new(), runtime(), dict.new())
+    |> unwrap()
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
         step: "identity",
@@ -138,10 +195,87 @@ pub fn interpreter_reports_missing_outputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(kv.new(), dict.new())
+    |> interpreter.interpret(kv.new(), runtime(), dict.new())
+    |> unwrap()
     == Error(
       diagnostic.Diagnostic(
         kind: diagnostic.MissingReturn(message: dynamic.nil()),
       ),
     )
+}
+
+fn runtime() {
+  interpreter_runtime.Runtime(
+    batches: run_batches,
+    steps: run_steps,
+    resolve: resolve,
+    nested: continue,
+    complete: continue,
+  )
+}
+
+fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
+  values
+  |> encode()
+  |> Ok()
+  |> resolution.Done()
+}
+
+fn encode(values: dict.Dict(String, dynamic.Dynamic)) {
+  values
+  |> dict.to_list()
+  |> list.map(fn(entry) {
+    let #(key, value) = entry
+    #(dynamic.string(key), value)
+  })
+  |> dynamic.properties()
+}
+
+fn decode_inputs(inputs: dynamic.Dynamic) {
+  let assert Ok(inputs) =
+    decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+  inputs
+}
+
+fn unwrap(resolution) {
+  let assert resolution.Done(result) = resolution
+  result
+}
+
+fn run_batches(initial, batches) {
+  case batches {
+    [] -> resolution.Done(Ok(initial))
+    [batch, ..rest] -> {
+      case unwrap(batch(initial)) {
+        Ok(next) -> run_batches(next, rest)
+        Error(error) -> resolution.Done(Error(error))
+      }
+    }
+  }
+}
+
+fn run_steps(initial, steps, merge) {
+  case steps {
+    [] -> resolution.Done(Ok(initial))
+    [step, ..rest] -> {
+      case unwrap(step) {
+        Ok(next) -> run_steps(merge(initial, next), rest, merge)
+        Error(error) -> resolution.Done(Error(error))
+      }
+    }
+  }
+}
+
+fn resolve(resolution, next) {
+  resolution
+  |> unwrap()
+  |> next()
+  |> resolution.Done()
+}
+
+fn continue(resolution, next) {
+  case unwrap(resolution) {
+    Ok(value) -> resolution.Done(next(value))
+    Error(error) -> resolution.Done(Error(error))
+  }
 }

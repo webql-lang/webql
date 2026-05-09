@@ -10,7 +10,7 @@ import webql/resolution
 pub fn interpret(
   batch: List(plan.Step),
   routes: List(plan.Route),
-  runtime: runtime.Runtime(memory.Memory(storage), _, diagnostic.Diagnostic),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   memory: memory.Memory(storage),
   interpret_plan,
 ) -> resolution.Resolution(memory.Memory(storage), diagnostic.Diagnostic) {

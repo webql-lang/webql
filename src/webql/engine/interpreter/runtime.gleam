@@ -1,12 +1,8 @@
 import gleam/dynamic
 import webql/resolution
 
-pub type Batches(state, operation, error) =
-  fn(
-    state,
-    List(operation),
-    fn(state, operation) -> resolution.Resolution(state, error),
-  ) ->
+pub type Batches(state, error) =
+  fn(state, List(fn(state) -> resolution.Resolution(state, error))) ->
     resolution.Resolution(state, error)
 
 pub type Steps(state, error) =
@@ -24,7 +20,7 @@ pub type Resolve(state, error) =
   ) ->
     resolution.Resolution(state, error)
 
-pub type Inline(state, error) =
+pub type Nested(state, error) =
   fn(resolution.Resolution(state, error), fn(state) -> Result(state, error)) ->
     resolution.Resolution(state, error)
 
@@ -35,12 +31,12 @@ pub type Complete(state, error) =
   ) ->
     resolution.Resolution(dynamic.Dynamic, error)
 
-pub type Runtime(state, operation, error) {
+pub type Runtime(state, error) {
   Runtime(
-    batches: Batches(state, operation, error),
+    batches: Batches(state, error),
     steps: Steps(state, error),
     resolve: Resolve(state, error),
-    inline: Inline(state, error),
+    nested: Nested(state, error),
     complete: Complete(state, error),
   )
 }

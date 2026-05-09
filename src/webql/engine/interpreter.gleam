@@ -20,11 +20,7 @@ pub fn new(plan: plan.Plan) -> Interpreter {
 pub fn interpret(
   interpreter: Interpreter,
   memory: memory.Memory(storage),
-  runtime: runtime.Runtime(
-    memory.Memory(storage),
-    plan.Batch,
-    diagnostic.Diagnostic,
-  ),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
   interpret_plan.interpret(interpreter.plan, memory, runtime, parameters)

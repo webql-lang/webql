@@ -13,16 +13,6 @@ pub fn kv_reports_missing_path_test() {
   assert kv.get(kv.new(), ["missing"]) == Error(dynamic.nil())
 }
 
-pub fn kv_decode_restores_values_test() {
-  let memory = kv.set(kv.new(), ["count"], dynamic.int(3))
-
-  let encoded = kv.encode(memory)
-  let assert Ok(decoded) = kv.decode(kv.new(), encoded)
-  let assert Ok(value) = kv.get(decoded, ["count"])
-
-  assert decode.run(value, decode.int) == Ok(3)
-}
-
 pub fn kv_merge_combines_values_test() {
   let left = kv.set(kv.new(), ["user", "name"], dynamic.string("Aydan"))
   let right = kv.set(kv.new(), ["user", "age"], dynamic.int(30))

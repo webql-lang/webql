@@ -33,13 +33,13 @@ function thenOk(resolution, next) {
   );
 }
 
-export function batches(initial, batches, interpret) {
+export function batches(initial, batches) {
   let promise = Promise.resolve(new Ok(initial));
 
   for (const batch of batches) {
     promise = promise.then((result) => {
       if (result instanceof Ok) {
-        return toPromise(interpret(result[0], batch));
+        return toPromise(batch(result[0]));
       }
 
       return result;

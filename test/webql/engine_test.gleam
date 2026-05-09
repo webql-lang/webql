@@ -1,21 +1,25 @@
 import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
+import gleam/list
 import webql/document
 import webql/engine/assembler/linker
 import webql/engine/assembler/scheduler
 import webql/engine/interpreter
 import webql/engine/interpreter/memory/kv
+import webql/engine/interpreter/runtime as interpreter_runtime
 import webql/graph
+import webql/resolution
 
 fn add_resolver() {
   document.Resolver(resolver: fn(inputs) {
+    let inputs = decode_inputs(inputs)
     let assert Ok(l) = dict.get(inputs, "l")
     let assert Ok(r) = dict.get(inputs, "r")
     let assert Ok(l) = decode.run(l, decode.int)
     let assert Ok(r) = decode.run(r, decode.int)
 
-    Ok(dict.from_list([#("value", dynamic.int(l + r))]))
+    ok(dict.from_list([#("value", dynamic.int(l + r))]))
   })
 }
 
@@ -74,9 +78,88 @@ pub fn engine_executes_graph_module_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       kv.new(),
+      runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
+    |> unwrap()
+  let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
+}
+
+fn runtime() {
+  interpreter_runtime.Runtime(
+    batches: run_batches,
+    steps: run_steps,
+    resolve: resolve,
+    nested: continue,
+    complete: continue,
+  )
+}
+
+fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
+  values
+  |> encode()
+  |> Ok()
+  |> resolution.Done()
+}
+
+fn encode(values: dict.Dict(String, dynamic.Dynamic)) {
+  values
+  |> dict.to_list()
+  |> list.map(fn(entry) {
+    let #(key, value) = entry
+    #(dynamic.string(key), value)
+  })
+  |> dynamic.properties()
+}
+
+fn decode_inputs(inputs: dynamic.Dynamic) {
+  let assert Ok(inputs) =
+    decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+  inputs
+}
+
+fn unwrap(resolution) {
+  let assert resolution.Done(result) = resolution
+  result
+}
+
+fn run_batches(initial, batches) {
+  case batches {
+    [] -> resolution.Done(Ok(initial))
+    [batch, ..rest] -> {
+      case unwrap(batch(initial)) {
+        Ok(next) -> run_batches(next, rest)
+        Error(error) -> resolution.Done(Error(error))
+      }
+    }
+  }
+}
+
+fn run_steps(initial, steps, merge) {
+  case steps {
+    [] -> resolution.Done(Ok(initial))
+    [step, ..rest] -> {
+      case unwrap(step) {
+        Ok(next) -> run_steps(merge(initial, next), rest, merge)
+        Error(error) -> resolution.Done(Error(error))
+      }
+    }
+  }
+}
+
+fn resolve(resolution, next) {
+  resolution
+  |> unwrap()
+  |> next()
+  |> resolution.Done()
+}
+
+fn continue(resolution, next) {
+  case unwrap(resolution) {
+    Ok(value) -> resolution.Done(next(value))
+    Error(error) -> resolution.Done(Error(error))
+  }
 }

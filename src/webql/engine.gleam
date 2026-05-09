@@ -2,7 +2,6 @@ import gleam/dict
 import gleam/dynamic
 import webql/document
 import webql/engine/assembler
-import webql/engine/assembler/plan
 import webql/engine/diagnostic
 import webql/engine/interpreter
 import webql/engine/interpreter/diagnostic as interpreter_diagnostic
@@ -17,7 +16,6 @@ pub type Engine(storage) {
     memory: memory.Memory(storage),
     runtime: runtime.Runtime(
       memory.Memory(storage),
-      plan.Batch,
       interpreter_diagnostic.Diagnostic,
     ),
   )
@@ -29,7 +27,6 @@ pub fn new(
   memory: memory.Memory(storage),
   runtime: runtime.Runtime(
     memory.Memory(storage),
-    plan.Batch,
     interpreter_diagnostic.Diagnostic,
   ),
 ) {
@@ -73,7 +70,6 @@ fn run_interpreter(
   memory: memory.Memory(storage),
   runtime: runtime.Runtime(
     memory.Memory(storage),
-    plan.Batch,
     interpreter_diagnostic.Diagnostic,
   ),
   parameters: dict.Dict(String, dynamic.Dynamic),

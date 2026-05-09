@@ -1,8 +1,10 @@
 import gleam/dict
+import gleam/dynamic
 import webql/document
 import webql/engine/assembler/linker/link_plan
 import webql/engine/assembler/linker/plan
 import webql/graph
+import webql/resolution
 
 pub fn link_plan_links_operation_test() {
   let module =
@@ -22,7 +24,9 @@ pub fn link_plan_links_operation_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
+  document.Resolver(resolver: fn(_inputs) {
+    resolution.Done(Ok(dynamic.properties([])))
+  })
 }
 
 fn operator() {

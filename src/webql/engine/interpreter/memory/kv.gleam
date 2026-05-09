@@ -1,7 +1,5 @@
 import gleam/dict
 import gleam/dynamic
-import gleam/dynamic/decode
-import gleam/list
 import webql/engine/interpreter/memory
 
 pub type Kv {

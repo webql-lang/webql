@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/dynamic
+import gleam/list
 import webql/engine/assembler/plan
 import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/interpret_batch
@@ -12,11 +13,7 @@ import webql/resolution
 pub fn interpret(
   plan: plan.Plan,
   memory: memory.Memory(storage),
-  runtime: runtime.Runtime(
-    memory.Memory(storage),
-    plan.Batch,
-    diagnostic.Diagnostic,
-  ),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
   let memory = interpret_plan(plan, memory, runtime, parameters)
@@ -36,19 +33,25 @@ pub fn interpret(
 fn interpret_plan(
   plan: plan.Plan,
   memory: memory.Memory(storage),
-  runtime: runtime.Runtime(
-    memory.Memory(storage),
-    plan.Batch,
-    diagnostic.Diagnostic,
-  ),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
   let plan.Plan(routes:, batches:) = plan
 
   memory
   |> progress.add_parameters(parameters)
-  |> runtime.batches(batches, fn(memory, batch) {
-    let plan.Batch(batch:) = batch
-    interpret_batch.interpret(batch, routes, runtime, memory, interpret_plan)
-  })
+  |> runtime.batches(
+    list.map(batches, fn(batch) {
+      fn(memory) {
+        let plan.Batch(batch:) = batch
+        interpret_batch.interpret(
+          batch,
+          routes,
+          runtime,
+          memory,
+          interpret_plan,
+        )
+      }
+    }),
+  )
 }

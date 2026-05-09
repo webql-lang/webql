@@ -3,7 +3,6 @@ import gleam/dynamic
 import webql/diagnostic
 import webql/document
 import webql/engine
-import webql/engine/assembler/plan
 import webql/engine/diagnostic as engine_diagnostic
 import webql/engine/interpreter/diagnostic as interpreter_diagnostic
 import webql/engine/interpreter/memory
@@ -22,7 +21,6 @@ pub fn new(
   memory: memory.Memory(storage),
   runtime: runtime.Runtime(
     memory.Memory(storage),
-    plan.Batch,
     interpreter_diagnostic.Diagnostic,
   ),
 ) -> Webql(storage) {

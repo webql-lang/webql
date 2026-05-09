@@ -12,7 +12,7 @@ import webql/resolution
 pub fn interpret(
   step: plan.Step,
   routes: List(plan.Route),
-  runtime: runtime.Runtime(memory.Memory(storage), _, diagnostic.Diagnostic),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   memory: memory.Memory(storage),
   interpret_plan,
 ) -> resolution.Resolution(memory.Memory(storage), diagnostic.Diagnostic) {
@@ -27,7 +27,7 @@ pub fn interpret(
 fn interpret_step(
   step: plan.Step,
   inputs: dynamic.Dynamic,
-  runtime: runtime.Runtime(memory.Memory(storage), _, diagnostic.Diagnostic),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   memory: memory.Memory(storage),
   interpret_plan,
 ) {
@@ -52,7 +52,7 @@ fn interpret_resolver(
   step: String,
   function: document.Resolver,
   inputs: dynamic.Dynamic,
-  runtime: runtime.Runtime(memory.Memory(storage), _, diagnostic.Diagnostic),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   memory: memory.Memory(storage),
 ) {
   let document.Resolver(resolver:) = function
@@ -73,14 +73,14 @@ fn interpret_inline(
   step: String,
   inputs: dict.Dict(String, dynamic.Dynamic),
   plan: plan.Plan,
-  runtime: runtime.Runtime(memory.Memory(storage), _, diagnostic.Diagnostic),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   memory: memory.Memory(storage),
   interpret_plan,
 ) {
-  let inline_memory = interpret_plan(plan, memory.new(), runtime, inputs)
+  let nested_memory = interpret_plan(plan, memory.new(), runtime, inputs)
 
-  runtime.inline(inline_memory, fn(inline_memory) {
-    case progress.get_returns(inline_memory, plan.routes) {
+  runtime.nested(nested_memory, fn(nested_memory) {
+    case progress.get_returns(nested_memory, plan.routes) {
       Ok(returns) -> {
         let outputs = progress.encode(returns)
         progress.add_outputs(memory, step, outputs)
