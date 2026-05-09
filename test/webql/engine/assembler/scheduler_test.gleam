@@ -1,7 +1,7 @@
 import gleam/dict
 import gleam/dynamic
 import webql/document
-import webql/engine/assembler/linker/plan as linker_plan
+import webql/engine/assembler/linker/program as linker_program
 import webql/engine/assembler/plan
 import webql/engine/assembler/scheduler
 import webql/resolution
@@ -9,31 +9,31 @@ import webql/resolution
 pub fn scheduler_returns_executable_plan_test() {
   let resolver = empty_resolver()
 
-  let linker_plan =
-    linker_plan.Plan(
+  let linker_program =
+    linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_plan.FunctionResolver(resolver)),
-        #("user", linker_plan.FunctionResolver(resolver)),
-        #("posts", linker_plan.FunctionResolver(resolver)),
-        #("stats", linker_plan.FunctionResolver(resolver)),
-        #("format", linker_plan.FunctionResolver(resolver)),
+        #("normalize", linker_program.FunctionResolver(resolver)),
+        #("user", linker_program.FunctionResolver(resolver)),
+        #("posts", linker_program.FunctionResolver(resolver)),
+        #("stats", linker_program.FunctionResolver(resolver)),
+        #("format", linker_program.FunctionResolver(resolver)),
       ]),
       routes: [
-        linker_plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-        linker_plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-        linker_plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-        linker_plan.Route(from: ["posts", "items"], to: ["stats", "posts"]),
-        linker_plan.Route(from: ["user", "name"], to: ["format", "name"]),
-        linker_plan.Route(from: ["stats", "count"], to: [
+        linker_program.Route(from: ["user_id"], to: ["normalize", "value"]),
+        linker_program.Route(from: ["normalize", "value"], to: ["user", "id"]),
+        linker_program.Route(from: ["user", "id"], to: ["posts", "user_id"]),
+        linker_program.Route(from: ["posts", "items"], to: ["stats", "posts"]),
+        linker_program.Route(from: ["user", "name"], to: ["format", "name"]),
+        linker_program.Route(from: ["stats", "count"], to: [
           "format",
           "post_count",
         ]),
-        linker_plan.Route(from: ["format", "text"], to: ["summary"]),
+        linker_program.Route(from: ["format", "text"], to: ["summary"]),
       ],
     )
 
   let assert Ok(plan.Plan(routes:, batches:)) =
-    linker_plan
+    linker_program
     |> scheduler.new()
     |> scheduler.schedule()
 
@@ -60,21 +60,23 @@ pub fn scheduler_schedules_inline_resolvers_test() {
   let resolver = empty_resolver()
 
   let inline_plan =
-    linker_plan.Plan(
-      nodes: dict.from_list([#("add", linker_plan.FunctionResolver(resolver))]),
+    linker_program.Program(
+      nodes: dict.from_list([
+        #("add", linker_program.FunctionResolver(resolver)),
+      ]),
       routes: [],
     )
 
-  let linker_plan =
-    linker_plan.Plan(
+  let linker_program =
+    linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_plan.InlineResolver(plan: inline_plan)),
+        #("normalize", linker_program.InlineResolver(program: inline_plan)),
       ]),
       routes: [],
     )
 
   let assert Ok(plan.Plan(batches: [plan.Batch(batch: [step])], ..)) =
-    linker_plan
+    linker_program
     |> scheduler.new()
     |> scheduler.schedule()
 

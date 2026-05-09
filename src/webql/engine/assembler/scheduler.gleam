@@ -1,18 +1,18 @@
-import webql/engine/assembler/linker/plan as linker_plan
+import webql/engine/assembler/linker/program as linker_program
 import webql/engine/assembler/plan
 import webql/engine/assembler/scheduler/diagnostic
 import webql/engine/assembler/scheduler/schedule_plan
 
 pub opaque type Scheduler {
-  Scheduler(plan: linker_plan.Plan)
+  Scheduler(plan: linker_program.Program)
 }
 
-/// Creates a new scheduler instance from a linker plan.
-pub fn new(plan: linker_plan.Plan) -> Scheduler {
+/// Creates a new scheduler instance from a linker program.
+pub fn new(plan: linker_program.Program) -> Scheduler {
   Scheduler(plan:)
 }
 
-/// Schedules a linker plan.
+/// Schedules a linker program.
 pub fn schedule(
   scheduler: Scheduler,
 ) -> Result(plan.Plan, diagnostic.Diagnostic) {

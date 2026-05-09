@@ -3,7 +3,7 @@ import gleam/dynamic
 import webql/document
 import webql/engine/assembler/linker
 import webql/engine/assembler/linker/diagnostic
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/graph
 import webql/resolution
 
@@ -23,13 +23,13 @@ pub fn linker_links_graph_module_test() {
       ),
     )
 
-  let assert Ok(plan.Plan(nodes:, routes:)) =
+  let assert Ok(program.Program(nodes:, routes:)) =
     module
     |> linker.new()
     |> linker.link(document())
 
-  let assert Ok(plan.FunctionResolver(_)) = dict.get(nodes, "user")
-  assert routes == [plan.Route(from: ["user_id"], to: ["user", "id"])]
+  let assert Ok(program.FunctionResolver(_)) = dict.get(nodes, "user")
+  assert routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
 }
 
 pub fn linker_reports_unknown_operators_test() {

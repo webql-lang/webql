@@ -3,11 +3,11 @@ import gleam/dynamic
 import webql/document
 import webql/engine/assembler/linker/diagnostic
 import webql/engine/assembler/linker/link_node
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/resolution
 
 pub fn link_node_links_external_nodes_test() {
-  let assert Ok(#("add", plan.FunctionResolver(_))) =
+  let assert Ok(#("add", program.FunctionResolver(_))) =
     link_node.link("add", "Add", document())
 }
 

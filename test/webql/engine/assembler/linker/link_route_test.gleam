@@ -1,5 +1,5 @@
 import webql/engine/assembler/linker/link_route
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/graph
 
 pub fn link_route_links_output_edges_test() {
@@ -10,7 +10,7 @@ pub fn link_route_links_output_edges_test() {
     )
 
   assert link_route.link([edge])
-    == [plan.Route(from: ["user", "id"], to: ["posts", "user_id"])]
+    == [program.Route(from: ["user", "id"], to: ["posts", "user_id"])]
 }
 
 pub fn link_route_links_int_constants_test() {
@@ -20,7 +20,7 @@ pub fn link_route_links_int_constants_test() {
       to: graph.Input(path: ["add", "r"]),
     )
 
-  let assert [plan.Constant(value: _, to: ["add", "r"])] =
+  let assert [program.Constant(value: _, to: ["add", "r"])] =
     link_route.link([edge])
 }
 
@@ -31,7 +31,7 @@ pub fn link_route_links_float_constants_test() {
       to: graph.Input(path: ["add", "r"]),
     )
 
-  let assert [plan.Constant(value: _, to: ["add", "r"])] =
+  let assert [program.Constant(value: _, to: ["add", "r"])] =
     link_route.link([edge])
 }
 
@@ -42,7 +42,7 @@ pub fn link_route_links_string_constants_test() {
       to: graph.Input(path: ["format", "name"]),
     )
 
-  let assert [plan.Constant(value: _, to: ["format", "name"])] =
+  let assert [program.Constant(value: _, to: ["format", "name"])] =
     link_route.link([edge])
 }
 
@@ -60,7 +60,7 @@ pub fn link_route_links_edges_test() {
 
   assert link_route.link(edges)
     == [
-      plan.Route(from: ["user_id"], to: ["user", "id"]),
-      plan.Route(from: ["user", "id"], to: ["summary"]),
+      program.Route(from: ["user_id"], to: ["user", "id"]),
+      program.Route(from: ["user", "id"], to: ["summary"]),
     ]
 }
