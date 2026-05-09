@@ -6,8 +6,7 @@ import webql/document
 import webql/engine/assembler/linker
 import webql/engine/assembler/scheduler
 import webql/engine/interpreter
-import webql/engine/interpreter/memory/kv
-import webql/engine/interpreter/runtime as interpreter_runtime
+import webql/engine/interpreter/sandbox
 import webql/graph
 import webql/resolution
 
@@ -77,25 +76,15 @@ pub fn engine_executes_graph_module_test() {
     executable_plan
     |> interpreter.new()
     |> interpreter.interpret(
-      kv.new(),
-      runtime(),
+      sandbox.memory(),
+      sandbox.runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
-    |> unwrap()
+    |> sandbox.result()
   let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
-}
-
-fn runtime() {
-  interpreter_runtime.Runtime(
-    batches: run_batches,
-    steps: run_steps,
-    resolve: resolve,
-    nested: continue,
-    complete: continue,
-  )
 }
 
 fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
@@ -119,47 +108,4 @@ fn decode_inputs(inputs: dynamic.Dynamic) {
   let assert Ok(inputs) =
     decode.run(inputs, decode.dict(decode.string, decode.dynamic))
   inputs
-}
-
-fn unwrap(resolution) {
-  let assert resolution.Done(result) = resolution
-  result
-}
-
-fn run_batches(initial, batches) {
-  case batches {
-    [] -> resolution.Done(Ok(initial))
-    [batch, ..rest] -> {
-      case unwrap(batch(initial)) {
-        Ok(next) -> run_batches(next, rest)
-        Error(error) -> resolution.Done(Error(error))
-      }
-    }
-  }
-}
-
-fn run_steps(initial, steps, merge) {
-  case steps {
-    [] -> resolution.Done(Ok(initial))
-    [step, ..rest] -> {
-      case unwrap(step) {
-        Ok(next) -> run_steps(merge(initial, next), rest, merge)
-        Error(error) -> resolution.Done(Error(error))
-      }
-    }
-  }
-}
-
-fn resolve(resolution, next) {
-  resolution
-  |> unwrap()
-  |> next()
-  |> resolution.Done()
-}
-
-fn continue(resolution, next) {
-  case unwrap(resolution) {
-    Ok(value) -> resolution.Done(next(value))
-    Error(error) -> resolution.Done(Error(error))
-  }
 }

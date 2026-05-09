@@ -6,8 +6,7 @@ import webql/document
 import webql/engine/assembler/plan
 import webql/engine/interpreter
 import webql/engine/interpreter/diagnostic
-import webql/engine/interpreter/memory/kv
-import webql/engine/interpreter/runtime as interpreter_runtime
+import webql/engine/interpreter/sandbox
 import webql/resolution
 
 fn add_resolver() {
@@ -52,11 +51,11 @@ pub fn interpreter_executes_plan_test() {
     plan
     |> interpreter.new()
     |> interpreter.interpret(
-      kv.new(),
-      runtime(),
+      sandbox.memory(),
+      sandbox.runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
-    |> unwrap()
+    |> sandbox.result()
   let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
@@ -101,11 +100,11 @@ pub fn interpreter_executes_inline_plans_test() {
     plan
     |> interpreter.new()
     |> interpreter.interpret(
-      kv.new(),
-      runtime(),
+      sandbox.memory(),
+      sandbox.runtime(),
       dict.from_list([#("input", dynamic.int(2))]),
     )
-    |> unwrap()
+    |> sandbox.result()
   let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
@@ -140,14 +139,14 @@ pub fn interpreter_keeps_inline_memory_isolated_test() {
     plan
     |> interpreter.new()
     |> interpreter.interpret(
-      kv.new(),
-      runtime(),
+      sandbox.memory(),
+      sandbox.runtime(),
       dict.from_list([
         #("input", dynamic.int(2)),
         #("value", dynamic.int(100)),
       ]),
     )
-    |> unwrap()
+    |> sandbox.result()
   let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
@@ -176,8 +175,8 @@ pub fn interpreter_reports_missing_inputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(kv.new(), runtime(), dict.new())
-    |> unwrap()
+    |> interpreter.interpret(sandbox.memory(), sandbox.runtime(), dict.new())
+    |> sandbox.result()
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
         step: "identity",
@@ -195,23 +194,13 @@ pub fn interpreter_reports_missing_outputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(kv.new(), runtime(), dict.new())
-    |> unwrap()
+    |> interpreter.interpret(sandbox.memory(), sandbox.runtime(), dict.new())
+    |> sandbox.result()
     == Error(
       diagnostic.Diagnostic(
         kind: diagnostic.MissingReturn(message: dynamic.nil()),
       ),
     )
-}
-
-fn runtime() {
-  interpreter_runtime.Runtime(
-    batches: run_batches,
-    steps: run_steps,
-    resolve: resolve,
-    nested: continue,
-    complete: continue,
-  )
 }
 
 fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
@@ -235,47 +224,4 @@ fn decode_inputs(inputs: dynamic.Dynamic) {
   let assert Ok(inputs) =
     decode.run(inputs, decode.dict(decode.string, decode.dynamic))
   inputs
-}
-
-fn unwrap(resolution) {
-  let assert resolution.Done(result) = resolution
-  result
-}
-
-fn run_batches(initial, batches) {
-  case batches {
-    [] -> resolution.Done(Ok(initial))
-    [batch, ..rest] -> {
-      case unwrap(batch(initial)) {
-        Ok(next) -> run_batches(next, rest)
-        Error(error) -> resolution.Done(Error(error))
-      }
-    }
-  }
-}
-
-fn run_steps(initial, steps, merge) {
-  case steps {
-    [] -> resolution.Done(Ok(initial))
-    [step, ..rest] -> {
-      case unwrap(step) {
-        Ok(next) -> run_steps(merge(initial, next), rest, merge)
-        Error(error) -> resolution.Done(Error(error))
-      }
-    }
-  }
-}
-
-fn resolve(resolution, next) {
-  resolution
-  |> unwrap()
-  |> next()
-  |> resolution.Done()
-}
-
-fn continue(resolution, next) {
-  case unwrap(resolution) {
-    Ok(value) -> resolution.Done(next(value))
-    Error(error) -> resolution.Done(Error(error))
-  }
 }

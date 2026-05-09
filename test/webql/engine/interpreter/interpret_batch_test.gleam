@@ -6,15 +6,14 @@ import webql/document
 import webql/engine/assembler/plan
 import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/interpret_batch
-import webql/engine/interpreter/memory/kv
-import webql/engine/interpreter/runtime as interpreter_runtime
+import webql/engine/interpreter/sandbox
 import webql/resolution
 
 pub fn interpret_batch_with_empty_batch_returns_progress_test() {
-  let p = kv.new()
+  let p = sandbox.memory()
   let assert Ok(result) =
-    interpret_batch.interpret([], [], runtime(), p, interpret_inline)
-    |> unwrap()
+    interpret_batch.interpret([], [], sandbox.runtime(), p, interpret_inline)
+    |> sandbox.result()
   assert result == p
 }
 
@@ -46,11 +45,11 @@ pub fn interpret_batch_short_circuits_on_error_test() {
     interpret_batch.interpret(
       [failing_step, ok_step],
       [],
-      runtime(),
-      kv.new(),
+      sandbox.runtime(),
+      sandbox.memory(),
       interpret_inline,
     )
-    |> unwrap()
+    |> sandbox.result()
 
   assert name == "fail"
   assert decode.run(message, decode.string) == Ok("oops")
@@ -70,38 +69,4 @@ fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
   |> dynamic.properties()
   |> Ok()
   |> resolution.Done()
-}
-
-fn runtime() {
-  interpreter_runtime.Runtime(
-    batches: fn(initial, _batches) { resolution.Done(Ok(initial)) },
-    steps: run_steps,
-    resolve: fn(resolution, next) { resolution.Done(next(unwrap(resolution))) },
-    nested: continue,
-    complete: continue,
-  )
-}
-
-fn run_steps(initial, steps, merge) {
-  case steps {
-    [] -> resolution.Done(Ok(initial))
-    [step, ..rest] -> {
-      case unwrap(step) {
-        Ok(next) -> run_steps(merge(initial, next), rest, merge)
-        Error(error) -> resolution.Done(Error(error))
-      }
-    }
-  }
-}
-
-fn continue(resolution, next) {
-  case unwrap(resolution) {
-    Ok(value) -> resolution.Done(next(value))
-    Error(error) -> resolution.Done(Error(error))
-  }
-}
-
-fn unwrap(resolution) {
-  let assert resolution.Done(result) = resolution
-  result
 }
