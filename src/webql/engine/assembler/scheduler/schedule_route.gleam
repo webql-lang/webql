@@ -2,15 +2,15 @@ import gleam/bool
 import gleam/dict
 import gleam/option
 import gleam/set
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 
 /// Adds a scheduled dependency for a route.
 pub fn schedule(
   dependencies: dict.Dict(String, set.Set(String)),
-  route: plan.Route,
+  route: program.Route,
 ) -> dict.Dict(String, set.Set(String)) {
   let scheduled = case route {
-    plan.Route(from: [producer, ..], to: [consumer, ..]) -> {
+    program.Route(from: [producer, ..], to: [consumer, ..]) -> {
       schedule_dependencies(dependencies, consumer, producer)
     }
 

@@ -1,7 +1,7 @@
 import gleam/dict
 import gleam/dynamic
 import gleam/set
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/engine/assembler/scheduler/schedule_route
 
 pub fn schedule_route_builds_node_dependencies_test() {
@@ -17,25 +17,25 @@ pub fn schedule_route_builds_node_dependencies_test() {
   let dependencies =
     dependencies
     |> schedule_route.schedule(
-      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
+      program.Route(from: ["user_id"], to: ["normalize", "value"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
+      program.Route(from: ["normalize", "value"], to: ["user", "id"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
+      program.Route(from: ["user", "id"], to: ["posts", "user_id"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["posts", "items"], to: ["stats", "posts"]),
+      program.Route(from: ["posts", "items"], to: ["stats", "posts"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["user", "name"], to: ["format", "name"]),
+      program.Route(from: ["user", "name"], to: ["format", "name"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["stats", "count"], to: ["format", "post_count"]),
+      program.Route(from: ["stats", "count"], to: ["format", "post_count"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["format", "text"], to: ["summary"]),
+      program.Route(from: ["format", "text"], to: ["summary"]),
     )
 
   assert dependencies
@@ -58,16 +58,16 @@ pub fn schedule_route_ignores_boundaries_and_missing_nodes_test() {
   let dependencies =
     dependencies
     |> schedule_route.schedule(
-      plan.Route(from: ["input"], to: ["right", "value"]),
+      program.Route(from: ["input"], to: ["right", "value"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["left", "value"], to: ["output"]),
+      program.Route(from: ["left", "value"], to: ["output"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["missing", "value"], to: ["right", "value"]),
+      program.Route(from: ["missing", "value"], to: ["right", "value"]),
     )
     |> schedule_route.schedule(
-      plan.Route(from: ["left", "value"], to: ["missing", "value"]),
+      program.Route(from: ["left", "value"], to: ["missing", "value"]),
     )
 
   assert dependencies
@@ -83,7 +83,7 @@ pub fn schedule_route_ignores_self_dependencies_test() {
   let dependencies =
     dependencies
     |> schedule_route.schedule(
-      plan.Route(from: ["math", "value"], to: ["math", "l"]),
+      program.Route(from: ["math", "value"], to: ["math", "l"]),
     )
 
   assert dependencies == dict.from_list([#("math", set.new())])
@@ -95,7 +95,7 @@ pub fn schedule_route_ignores_constants_test() {
   let dependencies =
     dependencies
     |> schedule_route.schedule(
-      plan.Constant(value: dynamic.int(1), to: ["math", "r"]),
+      program.Constant(value: dynamic.int(1), to: ["math", "r"]),
     )
 
   assert dependencies == dict.from_list([#("math", set.new())])

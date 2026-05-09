@@ -2,13 +2,13 @@ import gleam/dict
 import gleam/dynamic
 import webql/document
 
-pub type Plan {
-  Plan(nodes: dict.Dict(String, Resolver), routes: List(Route))
+pub type Program {
+  Program(nodes: dict.Dict(String, Resolver), routes: List(Route))
 }
 
 pub type Resolver {
   FunctionResolver(function: document.Resolver)
-  InlineResolver(plan: Plan)
+  InlineResolver(program: Program)
 }
 
 pub type Route {

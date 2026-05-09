@@ -4,26 +4,26 @@ import webql/document
 import webql/engine/assembler/linker/diagnostic
 import webql/engine/assembler/linker/link_node
 import webql/engine/assembler/linker/link_route
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/graph
 
-/// Links a graph module into a scheduler plan.
+/// Links a graph module into a scheduler program.
 pub fn link(
   module: graph.Module,
   document: document.Document,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
-  link_plan(module.operation, document)
+) -> Result(program.Program, diagnostic.Diagnostic) {
+  link_program(module.operation, document)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-pub fn link_plan(operation: graph.Operation, document: document.Document) {
+pub fn link_program(operation: graph.Operation, document: document.Document) {
   let graph.Operation(nodes:, edges:, ..) = operation
 
   use nodes <- result.try(link_nodes(nodes, document, dict.new()))
   let routes = link_route.link(edges)
 
-  Ok(plan.Plan(nodes:, routes:))
+  Ok(program.Program(nodes:, routes:))
 }
 
 // PRIVATE FUNCTIONS
@@ -31,7 +31,7 @@ pub fn link_plan(operation: graph.Operation, document: document.Document) {
 fn link_nodes(
   nodes: List(graph.Node),
   document: document.Document,
-  linked: dict.Dict(String, plan.Resolver),
+  linked: dict.Dict(String, program.Resolver),
 ) {
   case nodes {
     [node, ..nodes] -> {
@@ -48,8 +48,8 @@ fn link_node(node: graph.Node, document: document.Document) {
     graph.ExternalNode(name:, node:) -> link_node.link(name, node, document)
 
     graph.InlineNode(name:, operation:) -> {
-      use plan <- result.try(link_plan(operation, document))
-      Ok(#(name, plan.InlineResolver(plan:)))
+      use program <- result.try(link_program(operation, document))
+      Ok(#(name, program.InlineResolver(program:)))
     }
   }
 }

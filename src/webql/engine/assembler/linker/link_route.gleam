@@ -1,19 +1,19 @@
 import gleam/dynamic
 import gleam/list
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 import webql/graph
 
 /// Links graph edges into scheduler routes.
-pub fn link(edges: List(graph.Edge)) -> List(plan.Route) {
+pub fn link(edges: List(graph.Edge)) -> List(program.Route) {
   list.map(edges, fn(edge) {
     case edge {
       graph.Edge(from: graph.Output(path: from), to: graph.Input(path: to)) ->
-        plan.Route(from:, to:)
+        program.Route(from:, to:)
 
       graph.Edge(
         from: graph.PrimitiveOutput(value: value),
         to: graph.Input(path: to),
-      ) -> plan.Constant(value: link_constant(value), to:)
+      ) -> program.Constant(value: link_constant(value), to:)
     }
   })
 }

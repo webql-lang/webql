@@ -2,16 +2,16 @@ import gleam/dict
 import gleam/result
 import webql/document
 import webql/engine/assembler/linker/diagnostic
-import webql/engine/assembler/linker/plan
+import webql/engine/assembler/linker/program
 
 /// Links an external node into a scheduler resolver.
 pub fn link(
   name: String,
   node: String,
   document: document.Document,
-) -> Result(#(String, plan.Resolver), diagnostic.Diagnostic) {
+) -> Result(#(String, program.Resolver), diagnostic.Diagnostic) {
   use function <- result.try(link_resolver(node, document))
-  Ok(#(name, plan.FunctionResolver(function:)))
+  Ok(#(name, program.FunctionResolver(function:)))
 }
 
 // PRIVATE FUNCTIONS
