@@ -1,8 +1,10 @@
 import gleam/dict
 import gleam/dynamic
+import gleam/dynamic/decode
 import gleam/list
 import gleam/result
 import webql/engine/assembler/plan
+import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/memory
 
 /// Stores initial plan parameters as root-level values.
@@ -18,10 +20,23 @@ pub fn add_parameters(
 pub fn add_outputs(
   memory: memory.Memory(storage),
   step: String,
-  outputs: dict.Dict(String, dynamic.Dynamic),
-) -> memory.Memory(storage) {
-  use memory, name, value <- dict.fold(outputs, memory)
-  memory.set(memory, [step, name], value)
+  outputs: dynamic.Dynamic,
+) -> Result(memory.Memory(storage), diagnostic.Diagnostic) {
+  case decode.run(outputs, decode.dict(decode.string, decode.dynamic)) {
+    Ok(outputs) -> {
+      let memory =
+        dict.fold(outputs, memory, fn(memory, name, value) {
+          memory.set(memory, [step, name], value)
+        })
+
+      Ok(memory)
+    }
+
+    Error(errors) ->
+      Error(
+        diagnostic.Diagnostic(kind: diagnostic.InvalidStepOutput(step:, errors:)),
+      )
+  }
 }
 
 /// Resolves all input values for a step by following routes that target it.
@@ -29,19 +44,38 @@ pub fn get_inputs(
   memory: memory.Memory(storage),
   step: String,
   routes: List(plan.Route),
-) -> Result(dict.Dict(String, dynamic.Dynamic), dynamic.Dynamic) {
-  use inputs, route <- list.try_fold(routes, dict.new())
+) -> Result(dynamic.Dynamic, diagnostic.Diagnostic) {
+  let inputs = dict.new()
+  let results =
+    list.try_fold(routes, inputs, fn(inputs, route) {
+      case route {
+        plan.Route(from:, to: [target, input]) if target == step -> {
+          use value <- result.try(memory.get(memory, from))
+          Ok(dict.insert(inputs, input, value))
+        }
 
-  case route {
-    plan.Route(from:, to: [target, input]) if target == step -> {
-      use value <- result.try(memory.get(memory, from))
-      Ok(dict.insert(inputs, input, value))
-    }
+        plan.Constant(value:, to: [target, input]) if target == step ->
+          Ok(dict.insert(inputs, input, value))
 
-    plan.Constant(value:, to: [target, input]) if target == step ->
-      Ok(dict.insert(inputs, input, value))
+        _route -> Ok(inputs)
+      }
+    })
 
-    _route -> Ok(inputs)
+  case results {
+    Ok(results) ->
+      results
+      |> dict.to_list()
+      |> list.map(fn(entry) {
+        let #(key, value) = entry
+        #(dynamic.string(key), value)
+      })
+      |> dynamic.properties()
+      |> Ok()
+
+    Error(message) ->
+      Error(
+        diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step:, message:)),
+      )
   }
 }
 
@@ -62,5 +96,28 @@ pub fn get_returns(
       Ok(dict.insert(returns, output, value))
 
     _route -> Ok(returns)
+  }
+}
+
+/// Encodes a dictionary of values into a dynamic to be used by an external runtime.
+pub fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
+  values
+  |> dict.to_list()
+  |> list.map(fn(input) {
+    let #(key, value) = input
+    #(dynamic.string(key), value)
+  })
+  |> dynamic.properties()
+}
+
+/// Decodes a dynamic into a dictionary of values.
+pub fn decode(
+  unknown: dynamic.Dynamic,
+) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
+  let schema = decode.dict(decode.string, decode.dynamic)
+  case decode.run(unknown, schema) {
+    Ok(result) -> Ok(result)
+    Error(errors) ->
+      Error(diagnostic.Diagnostic(diagnostic.InvalidReturn(errors:)))
   }
 }

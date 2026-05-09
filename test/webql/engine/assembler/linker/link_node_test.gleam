@@ -1,8 +1,10 @@
 import gleam/dict
+import gleam/dynamic
 import webql/document
 import webql/engine/assembler/linker/diagnostic
 import webql/engine/assembler/linker/link_node
 import webql/engine/assembler/linker/plan
+import webql/resolution
 
 pub fn link_node_links_external_nodes_test() {
   let assert Ok(#("add", plan.FunctionResolver(_))) =
@@ -17,7 +19,9 @@ pub fn link_node_reports_unknown_operators_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
+  document.Resolver(resolver: fn(_inputs) {
+    resolution.Done(Ok(dynamic.properties([])))
+  })
 }
 
 fn operator() {

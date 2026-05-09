@@ -1,6 +1,8 @@
 import gleam/dict
+import gleam/dynamic
 import webql/document
 import webql/lang/introspection
+import webql/resolution
 
 pub fn introspect_empty_document_test() {
   assert introspection.introspect(
@@ -20,7 +22,7 @@ pub fn introspect_document_operator_test() {
               #("in", document.Parameter(name: "in", typename: "Text")),
             ]),
             resolver: document.Resolver(resolver: fn(_parameters) {
-              Ok(dict.new())
+              resolution.Done(Ok(dynamic.properties([])))
             }),
             returns: dict.from_list([
               #("out", document.Return(name: "out", typename: "Text")),

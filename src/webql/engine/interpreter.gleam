@@ -4,6 +4,8 @@ import webql/engine/assembler/plan
 import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/interpret_plan
 import webql/engine/interpreter/memory
+import webql/engine/interpreter/runtime
+import webql/resolution
 
 pub opaque type Interpreter {
   Interpreter(plan: plan.Plan)
@@ -18,7 +20,8 @@ pub fn new(plan: plan.Plan) -> Interpreter {
 pub fn interpret(
   interpreter: Interpreter,
   memory: memory.Memory(storage),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   parameters: dict.Dict(String, dynamic.Dynamic),
-) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
-  interpret_plan.interpret(interpreter.plan, memory, parameters)
+) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
+  interpret_plan.interpret(interpreter.plan, memory, runtime, parameters)
 }

@@ -1,49 +1,57 @@
 import gleam/dict
 import gleam/dynamic
-import gleam/result
+import gleam/list
 import webql/engine/assembler/plan
 import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/interpret_batch
 import webql/engine/interpreter/memory
 import webql/engine/interpreter/progress
+import webql/engine/interpreter/runtime
+import webql/resolution
 
 /// Runs an executable plan.
 pub fn interpret(
   plan: plan.Plan,
   memory: memory.Memory(storage),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
   parameters: dict.Dict(String, dynamic.Dynamic),
-) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
-  let plan.Plan(routes:, batches:) = plan
+) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
+  let memory = interpret_plan(plan, memory, runtime, parameters)
 
-  let progress = progress.add_parameters(memory, parameters)
-  use progress <- result.try(interpret_batches(batches, routes, progress))
+  runtime.complete(memory, fn(memory) {
+    case progress.get_returns(memory, plan.routes) {
+      Ok(returns) -> Ok(progress.encode(returns))
 
-  case progress.get_returns(progress, plan.routes) {
-    Ok(returns) -> Ok(returns)
-    Error(message) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(message:)))
-  }
+      Error(message) ->
+        Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(message:)))
+    }
+  })
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn interpret_batches(
-  batches: List(plan.Batch),
-  routes: List(plan.Route),
+fn interpret_plan(
+  plan: plan.Plan,
   memory: memory.Memory(storage),
+  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
+  parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
-  case batches {
-    [plan.Batch(batch:), ..batches] -> {
-      use memory <- result.try(interpret_batch.interpret(
-        batch,
-        routes,
-        memory,
-        interpret,
-      ))
+  let plan.Plan(routes:, batches:) = plan
 
-      interpret_batches(batches, routes, memory)
-    }
-
-    [] -> Ok(memory)
-  }
+  memory
+  |> progress.add_parameters(parameters)
+  |> runtime.batches(
+    list.map(batches, fn(batch) {
+      fn(memory) {
+        let plan.Batch(batch:) = batch
+        interpret_batch.interpret(
+          batch,
+          routes,
+          runtime,
+          memory,
+          interpret_plan,
+        )
+      }
+    }),
+  )
 }

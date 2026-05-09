@@ -1,11 +1,13 @@
 import gleam/dict
+import gleam/dynamic
 import webql/document
 import webql/engine/assembler/linker/plan as linker_plan
 import webql/engine/assembler/plan
 import webql/engine/assembler/scheduler
+import webql/resolution
 
 pub fn scheduler_returns_executable_plan_test() {
-  let resolver = document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
+  let resolver = empty_resolver()
 
   let linker_plan =
     linker_plan.Plan(
@@ -55,7 +57,7 @@ pub fn scheduler_returns_executable_plan_test() {
 }
 
 pub fn scheduler_schedules_inline_resolvers_test() {
-  let resolver = document.Resolver(resolver: fn(_inputs) { Ok(dict.new()) })
+  let resolver = empty_resolver()
 
   let inline_plan =
     linker_plan.Plan(
@@ -83,4 +85,10 @@ pub fn scheduler_schedules_inline_resolvers_test() {
       ..,
     )),
   ) = step
+}
+
+fn empty_resolver() {
+  document.Resolver(resolver: fn(_inputs) {
+    resolution.Done(Ok(dynamic.properties([])))
+  })
 }

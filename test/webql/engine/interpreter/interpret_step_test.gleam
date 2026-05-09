@@ -1,26 +1,38 @@
+import gleam/dynamic
+import gleam/dynamic/decode
 import webql/document
 import webql/engine/assembler/plan
 import webql/engine/interpreter/diagnostic
-import webql/engine/interpreter/interpret_plan
 import webql/engine/interpreter/interpret_step
-import webql/engine/interpreter/memory/kv
+import webql/engine/interpreter/sandbox
+import webql/resolution
 
 pub fn interpret_step_reports_runtime_error_test() {
   let step =
     plan.Step(
       name: "fail",
       resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(_inputs) { Error("oops") }),
+        document.Resolver(resolver: fn(_inputs) {
+          resolution.Done(Error(dynamic.string("oops")))
+        }),
       ),
     )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.RuntimeError(
     step: name,
     message:,
-  ))) = interpret_step.interpret(step, [], kv.new(), interpret_plan.interpret)
+  ))) =
+    step
+    |> interpret_step.interpret(
+      [],
+      sandbox.runtime(),
+      sandbox.memory(),
+      interpret_inline,
+    )
+    |> sandbox.result()
 
   assert name == "fail"
-  assert message == "oops"
+  assert decode.run(message, decode.string) == Ok("oops")
 }
 
 pub fn interpret_step_reports_missing_step_input_test() {
@@ -28,7 +40,7 @@ pub fn interpret_step_reports_missing_step_input_test() {
     plan.Step(
       name: "op",
       resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(inputs) { Ok(inputs) }),
+        document.Resolver(resolver: fn(inputs) { resolution.Done(Ok(inputs)) }),
       ),
     )
 
@@ -38,7 +50,18 @@ pub fn interpret_step_reports_missing_step_input_test() {
     step: s,
     message: _message,
   ))) =
-    interpret_step.interpret(step, routes, kv.new(), interpret_plan.interpret)
+    interpret_step.interpret(
+      step,
+      routes,
+      sandbox.runtime(),
+      sandbox.memory(),
+      interpret_inline,
+    )
+    |> sandbox.result()
 
   assert s == "op"
+}
+
+fn interpret_inline(_plan, memory, _runtime, _parameters) {
+  resolution.Done(Ok(memory))
 }

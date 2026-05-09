@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/dynamic
+import webql/resolution
 
 pub type Document {
   Document(operators: dict.Dict(String, Operator), typenames: List(Typename))
@@ -19,8 +20,8 @@ pub type Typename {
 
 pub type Resolver {
   Resolver(
-    resolver: fn(dict.Dict(String, dynamic.Dynamic)) ->
-      Result(dict.Dict(String, dynamic.Dynamic), String),
+    resolver: fn(dynamic.Dynamic) ->
+      resolution.Resolution(dynamic.Dynamic, dynamic.Dynamic),
   )
 }
 
