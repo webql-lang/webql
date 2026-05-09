@@ -4,7 +4,7 @@ import gleam/result
 import webql/diagnostic
 import webql/document
 import webql/engine
-import webql/engine/memory
+import webql/engine/interpreter/memory
 import webql/graph
 import webql/lang
 
@@ -13,8 +13,11 @@ pub type Webql(a, b) {
 }
 
 /// Creates a new WebQL instance.
-pub fn new(memory: memory.Memory(a, b)) -> Webql(a, b) {
-  let engine = engine.new(memory)
+pub fn new(
+  document: document.Document,
+  memory: memory.Memory(a, b),
+) -> Webql(a, b) {
+  let engine = engine.new(document, memory)
   Webql(engine:)
 }
 
@@ -27,7 +30,7 @@ pub fn run(
 ) {
   use graph <- result.try(compile(source, document))
 
-  case engine.run(webql.engine, document, graph, parameters) {
+  case engine.run(webql.engine, graph, parameters) {
     Ok(result) -> Ok(result)
     Error(error) ->
       Error(

@@ -1,7 +1,9 @@
-import webql/engine/system/diagnostic as system_diagnostic
+import webql/engine/assembler/diagnostic as assembler_diagnostic
+import webql/engine/interpreter/diagnostic as interpreter_diagnostic
 
 pub type DiagnosticKind {
-  SystemDiagnostic(kind: system_diagnostic.DiagnosticKind)
+  AssemblerDiagnostic(kind: assembler_diagnostic.DiagnosticKind)
+  InterpreterDiagnostic(kind: interpreter_diagnostic.DiagnosticKind)
 }
 
 pub type Diagnostic {
