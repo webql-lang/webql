@@ -1,15 +1,15 @@
 import gleam/dict
 import webql/lang/compiler/context
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/register_definiton
 import webql/lang/compiler/source
 
 pub fn register_registers_definition_and_nested_context_test() {
   let definition =
-    ast.Definition(
+    hir.Definition(
       name: "Inner",
-      operation: ast.Operation(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [],

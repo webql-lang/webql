@@ -1,8 +1,8 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/resolve_module
 import webql/lang/compiler/source
 
@@ -10,13 +10,13 @@ pub fn resolve_module_wraps_resolved_operation_test() {
   let schema = environment.add_typename(environment.new(), "Int")
 
   let module_to_resolve =
-    parser_ast.Module(
-      operation: parser_ast.Operation(
+    ast.Module(
+      operation: ast.Operation(
         parameters: [],
         returns: [
-          parser_ast.Return(
+          ast.Return(
             name: "out",
-            typename: parser_ast.Typename(
+            typename: ast.Typename(
               name: "Int",
               span: source.Span(start: 8, end: 11),
             ),
@@ -40,13 +40,13 @@ pub fn resolve_module_wraps_resolved_operation_test() {
     )
 
   assert module
-    == ast.Module(
-      operation: ast.Operation(
+    == hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [
-          ast.Return(
+          hir.Return(
             name: "out",
-            typename: ast.Typename(
+            typename: hir.Typename(
               name: "Int",
               reference: reference.Typename(0),
               span: source.Span(start: 8, end: 11),

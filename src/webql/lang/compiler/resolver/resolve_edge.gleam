@@ -2,9 +2,9 @@ import gleam/bool
 import gleam/result
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_input
 import webql/lang/compiler/resolver/resolve_output
@@ -13,10 +13,10 @@ import webql/lang/compiler/resolver/resolve_output
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  edge: parser_ast.Edge,
+  edge: ast.Edge,
   reference: reference.Edge,
-) -> Result(ast.Edge, diagnostic.Diagnostic) {
-  let parser_ast.Edge(from:, to:, span:) = edge
+) -> Result(hir.Edge, diagnostic.Diagnostic) {
+  let ast.Edge(from:, to:, span:) = edge
 
   use from <- result.try(resolve_output.resolve(environment, context, from))
   use to <- result.try(resolve_input.resolve(context, to))
@@ -29,5 +29,5 @@ pub fn resolve(
     )),
   )
 
-  Ok(ast.Edge(from:, to:, reference:, span:))
+  Ok(hir.Edge(from:, to:, reference:, span:))
 }

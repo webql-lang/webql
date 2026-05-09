@@ -1,9 +1,9 @@
 import webql/graph
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
 
 /// Lowers a resolved binding into an IR node when it binds a node value.
 pub fn lower(
-  binding: ast.Binding,
+  binding: hir.Binding,
   definitions: List(#(String, graph.Operation)),
 ) -> graph.Node {
   case definitions {

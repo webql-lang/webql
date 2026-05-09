@@ -1,8 +1,8 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_binding
 import webql/lang/compiler/source
@@ -11,12 +11,9 @@ pub fn resolve_node_binding_test() {
   let schema = environment.add_node(environment.new(), "Math")
 
   let binding_to_resolve =
-    parser_ast.Binding(
+    ast.Binding(
       name: "math",
-      value: parser_ast.NodeValue(
-        name: "Math",
-        span: source.Span(start: 7, end: 11),
-      ),
+      value: ast.NodeValue(name: "Math", span: source.Span(start: 7, end: 11)),
       span: source.Span(start: 0, end: 11),
     )
 
@@ -29,9 +26,9 @@ pub fn resolve_node_binding_test() {
     )
 
   assert binding
-    == ast.Binding(
+    == hir.Binding(
       name: "math",
-      value: ast.NodeValue(
+      value: hir.NodeValue(
         name: "Math",
         reference: reference.Node(0),
         span: source.Span(start: 7, end: 11),
@@ -45,12 +42,9 @@ pub fn resolve_returns_duplicate_binding_for_existing_binding_test() {
   let context = context.add_binding(context.new(), "math")
 
   let binding_to_resolve =
-    parser_ast.Binding(
+    ast.Binding(
       name: "math",
-      value: parser_ast.NodeValue(
-        name: "Math",
-        span: source.Span(start: 7, end: 11),
-      ),
+      value: ast.NodeValue(name: "Math", span: source.Span(start: 7, end: 11)),
       span: source.Span(start: 0, end: 11),
     )
 

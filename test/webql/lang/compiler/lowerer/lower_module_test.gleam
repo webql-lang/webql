@@ -1,13 +1,13 @@
 import webql/graph
+import webql/lang/compiler/hir
 import webql/lang/compiler/lowerer/lower_module
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/source
 
 pub fn lower_module_test() {
   let module =
-    ast.Module(
-      operation: ast.Operation(
+    hir.Module(
+      operation: hir.Operation(
         parameters: [],
         returns: [],
         definitions: [],

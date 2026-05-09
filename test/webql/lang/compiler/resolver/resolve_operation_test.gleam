@@ -1,8 +1,8 @@
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 import webql/lang/compiler/resolver/resolve_operation
 import webql/lang/compiler/source
@@ -11,11 +11,11 @@ pub fn resolve_operation_resolves_body_test() {
   let schema = environment.add_typename(environment.new(), "Int")
 
   let operation_to_resolve =
-    parser_ast.Operation(
+    ast.Operation(
       parameters: [
-        parser_ast.Parameter(
+        ast.Parameter(
           name: "in",
-          typename: parser_ast.Typename(
+          typename: ast.Typename(
             name: "Int",
             span: source.Span(start: 4, end: 7),
           ),
@@ -23,9 +23,9 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       returns: [
-        parser_ast.Return(
+        ast.Return(
           name: "out",
-          typename: parser_ast.Typename(
+          typename: ast.Typename(
             name: "Int",
             span: source.Span(start: 15, end: 18),
           ),
@@ -33,14 +33,14 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       definitions: [
-        parser_ast.Definition(
+        ast.Definition(
           name: "Inner",
-          operation: parser_ast.Operation(
+          operation: ast.Operation(
             parameters: [],
             returns: [
-              parser_ast.Return(
+              ast.Return(
                 name: "value",
-                typename: parser_ast.Typename(
+                typename: ast.Typename(
                   name: "Int",
                   span: source.Span(start: 35, end: 38),
                 ),
@@ -56,9 +56,9 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       bindings: [
-        parser_ast.Binding(
+        ast.Binding(
           name: "inner",
-          value: parser_ast.NodeValue(
+          value: ast.NodeValue(
             name: "Inner",
             span: source.Span(start: 50, end: 55),
           ),
@@ -66,12 +66,12 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       edges: [
-        parser_ast.Edge(
-          from: parser_ast.PortOutput(
+        ast.Edge(
+          from: ast.PortOutput(
             path: ["in"],
             span: source.Span(start: 54, end: 57),
           ),
-          to: parser_ast.PortInput(
+          to: ast.PortInput(
             path: ["out"],
             span: source.Span(start: 61, end: 65),
           ),
@@ -85,11 +85,11 @@ pub fn resolve_operation_resolves_body_test() {
     resolve_operation.resolve(schema, context.new(), operation_to_resolve)
 
   assert operation
-    == ast.Operation(
+    == hir.Operation(
       parameters: [
-        ast.Parameter(
+        hir.Parameter(
           name: "in",
-          typename: ast.Typename(
+          typename: hir.Typename(
             name: "Int",
             reference: reference.Typename(0),
             span: source.Span(start: 4, end: 7),
@@ -99,9 +99,9 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       returns: [
-        ast.Return(
+        hir.Return(
           name: "out",
-          typename: ast.Typename(
+          typename: hir.Typename(
             name: "Int",
             reference: reference.Typename(0),
             span: source.Span(start: 15, end: 18),
@@ -111,14 +111,14 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       definitions: [
-        ast.Definition(
+        hir.Definition(
           name: "Inner",
-          operation: ast.Operation(
+          operation: hir.Operation(
             parameters: [],
             returns: [
-              ast.Return(
+              hir.Return(
                 name: "value",
-                typename: ast.Typename(
+                typename: hir.Typename(
                   name: "Int",
                   reference: reference.Typename(0),
                   span: source.Span(start: 35, end: 38),
@@ -137,9 +137,9 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       bindings: [
-        ast.Binding(
+        hir.Binding(
           name: "inner",
-          value: ast.NodeValue(
+          value: hir.NodeValue(
             name: "Inner",
             reference: reference.Node(0),
             span: source.Span(start: 50, end: 55),
@@ -149,13 +149,13 @@ pub fn resolve_operation_resolves_body_test() {
         ),
       ],
       edges: [
-        ast.Edge(
-          from: ast.PortOutput(
+        hir.Edge(
+          from: hir.PortOutput(
             path: ["in"],
             reference: reference.Output(0),
             span: source.Span(start: 54, end: 57),
           ),
-          to: ast.PortInput(
+          to: hir.PortInput(
             path: ["out"],
             reference: reference.Input(0),
             span: source.Span(start: 61, end: 65),
@@ -172,13 +172,13 @@ pub fn resolve_operation_returns_duplicate_definition_test() {
   let schema = environment.new()
 
   let operation_to_resolve =
-    parser_ast.Operation(
+    ast.Operation(
       parameters: [],
       returns: [],
       definitions: [
-        parser_ast.Definition(
+        ast.Definition(
           name: "Inner",
-          operation: parser_ast.Operation(
+          operation: ast.Operation(
             parameters: [],
             returns: [],
             definitions: [],
@@ -188,9 +188,9 @@ pub fn resolve_operation_returns_duplicate_definition_test() {
           ),
           span: source.Span(start: 0, end: 0),
         ),
-        parser_ast.Definition(
+        ast.Definition(
           name: "Inner",
-          operation: parser_ast.Operation(
+          operation: ast.Operation(
             parameters: [],
             returns: [],
             definitions: [],
@@ -220,12 +220,12 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
   let schema = environment.add_typename(environment.new(), "Int")
 
   let operation_to_resolve =
-    parser_ast.Operation(
+    ast.Operation(
       parameters: [],
       returns: [
-        parser_ast.Return(
+        ast.Return(
           name: "out",
-          typename: parser_ast.Typename(
+          typename: ast.Typename(
             name: "Int",
             span: source.Span(start: 7, end: 10),
           ),
@@ -235,31 +235,31 @@ pub fn resolve_operation_returns_duplicate_edge_for_second_primitive_output_to_s
       definitions: [],
       bindings: [],
       edges: [
-        parser_ast.Edge(
-          from: parser_ast.PrimitiveOutput(
-            value: parser_ast.Int(
+        ast.Edge(
+          from: ast.PrimitiveOutput(
+            value: ast.Int(
               name: "Int",
               value: 1,
               span: source.Span(start: 13, end: 14),
             ),
             span: source.Span(start: 13, end: 14),
           ),
-          to: parser_ast.PortInput(
+          to: ast.PortInput(
             path: ["out"],
             span: source.Span(start: 18, end: 22),
           ),
           span: source.Span(start: 13, end: 22),
         ),
-        parser_ast.Edge(
-          from: parser_ast.PrimitiveOutput(
-            value: parser_ast.Int(
+        ast.Edge(
+          from: ast.PrimitiveOutput(
+            value: ast.Int(
               name: "Int",
               value: 2,
               span: source.Span(start: 23, end: 24),
             ),
             span: source.Span(start: 23, end: 24),
           ),
-          to: parser_ast.PortInput(
+          to: ast.PortInput(
             path: ["out"],
             span: source.Span(start: 28, end: 32),
           ),

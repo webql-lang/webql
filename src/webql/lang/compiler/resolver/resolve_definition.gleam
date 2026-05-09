@@ -3,20 +3,20 @@ import gleam/dict
 import gleam/result
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
-import webql/lang/compiler/parser/ast as parser_ast
+import webql/lang/compiler/hir
+import webql/lang/compiler/parser/ast
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 import webql/lang/compiler/resolver/diagnostic
 
 /// Resolves a nested operation definition.
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  definition: parser_ast.Definition,
+  definition: ast.Definition,
   reference: reference.Definition,
   resolve_operation,
-) -> Result(#(ast.Definition, context.Context), diagnostic.Diagnostic) {
-  let parser_ast.Definition(name:, operation:, span:) = definition
+) -> Result(#(hir.Definition, context.Context), diagnostic.Diagnostic) {
+  let ast.Definition(name:, operation:, span:) = definition
 
   use <- bool.guard(
     when: result.is_ok(environment.get_node(environment, definition.name)),
@@ -43,5 +43,5 @@ pub fn resolve(
     operation,
   ))
 
-  Ok(#(ast.Definition(name:, operation:, reference:, span:), context))
+  Ok(#(hir.Definition(name:, operation:, reference:, span:), context))
 }

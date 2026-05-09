@@ -1,19 +1,19 @@
 import gleam/list
 import webql/lang/compiler/context
 import webql/lang/compiler/environment
+import webql/lang/compiler/hir
 import webql/lang/compiler/reference
-import webql/lang/compiler/resolver/ast
 
 /// Registers a binding.
 pub fn register(
   environment: environment.Environment,
   context: context.Context,
-  binding: ast.Binding,
+  binding: hir.Binding,
 ) -> context.Context {
   let context = context.add_binding(context, binding.name)
 
   case binding.value {
-    ast.NodeValue(reference: node, ..) ->
+    hir.NodeValue(reference: node, ..) ->
       register_node_value(context, environment, binding.name, node)
   }
 }

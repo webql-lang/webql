@@ -1,7 +1,7 @@
 import webql/graph
-import webql/lang/compiler/resolver/ast
+import webql/lang/compiler/hir
 
 /// Lowers a resolved input path into an IR input.
-pub fn lower(input: ast.Input) -> graph.Input {
+pub fn lower(input: hir.Input) -> graph.Input {
   graph.Input(path: input.path)
 }
