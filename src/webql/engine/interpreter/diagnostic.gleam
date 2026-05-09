@@ -1,6 +1,8 @@
+import gleam/dynamic
+
 pub type DiagnosticKind {
-  MissingStepInput(step: String)
-  MissingReturn
+  MissingStepInput(step: String, message: dynamic.Dynamic)
+  MissingReturn(message: dynamic.Dynamic)
   RuntimeError(step: String, message: String)
 }
 

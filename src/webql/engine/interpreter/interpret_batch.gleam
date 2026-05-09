@@ -7,7 +7,7 @@ import webql/engine/interpreter/memory
 pub fn interpret(
   batch: List(plan.Step),
   routes: List(plan.Route),
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   interpret_plan,
 ) {
   case batch {
@@ -18,6 +18,7 @@ pub fn interpret(
         memory,
         interpret_plan,
       ))
+
       interpret(batch, routes, progress, interpret_plan)
     }
 

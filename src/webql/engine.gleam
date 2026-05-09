@@ -8,18 +8,18 @@ import webql/engine/interpreter
 import webql/engine/interpreter/memory
 import webql/graph
 
-pub type Engine(a, b) {
-  Engine(document: document.Document, memory: memory.Memory(a, b))
+pub type Engine(storage) {
+  Engine(document: document.Document, memory: memory.Memory(storage))
 }
 
 /// Creates a new engine instance.
-pub fn new(document: document.Document, memory: memory.Memory(a, b)) {
+pub fn new(document: document.Document, memory: memory.Memory(storage)) {
   Engine(document:, memory:)
 }
 
 /// Runs a graph based from a document and a graph.
 pub fn run(
-  engine: Engine(a, b),
+  engine: Engine(storage),
   graph: graph.Module,
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
@@ -45,7 +45,7 @@ fn run_assembler(assembler: assembler.Assembler, graph: graph.Module) {
 
 fn run_interpreter(
   interpreter: interpreter.Interpreter,
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
   case interpreter.interpret(interpreter, memory, parameters) {

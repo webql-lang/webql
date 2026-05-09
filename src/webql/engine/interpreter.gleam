@@ -17,7 +17,7 @@ pub fn new(plan: plan.Plan) -> Interpreter {
 /// Runs an executable plan.
 pub fn interpret(
   interpreter: Interpreter,
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
   interpret_plan.interpret(interpreter.plan, memory, parameters)

@@ -16,8 +16,10 @@ pub fn progress_gets_constant_returns_test() {
 }
 
 pub fn progress_reports_missing_route_return_test() {
-  let assert Error(Nil) =
+  let assert Error(message) =
     progress.get_returns(kv.new(), [
       plan.Route(from: ["missing"], to: ["output"]),
     ])
+
+  assert message == dynamic.nil()
 }

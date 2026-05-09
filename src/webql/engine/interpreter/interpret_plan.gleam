@@ -10,7 +10,7 @@ import webql/engine/interpreter/progress
 /// Runs an executable plan.
 pub fn interpret(
   plan: plan.Plan,
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
   let plan.Plan(routes:, batches:) = plan
@@ -20,7 +20,8 @@ pub fn interpret(
 
   case progress.get_returns(progress, plan.routes) {
     Ok(returns) -> Ok(returns)
-    Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn))
+    Error(message) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(message:)))
   }
 }
 
@@ -29,7 +30,7 @@ pub fn interpret(
 fn interpret_batches(
   batches: List(plan.Batch),
   routes: List(plan.Route),
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
 ) {
   case batches {
     [plan.Batch(batch:), ..batches] -> {

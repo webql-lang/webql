@@ -36,6 +36,7 @@ pub fn interpret_step_reports_missing_step_input_test() {
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
     step: s,
+    message: _message,
   ))) =
     interpret_step.interpret(step, routes, kv.new(), interpret_plan.interpret)
 
