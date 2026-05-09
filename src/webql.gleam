@@ -8,22 +8,22 @@ import webql/engine/interpreter/memory
 import webql/graph
 import webql/lang
 
-pub type Webql(a, b) {
-  Webql(engine: engine.Engine(a, b))
+pub type Webql(storage) {
+  Webql(engine: engine.Engine(storage))
 }
 
 /// Creates a new WebQL instance.
 pub fn new(
   document: document.Document,
-  memory: memory.Memory(a, b),
-) -> Webql(a, b) {
+  memory: memory.Memory(storage),
+) -> Webql(storage) {
   let engine = engine.new(document, memory)
   Webql(engine:)
 }
 
 /// Runs a WebQL source against a document.
 pub fn run(
-  webql: Webql(a, b),
+  webql: Webql(storage),
   source: String,
   document: document.Document,
   parameters: dict.Dict(String, dynamic.Dynamic),

@@ -122,7 +122,10 @@ pub fn interpreter_reports_missing_inputs_test() {
     |> interpreter.new()
     |> interpreter.interpret(kv.new(), dict.new())
     == Error(
-      diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: "identity")),
+      diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
+        step: "identity",
+        message: dynamic.nil(),
+      )),
     )
 }
 
@@ -136,5 +139,9 @@ pub fn interpreter_reports_missing_outputs_test() {
   assert plan
     |> interpreter.new()
     |> interpreter.interpret(kv.new(), dict.new())
-    == Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn))
+    == Error(
+      diagnostic.Diagnostic(
+        kind: diagnostic.MissingReturn(message: dynamic.nil()),
+      ),
+    )
 }

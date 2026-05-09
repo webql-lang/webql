@@ -10,7 +10,7 @@ pub fn kv_gets_set_value_by_path_test() {
 }
 
 pub fn kv_reports_missing_path_test() {
-  assert kv.get(kv.new(), ["missing"]) == Error(Nil)
+  assert kv.get(kv.new(), ["missing"]) == Error(dynamic.nil())
 }
 
 pub fn kv_decode_restores_values_test() {

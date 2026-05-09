@@ -7,29 +7,29 @@ import webql/engine/interpreter/memory
 
 /// Stores initial plan parameters as root-level values.
 pub fn add_parameters(
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   parameters: dict.Dict(String, dynamic.Dynamic),
-) -> memory.Memory(a, b) {
+) -> memory.Memory(storage) {
   use memory, name, value <- dict.fold(parameters, memory)
   memory.set(memory, [name], value)
 }
 
 /// Stores outputs produced by a completed step.
 pub fn add_outputs(
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   step: String,
   outputs: dict.Dict(String, dynamic.Dynamic),
-) -> memory.Memory(a, b) {
+) -> memory.Memory(storage) {
   use memory, name, value <- dict.fold(outputs, memory)
   memory.set(memory, [step, name], value)
 }
 
 /// Resolves all input values for a step by following routes that target it.
 pub fn get_inputs(
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   step: String,
   routes: List(plan.Route),
-) -> Result(dict.Dict(String, dynamic.Dynamic), b) {
+) -> Result(dict.Dict(String, dynamic.Dynamic), dynamic.Dynamic) {
   use inputs, route <- list.try_fold(routes, dict.new())
 
   case route {
@@ -47,9 +47,9 @@ pub fn get_inputs(
 
 /// Resolves final return values from root-level values.
 pub fn get_returns(
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   routes: List(plan.Route),
-) -> Result(dict.Dict(String, dynamic.Dynamic), b) {
+) -> Result(dict.Dict(String, dynamic.Dynamic), dynamic.Dynamic) {
   use returns, route <- list.try_fold(routes, dict.new())
 
   case route {

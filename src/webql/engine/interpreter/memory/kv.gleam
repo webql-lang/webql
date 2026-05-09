@@ -9,26 +9,29 @@ pub type Kv {
 }
 
 /// Creates a new memory instance constaining KV.
-pub fn new() -> memory.Memory(Kv, Nil) {
+pub fn new() -> memory.Memory(Kv) {
   let storage = Kv(dict.new())
   memory.Memory(new:, storage:, get:, set:, encode:, decode:)
 }
 
 /// Gets a path from KV.
 pub fn get(
-  memory: memory.Memory(Kv, Nil),
+  memory: memory.Memory(Kv),
   path: List(String),
-) -> Result(dynamic.Dynamic, Nil) {
+) -> Result(dynamic.Dynamic, dynamic.Dynamic) {
   let memory.Memory(storage: kv, ..) = memory
-  dict.get(kv.values, path)
+  case dict.get(kv.values, path) {
+    Ok(value) -> Ok(value)
+    Error(_nil) -> Error(dynamic.nil())
+  }
 }
 
 /// Inserts a value via a path into KV.
 pub fn set(
-  memory: memory.Memory(Kv, Nil),
+  memory: memory.Memory(Kv),
   path: List(String),
   value: dynamic.Dynamic,
-) -> memory.Memory(Kv, Nil) {
+) -> memory.Memory(Kv) {
   let memory.Memory(storage: kv, ..) = memory
   memory.Memory(
     ..memory,
@@ -37,7 +40,7 @@ pub fn set(
 }
 
 /// Encodes a KV store into a dynamic to be used by an external runtime.
-pub fn encode(memory: memory.Memory(Kv, Nil)) -> dynamic.Dynamic {
+pub fn encode(memory: memory.Memory(Kv)) -> dynamic.Dynamic {
   let memory.Memory(storage: kv, ..) = memory
 
   kv.values
@@ -56,9 +59,9 @@ pub fn encode(memory: memory.Memory(Kv, Nil)) -> dynamic.Dynamic {
 
 /// Decodes a dynamic (ie. a Erlang map or JS object) by coverting it into a KV value.
 pub fn decode(
-  memory: memory.Memory(Kv, Nil),
+  memory: memory.Memory(Kv),
   unknown: dynamic.Dynamic,
-) -> Result(memory.Memory(Kv, Nil), List(decode.DecodeError)) {
+) -> Result(memory.Memory(Kv), List(decode.DecodeError)) {
   let schema = decode.dict(decode.list(decode.string), decode.dynamic)
   let values = decode.run(unknown, schema)
 

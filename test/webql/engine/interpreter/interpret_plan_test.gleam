@@ -127,6 +127,7 @@ pub fn interpret_plan_reports_missing_return_test() {
       batches: [],
     )
 
-  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn)) =
-    interpret_plan.interpret(p, kv.new(), dict.new())
+  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(
+    _message,
+  ))) = interpret_plan.interpret(p, kv.new(), dict.new())
 }

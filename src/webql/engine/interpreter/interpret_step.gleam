@@ -11,14 +11,17 @@ import webql/engine/interpreter/progress
 pub fn interpret(
   step: plan.Step,
   routes: List(plan.Route),
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   interpret_plan,
 ) {
   case progress.get_inputs(memory, step.name, routes) {
     Ok(inputs) -> interpret_step(step, inputs, memory, interpret_plan)
-    Error(_nil) ->
+    Error(message) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step: step.name)),
+        diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
+          step: step.name,
+          message:,
+        )),
       )
   }
 }
@@ -28,7 +31,7 @@ pub fn interpret(
 fn interpret_step(
   step: plan.Step,
   inputs: dict.Dict(String, dynamic.Dynamic),
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
   interpret_plan,
 ) {
   let plan.Step(name:, resolver:) = step
@@ -48,7 +51,7 @@ fn interpret_resolver(
   step: String,
   function: document.Resolver,
   inputs: dict.Dict(String, dynamic.Dynamic),
-  memory: memory.Memory(a, b),
+  memory: memory.Memory(storage),
 ) {
   let document.Resolver(resolver:) = function
 
