@@ -4,20 +4,31 @@ import webql/engine/interpreter/diagnostic
 import webql/engine/interpreter/interpret_plan
 import webql/engine/interpreter/interpret_step
 import webql/engine/interpreter/memory/kv
+import webql/engine/interpreter/runtime
+import webql/resolution
 
 pub fn interpret_step_reports_runtime_error_test() {
   let step =
     plan.Step(
       name: "fail",
       resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(_inputs) { Error("oops") }),
+        document.Resolver(resolver: fn(_inputs) {
+          resolution.Done(Error("oops"))
+        }),
       ),
     )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.RuntimeError(
     step: name,
     message:,
-  ))) = interpret_step.interpret(step, [], kv.new(), interpret_plan.interpret)
+  ))) =
+    interpret_step.interpret(
+      step,
+      [],
+      runtime.synchronous(),
+      kv.new(),
+      interpret_plan.interpret,
+    )
 
   assert name == "fail"
   assert message == "oops"
@@ -28,7 +39,7 @@ pub fn interpret_step_reports_missing_step_input_test() {
     plan.Step(
       name: "op",
       resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(inputs) { Ok(inputs) }),
+        document.Resolver(resolver: fn(inputs) { resolution.Done(Ok(inputs)) }),
       ),
     )
 
@@ -38,7 +49,13 @@ pub fn interpret_step_reports_missing_step_input_test() {
     step: s,
     message: _message,
   ))) =
-    interpret_step.interpret(step, routes, kv.new(), interpret_plan.interpret)
+    interpret_step.interpret(
+      step,
+      routes,
+      runtime.synchronous(),
+      kv.new(),
+      interpret_plan.interpret,
+    )
 
   assert s == "op"
 }

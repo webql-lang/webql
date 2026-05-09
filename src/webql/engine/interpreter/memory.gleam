@@ -1,15 +1,23 @@
 import gleam/dynamic
-import gleam/dynamic/decode
+
+pub type New(storage) =
+  fn() -> Memory(storage)
+
+pub type Get(storage) =
+  fn(Memory(storage), List(String)) -> Result(dynamic.Dynamic, dynamic.Dynamic)
+
+pub type Set(storage) =
+  fn(Memory(storage), List(String), dynamic.Dynamic) -> Memory(storage)
+
+pub type Merge(storage) =
+  fn(Memory(storage), Memory(storage)) -> Memory(storage)
 
 pub type Memory(storage) {
   Memory(
-    new: fn() -> Memory(storage),
+    new: New(storage),
     storage: storage,
-    get: fn(Memory(storage), List(String)) ->
-      Result(dynamic.Dynamic, dynamic.Dynamic),
-    set: fn(Memory(storage), List(String), dynamic.Dynamic) -> Memory(storage),
-    encode: fn(Memory(storage)) -> dynamic.Dynamic,
-    decode: fn(Memory(storage), dynamic.Dynamic) ->
-      Result(Memory(storage), List(decode.DecodeError)),
+    get: Get(storage),
+    set: Set(storage),
+    merge: Merge(storage),
   )
 }
