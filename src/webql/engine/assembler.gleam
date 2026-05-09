@@ -21,15 +21,15 @@ pub fn assemble(
   graph: graph.Module,
 ) -> Result(plan.Plan, diagnostic.Diagnostic) {
   let linker = linker.new(graph)
-  use plan <- result.try(run_linker(linker, assembler.document))
+  use plan <- result.try(assemble_linker(linker, assembler.document))
 
   let scheduler = scheduler.new(plan)
-  run_scheduler(scheduler)
+  assemble_scheduler(scheduler)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn run_linker(linker: linker.Linker, document: document.Document) {
+fn assemble_linker(linker: linker.Linker, document: document.Document) {
   case linker.link(linker, document) {
     Ok(plan) -> Ok(plan)
     Error(error) ->
@@ -39,7 +39,7 @@ fn run_linker(linker: linker.Linker, document: document.Document) {
   }
 }
 
-fn run_scheduler(scheduler: scheduler.Scheduler) {
+fn assemble_scheduler(scheduler: scheduler.Scheduler) {
   case scheduler.schedule(scheduler) {
     Ok(result) -> Ok(result)
 
