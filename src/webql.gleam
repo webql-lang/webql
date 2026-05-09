@@ -3,13 +3,13 @@ import gleam/dynamic
 import gleam/result
 import webql/diagnostic
 import webql/document
+import webql/engine
+import webql/engine/interpreter/memory
 import webql/graph
 import webql/lang
-import webql/vm
-import webql/vm/interpreter/memory
 
 pub type Webql(a, b) {
-  Webql(vm: vm.Vm(a, b))
+  Webql(engine: engine.Engine(a, b))
 }
 
 /// Creates a new WebQL instance.
@@ -17,8 +17,8 @@ pub fn new(
   document: document.Document,
   memory: memory.Memory(a, b),
 ) -> Webql(a, b) {
-  let vm = vm.new(document, memory)
-  Webql(vm:)
+  let engine = engine.new(document, memory)
+  Webql(engine:)
 }
 
 /// Runs a WebQL source against a document.
@@ -30,10 +30,12 @@ pub fn run(
 ) {
   use graph <- result.try(compile(source, document))
 
-  case vm.run(webql.vm, graph, parameters) {
+  case engine.run(webql.engine, graph, parameters) {
     Ok(result) -> Ok(result)
     Error(error) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.VmDiagnostic(error.kind)))
+      Error(
+        diagnostic.Diagnostic(kind: diagnostic.EngineDiagnostic(error.kind)),
+      )
   }
 }
 
