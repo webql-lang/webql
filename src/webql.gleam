@@ -1,18 +1,26 @@
 import gleam/dict
 import gleam/dynamic
+import webql/assembler
+import webql/compiler
 import webql/diagnostic
 import webql/document
-import webql/engine
-import webql/engine/diagnostic as engine_diagnostic
-import webql/engine/interpreter/diagnostic as interpreter_diagnostic
-import webql/engine/interpreter/memory
-import webql/engine/interpreter/runtime
 import webql/graph
-import webql/lang
+import webql/interpreter
+import webql/interpreter/diagnostic as interpreter_diagnostic
+import webql/interpreter/memory
+import webql/interpreter/runtime
+import webql/introspection
 import webql/resolution
 
 pub type Webql(storage) {
-  Webql(engine: engine.Engine(storage))
+  Webql(
+    document: document.Document,
+    memory: memory.Memory(storage),
+    runtime: runtime.Runtime(
+      memory.Memory(storage),
+      interpreter_diagnostic.Diagnostic,
+    ),
+  )
 }
 
 /// Creates a new WebQL instance.
@@ -24,8 +32,7 @@ pub fn new(
     interpreter_diagnostic.Diagnostic,
   ),
 ) -> Webql(storage) {
-  let engine = engine.new(document, memory, runtime)
-  Webql(engine:)
+  Webql(document:, memory:, runtime:)
 }
 
 /// Runs a WebQL source against a document.
@@ -36,7 +43,7 @@ pub fn run(
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
   case compile(source, document) {
-    Ok(graph) -> run_engine(webql.engine, graph, parameters)
+    Ok(graph) -> run_plan(webql, graph, parameters)
 
     Error(error) -> resolution.Done(Error(error))
   }
@@ -47,24 +54,56 @@ pub fn compile(
   source: String,
   document: document.Document,
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
-  let schema = lang.introspect(document)
-  case lang.compile(source, schema) {
+  let schema = introspection.introspect(document)
+  let compiler = compiler.new(schema)
+
+  case compiler.compile(compiler, source) {
     Ok(output) -> Ok(output)
     Error(diagnostic) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.LangDiagnostic(diagnostic.kind)),
+        diagnostic.Diagnostic(kind: diagnostic.CompilerDiagnostic(
+          diagnostic.kind,
+        )),
       )
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn run_engine(
-  engine: engine.Engine(storage),
+fn run_plan(
+  webql: Webql(storage),
   graph: graph.Module,
   parameters: dict.Dict(String, dynamic.Dynamic),
 ) {
-  case engine.run(engine, graph, parameters) {
+  let assembler = assembler.new(webql.document)
+
+  case assembler.assemble(assembler, graph) {
+    Ok(plan) -> {
+      let interpreter = interpreter.new(plan)
+      interpret(interpreter, webql.memory, webql.runtime, parameters)
+    }
+
+    Error(diagnostic) ->
+      resolution.Done(
+        Error(
+          diagnostic.Diagnostic(kind: diagnostic.AssemblerDiagnostic(
+            diagnostic.kind,
+          )),
+        ),
+      )
+  }
+}
+
+fn interpret(
+  interpreter: interpreter.Interpreter,
+  memory: memory.Memory(storage),
+  runtime: runtime.Runtime(
+    memory.Memory(storage),
+    interpreter_diagnostic.Diagnostic,
+  ),
+  parameters: dict.Dict(String, dynamic.Dynamic),
+) {
+  case interpreter.interpret(interpreter, memory, runtime, parameters) {
     resolution.Done(result) -> resolution.Done(normalize(result))
 
     resolution.Pending(perform) ->
@@ -74,13 +113,15 @@ fn run_engine(
   }
 }
 
-fn normalize(result: Result(dynamic.Dynamic, engine_diagnostic.Diagnostic)) {
+fn normalize(result: Result(dynamic.Dynamic, interpreter_diagnostic.Diagnostic)) {
   case result {
     Ok(result) -> Ok(result)
 
     Error(diagnostic) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.EngineDiagnostic(diagnostic.kind)),
+        diagnostic.Diagnostic(kind: diagnostic.InterpreterDiagnostic(
+          diagnostic.kind,
+        )),
       )
   }
 }
