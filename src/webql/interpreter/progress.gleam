@@ -73,16 +73,7 @@ pub fn get_inputs(
     })
 
   case results {
-    Ok(results) ->
-      results
-      |> dict.to_list()
-      |> list.map(fn(entry) {
-        let #(key, value) = entry
-        #(dynamic.string(key), value)
-      })
-      |> dynamic.properties()
-      |> Ok()
-
+    Ok(results) -> Ok(encode(results))
     Error(message) ->
       Error(
         diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step:, message:)),
@@ -114,8 +105,9 @@ pub fn get_returns(
   Ok(encode(returns))
 }
 
-/// Encodes a dictionary of values into a dynamic to be used by an external engine.
-pub fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
+// PRIVATE FUNCTIONS
+// =================
+fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
   values
   |> dict.to_list()
   |> list.map(fn(input) {
@@ -125,8 +117,7 @@ pub fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
   |> dynamic.properties()
 }
 
-/// Decodes a dynamic into a dictionary of values.
-pub fn decode(
+fn decode(
   unknown: dynamic.Dynamic,
 ) -> Result(dict.Dict(String, dynamic.Dynamic), List(decode.DecodeError)) {
   let schema = decode.dict(decode.string, decode.dynamic)
