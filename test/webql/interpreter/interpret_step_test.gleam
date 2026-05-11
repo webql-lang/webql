@@ -27,8 +27,9 @@ pub fn interpret_step_runs_function_resolver_test() {
               engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) {
                 Ok(
-                  [#(dynamic.string("value"), dynamic.int(n + 1))]
-                  |> dynamic.properties(),
+                  dynamic.properties([
+                    #(dynamic.string("value"), dynamic.int(n + 1)),
+                  ]),
                 )
               },
             )

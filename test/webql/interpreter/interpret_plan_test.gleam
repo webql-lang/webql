@@ -47,7 +47,10 @@ pub fn interpret_plan_runs_function_resolver_test() {
               resolver: plan.FunctionResolver(
                 document.Resolver(resolver: fn(inputs) {
                   let assert Ok(inputs) =
-                    decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+                    decode.run(
+                      inputs,
+                      decode.dict(decode.string, decode.dynamic),
+                    )
                   let assert Ok(n) = dict.get(inputs, "n")
                   let assert Ok(n) = decode.run(n, decode.int)
 
@@ -55,8 +58,9 @@ pub fn interpret_plan_runs_function_resolver_test() {
                     engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                     fn(_memory) {
                       Ok(
-                        [#(dynamic.string("value"), dynamic.int(n + 1))]
-                        |> dynamic.properties(),
+                        dynamic.properties([
+                          #(dynamic.string("value"), dynamic.int(n + 1)),
+                        ]),
                       )
                     },
                   )
@@ -92,7 +96,7 @@ pub fn interpret_plan_reports_missing_return_test() {
       ),
       kv.new(),
       engine,
-      [] |> dynamic.properties(),
+      dynamic.properties([]),
     )
 
   engine.finish_step(task, fn(result) {

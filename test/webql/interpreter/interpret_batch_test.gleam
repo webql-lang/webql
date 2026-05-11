@@ -27,8 +27,9 @@ pub fn interpret_batch_runs_step_test() {
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
-                    [#(dynamic.string("value"), dynamic.int(n + 1))]
-                    |> dynamic.properties(),
+                    dynamic.properties([
+                      #(dynamic.string("value"), dynamic.int(n + 1)),
+                    ]),
                   )
                 },
               )
@@ -81,8 +82,9 @@ pub fn interpret_batch_runs_multiple_steps_test() {
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
-                    [#(dynamic.string("result"), dynamic.int(x * 2))]
-                    |> dynamic.properties(),
+                    dynamic.properties([
+                      #(dynamic.string("result"), dynamic.int(x * 2)),
+                    ]),
                   )
                 },
               )
@@ -102,8 +104,9 @@ pub fn interpret_batch_runs_multiple_steps_test() {
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
-                    [#(dynamic.string("result"), dynamic.int(x + 1))]
-                    |> dynamic.properties(),
+                    dynamic.properties([
+                      #(dynamic.string("result"), dynamic.int(x + 1)),
+                    ]),
                   )
                 },
               )
