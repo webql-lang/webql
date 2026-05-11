@@ -15,9 +15,11 @@ pub fn parse_int_primitive_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
+  assert value
+    == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
   assert span == source.Span(start: 0, end: 3)
-  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
 }
 
 pub fn parse_float_primitive_test() {
@@ -30,9 +32,15 @@ pub fn parse_float_primitive_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value == ast.Float(name: "Float", span: source.Span(start: 0, end: 4), value: 1.23)
+  assert value
+    == ast.Float(
+      name: "Float",
+      span: source.Span(start: 0, end: 4),
+      value: 1.23,
+    )
   assert span == source.Span(start: 0, end: 4)
-  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
 }
 
 pub fn parse_string_primitive_test() {
@@ -52,7 +60,8 @@ pub fn parse_string_primitive_test() {
       value: "test",
     )
   assert span == source.Span(start: 0, end: 6)
-  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 6, end: 6))]
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 6, end: 6))]
 }
 
 pub fn parse_skips_space_test() {
@@ -65,9 +74,11 @@ pub fn parse_skips_space_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value == ast.Int(name: "Int", span: source.Span(start: 2, end: 5), value: 123)
+  assert value
+    == ast.Int(name: "Int", span: source.Span(start: 2, end: 5), value: 123)
   assert span == source.Span(start: 2, end: 5)
-  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
+  assert rest
+    == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
 }
 
 pub fn parse_preserves_rest_test() {
@@ -80,7 +91,8 @@ pub fn parse_preserves_rest_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
+  assert value
+    == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
   assert span == source.Span(start: 0, end: 3)
   assert rest
     == [

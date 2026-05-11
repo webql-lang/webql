@@ -59,7 +59,8 @@ pub fn compile_materializes_node_binding_ports_test() {
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) = compiler.compile(c, operation_source)
+  let assert Ok(graph.Module(operation:)) =
+    compiler.compile(c, operation_source)
 
   assert operation.nodes == [graph.ExternalNode(name: "m", node: "Math")]
 
@@ -106,7 +107,8 @@ pub fn compile_materializes_definition_binding_ports_test() {
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) = compiler.compile(c, operation_source)
+  let assert Ok(graph.Module(operation:)) =
+    compiler.compile(c, operation_source)
 
   assert operation.nodes
     == [
@@ -250,4 +252,3 @@ pub fn compile_wraps_resolver_diagnostic_test() {
       span: source.Span(start: 8, end: 11),
     )
 }
-

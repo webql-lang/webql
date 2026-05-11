@@ -108,7 +108,7 @@ pub fn assembler_reports_unknown_operator_test() {
   let assert Error(d) = assembler.assemble(a, module)
 
   assert d.kind
-    == assembler_diagnostic.LinkerDiagnostic(
-      linker_diagnostic.UnknownOperator("UnknownOp"),
-    )
+    == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperator(
+      "UnknownOp",
+    ))
 }

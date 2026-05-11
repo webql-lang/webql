@@ -29,7 +29,11 @@ pub fn lower_output_lowers_multi_part_port_output_test() {
 pub fn lower_output_lowers_int_primitive_test() {
   let output =
     hir.PrimitiveOutput(
-      value: hir.Int(name: "Int", value: 42, span: source.Span(start: 0, end: 2)),
+      value: hir.Int(
+        name: "Int",
+        value: 42,
+        span: source.Span(start: 0, end: 2),
+      ),
       typename: reference.Typename(0),
       span: source.Span(start: 0, end: 2),
     )

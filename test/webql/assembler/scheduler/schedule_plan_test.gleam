@@ -27,13 +27,14 @@ pub fn schedule_plan_builds_executable_plan_test() {
   let assert Ok(plan.Plan(routes:, batches:)) =
     schedule_plan.schedule(linker_program)
 
-  assert routes == [
-    plan.Constant(value: dynamic.int(0), to: ["normalize", "zero"]),
-    plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-    plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-    plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-    plan.Route(from: ["posts", "items"], to: ["summary"]),
-  ]
+  assert routes
+    == [
+      plan.Constant(value: dynamic.int(0), to: ["normalize", "zero"]),
+      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
+      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
+      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
+      plan.Route(from: ["posts", "items"], to: ["summary"]),
+    ]
 
   let batch_step_names =
     list.map(batches, fn(batch) {

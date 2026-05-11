@@ -61,4 +61,3 @@ pub fn lex_comment_respects_non_zero_start_and_size_test() {
     )
   assert rest == <<"\nworld":utf8>>
 }
-

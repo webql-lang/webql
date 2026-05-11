@@ -43,8 +43,7 @@ pub fn link_program_links_edges_to_routes_test() {
 
   let assert Ok(linked) = link_program.link(module, document())
 
-  assert linked.routes
-    == [program.Route(from: ["user_id"], to: ["user", "id"])]
+  assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
 }
 
 fn resolver() {

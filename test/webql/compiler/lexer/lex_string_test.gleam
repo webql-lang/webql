@@ -59,4 +59,3 @@ pub fn lex_string_respects_non_zero_start_test() {
     == token.Token(kind: token.String, span: source.Span(start: 5, end: 9))
   assert rest == <<";":utf8>>
 }
-

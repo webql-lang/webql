@@ -28,4 +28,3 @@ pub fn lex_whitespace_respects_non_zero_start_and_size_test() {
     == token.Token(kind: token.Space, span: source.Span(start: 10, end: 13))
   assert rest == <<"hello":utf8>>
 }
-
