@@ -3,11 +3,11 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/interpreter/progress
-import webql/interpreter/sandbox
+import webql/memory/kv
 
 pub fn progress_gets_constant_returns_test() {
   let assert Ok(returns) =
-    progress.get_returns(sandbox.memory(), [
+    progress.get_returns(kv.new(), [
       plan.Constant(value: dynamic.int(99), to: ["output"]),
     ])
   let assert Ok(returns) =
@@ -19,7 +19,7 @@ pub fn progress_gets_constant_returns_test() {
 
 pub fn progress_reports_missing_route_return_test() {
   let assert Error(message) =
-    progress.get_returns(sandbox.memory(), [
+    progress.get_returns(kv.new(), [
       plan.Route(from: ["missing"], to: ["output"]),
     ])
 

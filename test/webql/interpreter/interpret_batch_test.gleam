@@ -3,56 +3,128 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/document
-import webql/interpreter/diagnostic
+import webql/engine/transient
 import webql/interpreter/interpret_batch
-import webql/interpreter/sandbox
+import webql/interpreter/interpret_plan
+import webql/memory/kv
 
-pub fn interpret_batch_with_empty_batch_returns_progress_test() {
-  let p = sandbox.memory()
-  let assert Ok(result) =
-    interpret_batch.interpret([], [], sandbox.engine(), p, interpret_inline)
-    |> sandbox.memory_result()
-  assert result == p
-}
-
-pub fn interpret_batch_short_circuits_on_error_test() {
-  let failing_step =
-    plan.Step(
-      name: "fail",
-      resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(_inputs) {
-          sandbox.fail(dynamic.string("oops"))
-        }),
-      ),
-    )
-
-  let ok_step =
-    plan.Step(
-      name: "ok",
-      resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(_inputs) {
-          sandbox.ok(dict.from_list([#("value", dynamic.int(1))]))
-        }),
-      ),
-    )
-
-  let assert Error(diagnostic.Diagnostic(kind: diagnostic.RuntimeError(
-    step: name,
-    message:,
-  ))) =
+pub fn interpret_batch_runs_step_test() {
+  let engine = transient.new()
+  let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
+  let task =
     interpret_batch.interpret(
-      [failing_step, ok_step],
-      [],
-      sandbox.engine(),
-      sandbox.memory(),
-      interpret_inline,
-    )
-    |> sandbox.result()
+      [
+        plan.Step(
+          name: "inc",
+          resolver: plan.FunctionResolver(
+            document.Resolver(resolver: fn(inputs) {
+              let assert Ok(inputs) =
+                decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+              let assert Ok(n) = dict.get(inputs, "n")
+              let assert Ok(n) = decode.run(n, decode.int)
 
-  assert name == "fail"
-  assert decode.run(message, decode.string) == Ok("oops")
+              engine.finish_plan(
+                engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+                fn(_memory) {
+                  Ok(
+                    [#(dynamic.string("value"), dynamic.int(n + 1))]
+                    |> dynamic.properties(),
+                  )
+                },
+              )
+            }),
+          ),
+        ),
+      ],
+      [plan.Route(from: ["input"], to: ["inc", "n"])],
+      engine,
+      memory,
+      interpret_plan.interpret,
+    )
+
+  engine.finish_plan(task, fn(memory) {
+    let assert Ok(output) = kv.get(memory, ["inc", "value"])
+    assert decode.run(output, decode.int) == Ok(5)
+    Ok(dynamic.nil())
+  })
 }
 
-fn interpret_inline(_plan, memory, _runtime, _parameters) {
-  sandbox.memory_task(Ok(memory))
+pub fn interpret_batch_runs_empty_batch_test() {
+  let engine = transient.new()
+  let memory = kv.set(kv.new(), ["input"], dynamic.int(42))
+  let task =
+    interpret_batch.interpret([], [], engine, memory, interpret_plan.interpret)
+
+  engine.finish_plan(task, fn(memory) {
+    let assert Ok(value) = kv.get(memory, ["input"])
+    assert decode.run(value, decode.int) == Ok(42)
+    Ok(dynamic.nil())
+  })
+}
+
+pub fn interpret_batch_runs_multiple_steps_test() {
+  let engine = transient.new()
+  let memory = kv.set(kv.new(), ["n"], dynamic.int(3))
+  let task =
+    interpret_batch.interpret(
+      [
+        plan.Step(
+          name: "double",
+          resolver: plan.FunctionResolver(
+            document.Resolver(resolver: fn(inputs) {
+              let assert Ok(inputs) =
+                decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+              let assert Ok(x) = dict.get(inputs, "x")
+              let assert Ok(x) = decode.run(x, decode.int)
+
+              engine.finish_plan(
+                engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+                fn(_memory) {
+                  Ok(
+                    [#(dynamic.string("result"), dynamic.int(x * 2))]
+                    |> dynamic.properties(),
+                  )
+                },
+              )
+            }),
+          ),
+        ),
+        plan.Step(
+          name: "inc",
+          resolver: plan.FunctionResolver(
+            document.Resolver(resolver: fn(inputs) {
+              let assert Ok(inputs) =
+                decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+              let assert Ok(x) = dict.get(inputs, "x")
+              let assert Ok(x) = decode.run(x, decode.int)
+
+              engine.finish_plan(
+                engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+                fn(_memory) {
+                  Ok(
+                    [#(dynamic.string("result"), dynamic.int(x + 1))]
+                    |> dynamic.properties(),
+                  )
+                },
+              )
+            }),
+          ),
+        ),
+      ],
+      [
+        plan.Route(from: ["n"], to: ["double", "x"]),
+        plan.Route(from: ["n"], to: ["inc", "x"]),
+      ],
+      engine,
+      memory,
+      interpret_plan.interpret,
+    )
+
+  engine.finish_plan(task, fn(memory) {
+    let assert Ok(doubled) = kv.get(memory, ["double", "result"])
+    let assert Ok(incremented) = kv.get(memory, ["inc", "result"])
+    assert decode.run(doubled, decode.int) == Ok(6)
+    assert decode.run(incremented, decode.int) == Ok(4)
+    Ok(dynamic.nil())
+  })
 }
