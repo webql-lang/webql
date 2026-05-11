@@ -10,7 +10,10 @@ export function run(next) {
 
 export async function startPlan(next) {
   const result = next();
-  if (result instanceof Error) return result;
+
+  if (result instanceof Error) {
+    return result;
+  }
 
   const [initial, pendingBatches] = result[ACCESS_INDEX];
   const batches =
@@ -40,12 +43,22 @@ export function startBatch(next) {
 
 export async function finishBatch(initial, task, merge) {
   const result = await task;
-  if (result instanceof Error) return result;
+
+  if (result instanceof Error) {
+    return result;
+  }
 
   const steps = await Promise.all(result[ACCESS_INDEX]);
+
   return steps.reduce((acc, step) => {
-    if (acc instanceof Error) return acc;
-    if (step instanceof Error) return step;
+    if (acc instanceof Error) {
+      return acc;
+    }
+
+    if (step instanceof Error) {
+      return step;
+    }
+
     return new Ok(merge(acc[ACCESS_INDEX], step[ACCESS_INDEX]));
   }, new Ok(initial));
 }
