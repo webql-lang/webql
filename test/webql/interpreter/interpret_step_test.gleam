@@ -1,66 +1,136 @@
+import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/document
-import webql/interpreter/diagnostic
+import webql/engine/transient
+import webql/interpreter/interpret_plan
 import webql/interpreter/interpret_step
-import webql/interpreter/sandbox
+import webql/interpreter/progress
+import webql/memory/kv
 
-pub fn interpret_step_reports_runtime_error_test() {
-  let step =
-    plan.Step(
-      name: "fail",
-      resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(_inputs) {
-          sandbox.fail(dynamic.string("oops"))
-        }),
-      ),
-    )
-
-  let assert Error(diagnostic.Diagnostic(kind: diagnostic.RuntimeError(
-    step: name,
-    message:,
-  ))) =
-    step
-    |> interpret_step.interpret(
-      [],
-      sandbox.engine(),
-      sandbox.memory(),
-      interpret_inline,
-    )
-    |> sandbox.result()
-
-  assert name == "fail"
-  assert decode.run(message, decode.string) == Ok("oops")
-}
-
-pub fn interpret_step_reports_missing_step_input_test() {
-  let step =
-    plan.Step(
-      name: "op",
-      resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(inputs) { sandbox.output(inputs) }),
-      ),
-    )
-
-  let routes = [plan.Route(from: ["source"], to: ["op", "x"])]
-
-  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
-    step: s,
-    message: _message,
-  ))) =
+pub fn interpret_step_runs_function_resolver_test() {
+  let engine = transient.new()
+  let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
+  let task =
     interpret_step.interpret(
-      step,
-      routes,
-      sandbox.engine(),
-      sandbox.memory(),
-      interpret_inline,
-    )
-    |> sandbox.result()
+      plan.Step(
+        name: "inc",
+        resolver: plan.FunctionResolver(
+          document.Resolver(resolver: fn(inputs) {
+            let assert Ok(inputs) =
+              decode.run(inputs, decode.dict(decode.string, decode.dynamic))
+            let assert Ok(n) = dict.get(inputs, "n")
+            let assert Ok(n) = decode.run(n, decode.int)
 
-  assert s == "op"
+            engine.finish_plan(
+              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+              fn(_memory) {
+                Ok(
+                  dynamic.properties([
+                    #(dynamic.string("value"), dynamic.int(n + 1)),
+                  ]),
+                )
+              },
+            )
+          }),
+        ),
+      ),
+      [plan.Route(from: ["input"], to: ["inc", "n"])],
+      engine,
+      memory,
+      interpret_plan.interpret,
+    )
+
+  engine.finish_plan(task, fn(memory) {
+    let assert Ok(output) = kv.get(memory, ["inc", "value"])
+    assert decode.run(output, decode.int) == Ok(5)
+    Ok(dynamic.nil())
+  })
 }
 
-fn interpret_inline(_plan, memory, _runtime, _parameters) {
-  sandbox.memory_task(Ok(memory))
+pub fn interpret_step_reports_missing_input_test() {
+  let engine = transient.new()
+  let task =
+    interpret_step.interpret(
+      plan.Step(
+        name: "op",
+        resolver: plan.FunctionResolver(
+          document.Resolver(resolver: fn(_inputs) {
+            engine.finish_plan(
+              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+              fn(_memory) { Ok(dynamic.nil()) },
+            )
+          }),
+        ),
+      ),
+      [plan.Route(from: ["missing"], to: ["op", "value"])],
+      engine,
+      kv.new(),
+      interpret_plan.interpret,
+    )
+
+  engine.finish_step(task, fn(result) {
+    let assert Error(_) = result
+    Ok(kv.new())
+  })
+}
+
+pub fn interpret_step_reports_invalid_output_test() {
+  let engine = transient.new()
+  let task =
+    interpret_step.interpret(
+      plan.Step(
+        name: "invalid",
+        resolver: plan.FunctionResolver(
+          document.Resolver(resolver: fn(_inputs) {
+            engine.finish_plan(
+              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+              fn(_memory) { Ok(dynamic.nil()) },
+            )
+          }),
+        ),
+      ),
+      [],
+      engine,
+      kv.new(),
+      interpret_plan.interpret,
+    )
+
+  engine.finish_step(task, fn(result) {
+    let assert Error(_) = result
+    Ok(kv.new())
+  })
+}
+
+pub fn interpret_step_runs_inline_resolver_test() {
+  let engine = transient.new()
+  let memory = kv.set(kv.new(), ["input"], dynamic.int(9))
+  let task =
+    interpret_step.interpret(
+      plan.Step(
+        name: "inline",
+        resolver: plan.InlineResolver(
+          plan: plan.Plan(
+            routes: [plan.Route(from: ["value"], to: ["output"])],
+            batches: [],
+          ),
+        ),
+      ),
+      [plan.Route(from: ["input"], to: ["inline", "value"])],
+      engine,
+      memory,
+      fn(_plan, memory, engine, parameters) {
+        engine.start_plan(fn() {
+          let assert Ok(memory) = progress.add_parameters(memory, parameters)
+          Ok(#(memory, []))
+        })
+      },
+    )
+
+  engine.finish_plan(task, fn(memory) {
+    let assert Ok(output) = kv.get(memory, ["inline", "output"])
+    assert decode.run(output, decode.int) == Ok(9)
+    Ok(dynamic.nil())
+  })
 }

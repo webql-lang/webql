@@ -27,19 +27,25 @@ pub fn schedule_plan_builds_executable_plan_test() {
   let assert Ok(plan.Plan(routes:, batches:)) =
     schedule_plan.schedule(linker_program)
 
-  let assert [
-    plan.Constant(value: _, to: ["normalize", "zero"]),
-    plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-    plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-    plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-    plan.Route(from: ["posts", "items"], to: ["summary"]),
-  ] = routes
+  assert routes
+    == [
+      plan.Constant(value: dynamic.int(0), to: ["normalize", "zero"]),
+      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
+      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
+      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
+      plan.Route(from: ["posts", "items"], to: ["summary"]),
+    ]
 
-  let assert [
-    plan.Batch(batch: [plan.Step(name: "normalize", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "user", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "posts", resolver: _)]),
-  ] = batches
+  let batch_step_names =
+    list.map(batches, fn(batch) {
+      let plan.Batch(batch: steps) = batch
+      list.map(steps, fn(step) {
+        let plan.Step(name:, ..) = step
+        name
+      })
+    })
+
+  assert batch_step_names == [["normalize"], ["user"], ["posts"]]
 }
 
 pub fn schedule_plan_batches_independent_nodes_test() {
@@ -82,16 +88,25 @@ pub fn schedule_plan_schedules_inline_resolvers_test() {
       routes: [],
     )
 
-  let assert Ok(plan.Plan(batches: [plan.Batch(batch: [step])], ..)) =
-    schedule_plan.schedule(linker_program)
+  let assert Ok(result) = schedule_plan.schedule(linker_program)
+  let assert [plan.Batch(batch: [step])] = result.batches
 
-  let assert plan.Step(
-    name: "normalize",
-    resolver: plan.InlineResolver(plan: plan.Plan(
-      batches: [plan.Batch(batch: [plan.Step(name: "add", resolver: _)])],
-      ..,
-    )),
-  ) = step
+  let plan.Step(name: step_name, resolver: step_resolver) = step
+  assert step_name == "normalize"
+
+  let inner_names = case step_resolver {
+    plan.InlineResolver(plan: inner) ->
+      list.map(inner.batches, fn(b) {
+        let plan.Batch(batch: inner_steps) = b
+        list.map(inner_steps, fn(s) {
+          let plan.Step(name: s_name, ..) = s
+          s_name
+        })
+      })
+    plan.FunctionResolver(_) -> []
+  }
+
+  assert inner_names == [["add"]]
 }
 
 pub fn schedule_plan_reports_cycles_test() {

@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/dynamic
+import gleam/list
 import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler
@@ -8,7 +9,7 @@ import webql/document
 pub fn scheduler_returns_executable_plan_test() {
   let resolver = empty_resolver()
 
-  let linker_program =
+  let prog =
     linker_program.Program(
       nodes: dict.from_list([
         #("normalize", linker_program.FunctionResolver(resolver)),
@@ -31,34 +32,38 @@ pub fn scheduler_returns_executable_plan_test() {
       ],
     )
 
-  let assert Ok(plan.Plan(routes:, batches:)) =
-    linker_program
-    |> scheduler.new()
-    |> scheduler.schedule()
+  let s = scheduler.new(prog)
+  let assert Ok(result) = scheduler.schedule(s)
+  let plan.Plan(routes:, batches:) = result
 
-  let assert [
-    plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-    plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-    plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-    plan.Route(from: ["posts", "items"], to: ["stats", "posts"]),
-    plan.Route(from: ["user", "name"], to: ["format", "name"]),
-    plan.Route(from: ["stats", "count"], to: ["format", "post_count"]),
-    plan.Route(from: ["format", "text"], to: ["summary"]),
-  ] = routes
+  assert routes
+    == [
+      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
+      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
+      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
+      plan.Route(from: ["posts", "items"], to: ["stats", "posts"]),
+      plan.Route(from: ["user", "name"], to: ["format", "name"]),
+      plan.Route(from: ["stats", "count"], to: ["format", "post_count"]),
+      plan.Route(from: ["format", "text"], to: ["summary"]),
+    ]
 
-  let assert [
-    plan.Batch(batch: [plan.Step(name: "normalize", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "user", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "posts", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "stats", resolver: _)]),
-    plan.Batch(batch: [plan.Step(name: "format", resolver: _)]),
-  ] = batches
+  let batch_step_names =
+    list.map(batches, fn(batch) {
+      let plan.Batch(batch: steps) = batch
+      list.map(steps, fn(step) {
+        let plan.Step(name:, ..) = step
+        name
+      })
+    })
+
+  assert batch_step_names
+    == [["normalize"], ["user"], ["posts"], ["stats"], ["format"]]
 }
 
 pub fn scheduler_schedules_inline_resolvers_test() {
   let resolver = empty_resolver()
 
-  let inline_plan =
+  let inline_prog =
     linker_program.Program(
       nodes: dict.from_list([
         #("add", linker_program.FunctionResolver(resolver)),
@@ -66,26 +71,34 @@ pub fn scheduler_schedules_inline_resolvers_test() {
       routes: [],
     )
 
-  let linker_program =
+  let prog =
     linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_program.InlineResolver(program: inline_plan)),
+        #("normalize", linker_program.InlineResolver(program: inline_prog)),
       ]),
       routes: [],
     )
 
-  let assert Ok(plan.Plan(batches: [plan.Batch(batch: [step])], ..)) =
-    linker_program
-    |> scheduler.new()
-    |> scheduler.schedule()
+  let s = scheduler.new(prog)
+  let assert Ok(result) = scheduler.schedule(s)
+  let assert [plan.Batch(batch: [step])] = result.batches
 
-  let assert plan.Step(
-    name: "normalize",
-    resolver: plan.InlineResolver(plan: plan.Plan(
-      batches: [plan.Batch(batch: [plan.Step(name: "add", resolver: _)])],
-      ..,
-    )),
-  ) = step
+  let plan.Step(name: step_name, resolver: step_resolver) = step
+  assert step_name == "normalize"
+
+  let inner_names = case step_resolver {
+    plan.InlineResolver(plan: inner) ->
+      list.map(inner.batches, fn(b) {
+        let plan.Batch(batch: batch_steps) = b
+        list.map(batch_steps, fn(batch_step) {
+          let plan.Step(name: n, ..) = batch_step
+          n
+        })
+      })
+    plan.FunctionResolver(_) -> []
+  }
+
+  assert inner_names == [["add"]]
 }
 
 fn empty_resolver() {

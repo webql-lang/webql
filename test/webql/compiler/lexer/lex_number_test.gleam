@@ -6,35 +6,23 @@ import webql/compiler/source
 pub fn lex_int_stops_correctly_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("23 abc"), 0, 0)
 
-  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
-  let assert token.Int = kind
-
-  assert start == 0
-  assert end == 2
-
-  let assert <<" abc":utf8>> = rest
+  assert tok
+    == token.Token(kind: token.Int, span: source.Span(start: 0, end: 2))
+  assert rest == <<" abc":utf8>>
 }
 
 pub fn lex_float_detected_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("23.45;"), 0, 0)
 
-  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
-  let assert token.Float = kind
-
-  assert start == 0
-  assert end == 5
-
-  let assert <<";":utf8>> = rest
+  assert tok
+    == token.Token(kind: token.Float, span: source.Span(start: 0, end: 5))
+  assert rest == <<";":utf8>>
 }
 
 pub fn lex_allows_underscores_in_int_test() {
   let #(tok, rest) = lex_number.lex(bit_array.from_string("2_3x"), 0, 0)
 
-  let token.Token(kind: kind, span: source.Span(start: start, end: end)) = tok
-  let assert token.Int = kind
-
-  assert start == 0
-  assert end == 3
-
-  let assert <<"x":utf8>> = rest
+  assert tok
+    == token.Token(kind: token.Int, span: source.Span(start: 0, end: 3))
+  assert rest == <<"x":utf8>>
 }

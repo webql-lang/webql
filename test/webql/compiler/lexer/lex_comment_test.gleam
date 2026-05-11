@@ -12,8 +12,7 @@ pub fn lex_comment_stops_at_newline_test() {
       kind: token.CommentSingle,
       span: source.Span(start: 0, end: 5),
     )
-
-  let assert <<"\nworld":utf8>> = rest
+  assert rest == <<"\nworld":utf8>>
 }
 
 pub fn lex_comment_stops_at_crlf_test() {
@@ -25,8 +24,7 @@ pub fn lex_comment_stops_at_crlf_test() {
       kind: token.CommentSingle,
       span: source.Span(start: 0, end: 5),
     )
-
-  let assert <<"\r\nworld":utf8>> = rest
+  assert rest == <<"\r\nworld":utf8>>
 }
 
 pub fn lex_comment_stops_at_cr_test() {
@@ -38,8 +36,7 @@ pub fn lex_comment_stops_at_cr_test() {
       kind: token.CommentSingle,
       span: source.Span(start: 0, end: 5),
     )
-
-  let assert <<"\rworld":utf8>> = rest
+  assert rest == <<"\rworld":utf8>>
 }
 
 pub fn lex_comment_stops_at_eof_test() {
@@ -50,7 +47,6 @@ pub fn lex_comment_stops_at_eof_test() {
       kind: token.CommentSingle,
       span: source.Span(start: 0, end: 5),
     )
-
   assert rest == bit_array.from_string("")
 }
 
@@ -63,6 +59,5 @@ pub fn lex_comment_respects_non_zero_start_and_size_test() {
       kind: token.CommentSingle,
       span: source.Span(start: 10, end: 16),
     )
-
-  let assert <<"\nworld":utf8>> = rest
+  assert rest == <<"\nworld":utf8>>
 }

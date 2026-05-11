@@ -16,11 +16,34 @@ pub fn link_program_links_operation_test() {
       ),
     )
 
-  let assert Ok(program.Program(nodes:, routes:)) =
-    link_program.link(module, document())
+  let assert Ok(linked) = link_program.link(module, document())
 
-  let assert Ok(program.FunctionResolver(_)) = dict.get(nodes, "user")
-  assert routes == []
+  assert linked.routes == []
+  assert case dict.get(linked.nodes, "user") {
+    Ok(program.FunctionResolver(_)) -> True
+    _ -> False
+  }
+}
+
+pub fn link_program_links_edges_to_routes_test() {
+  let module =
+    graph.Module(
+      operation: graph.Operation(
+        parameters: [],
+        returns: [],
+        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
+        edges: [
+          graph.Edge(
+            from: graph.Output(path: ["user_id"]),
+            to: graph.Input(path: ["user", "id"]),
+          ),
+        ],
+      ),
+    )
+
+  let assert Ok(linked) = link_program.link(module, document())
+
+  assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
 }
 
 fn resolver() {
