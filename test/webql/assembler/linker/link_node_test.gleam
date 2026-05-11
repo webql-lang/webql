@@ -6,8 +6,13 @@ import webql/assembler/linker/program
 import webql/document
 
 pub fn link_node_links_external_nodes_test() {
-  let assert Ok(#("add", program.FunctionResolver(_))) =
-    link_node.link("add", "Add", document())
+  let assert Ok(#(name, resolver)) = link_node.link("add", "Add", document())
+
+  assert name == "add"
+  assert case resolver {
+    program.FunctionResolver(_) -> True
+    program.InlineResolver(_) -> False
+  }
 }
 
 pub fn link_node_reports_unknown_operators_test() {

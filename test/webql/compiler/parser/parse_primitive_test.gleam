@@ -1,4 +1,3 @@
-import gleam/list
 import webql/compiler/lexer
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
@@ -6,51 +5,54 @@ import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_primitive
 import webql/compiler/source
 
-pub fn parse_primitives_test() {
-  let values = [
-    #(
-      "123",
-      source.Span(start: 0, end: 3),
-      ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123),
-    ),
-    #(
-      "1.23",
-      source.Span(start: 0, end: 4),
-      ast.Float(name: "Float", span: source.Span(start: 0, end: 4), value: 1.23),
-    ),
-    #(
-      "\"test\"",
-      source.Span(start: 0, end: 6),
-      ast.String(
-        name: "String",
-        span: source.Span(start: 0, end: 6),
-        value: "test",
-      ),
-    ),
-  ]
+pub fn parse_int_primitive_test() {
+  let source = "123"
 
-  list.each(values, fn(value) {
-    let #(source, expected_span, expected_value) = value
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
 
-    let assert Ok(tokens) =
-      source
-      |> lexer.new()
-      |> lexer.lex()
+  let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-    let assert Ok(#(parsed_value, span, rest)) =
-      parse_primitive.parse(source, tokens)
+  assert value == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
+  assert span == source.Span(start: 0, end: 3)
+  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
+}
 
-    assert parsed_value == expected_value
-    assert span == expected_span
+pub fn parse_float_primitive_test() {
+  let source = "1.23"
 
-    assert rest
-      == [
-        token.Token(
-          kind: token.EOF,
-          span: source.Span(start: expected_span.end, end: expected_span.end),
-        ),
-      ]
-  })
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
+
+  assert value == ast.Float(name: "Float", span: source.Span(start: 0, end: 4), value: 1.23)
+  assert span == source.Span(start: 0, end: 4)
+  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
+}
+
+pub fn parse_string_primitive_test() {
+  let source = "\"test\""
+
+  let assert Ok(tokens) =
+    source
+    |> lexer.new()
+    |> lexer.lex()
+
+  let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
+
+  assert value
+    == ast.String(
+      name: "String",
+      span: source.Span(start: 0, end: 6),
+      value: "test",
+    )
+  assert span == source.Span(start: 0, end: 6)
+  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 6, end: 6))]
 }
 
 pub fn parse_skips_space_test() {
@@ -63,13 +65,9 @@ pub fn parse_skips_space_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value
-    == ast.Int(name: "Int", span: source.Span(start: 2, end: 5), value: 123)
-
+  assert value == ast.Int(name: "Int", span: source.Span(start: 2, end: 5), value: 123)
   assert span == source.Span(start: 2, end: 5)
-
-  assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
+  assert rest == [token.Token(kind: token.EOF, span: source.Span(start: 5, end: 5))]
 }
 
 pub fn parse_preserves_rest_test() {
@@ -82,11 +80,8 @@ pub fn parse_preserves_rest_test() {
 
   let assert Ok(#(value, span, rest)) = parse_primitive.parse(source, tokens)
 
-  assert value
-    == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
-
+  assert value == ast.Int(name: "Int", span: source.Span(start: 0, end: 3), value: 123)
   assert span == source.Span(start: 0, end: 3)
-
   assert rest
     == [
       token.Token(kind: token.Space, span: source.Span(start: 3, end: 4)),

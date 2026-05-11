@@ -70,7 +70,7 @@ pub fn interpret_step_reports_missing_input_test() {
     )
 
   engine.finish_step(task, fn(result) {
-    let assert Error(_message) = result
+    let assert Error(_) = result
     Ok(kv.new())
   })
 }
@@ -97,7 +97,7 @@ pub fn interpret_step_reports_invalid_output_test() {
     )
 
   engine.finish_step(task, fn(result) {
-    let assert Error(_message) = result
+    let assert Error(_) = result
     Ok(kv.new())
   })
 }

@@ -1,3 +1,4 @@
+import gleam/dynamic
 import webql/assembler/linker/link_route
 import webql/assembler/linker/program
 import webql/graph
@@ -20,8 +21,8 @@ pub fn link_route_links_int_constants_test() {
       to: graph.Input(path: ["add", "r"]),
     )
 
-  let assert [program.Constant(value: _, to: ["add", "r"])] =
-    link_route.link([edge])
+  assert link_route.link([edge])
+    == [program.Constant(value: dynamic.int(1), to: ["add", "r"])]
 }
 
 pub fn link_route_links_float_constants_test() {
@@ -31,8 +32,8 @@ pub fn link_route_links_float_constants_test() {
       to: graph.Input(path: ["add", "r"]),
     )
 
-  let assert [program.Constant(value: _, to: ["add", "r"])] =
-    link_route.link([edge])
+  assert link_route.link([edge])
+    == [program.Constant(value: dynamic.float(1.1), to: ["add", "r"])]
 }
 
 pub fn link_route_links_string_constants_test() {
@@ -42,8 +43,8 @@ pub fn link_route_links_string_constants_test() {
       to: graph.Input(path: ["format", "name"]),
     )
 
-  let assert [program.Constant(value: _, to: ["format", "name"])] =
-    link_route.link([edge])
+  assert link_route.link([edge])
+    == [program.Constant(value: dynamic.string("one"), to: ["format", "name"])]
 }
 
 pub fn link_route_links_edges_test() {

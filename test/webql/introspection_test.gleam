@@ -32,15 +32,15 @@ pub fn introspect_document_operator_test() {
       typenames: [document.Typename(name: "Text")],
     )
 
-  let introspection.Schema(operators:, typenames:) =
-    introspection.introspect(document)
-  let assert [operator] = operators
+  let schema = introspection.introspect(document)
 
-  assert typenames == ["Text"]
-  assert operator
-    == introspection.Operator(
-      name: "Test",
-      parameters: [introspection.Parameter(name: "in", typename: "Text")],
-      returns: [introspection.Return(name: "out", typename: "Text")],
-    )
+  assert schema.typenames == ["Text"]
+  assert schema.operators
+    == [
+      introspection.Operator(
+        name: "Test",
+        parameters: [introspection.Parameter(name: "in", typename: "Text")],
+        returns: [introspection.Return(name: "out", typename: "Text")],
+      ),
+    ]
 }

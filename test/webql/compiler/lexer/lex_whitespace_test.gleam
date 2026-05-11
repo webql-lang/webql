@@ -9,8 +9,7 @@ pub fn lex_whitespace_stops_at_non_whitespace_test() {
 
   assert tok
     == token.Token(kind: token.Space, span: source.Span(start: 0, end: 4))
-
-  let assert <<"hello":utf8>> = rest
+  assert rest == <<"hello":utf8>>
 }
 
 pub fn lex_whitespace_consumes_until_eof_test() {
@@ -18,7 +17,6 @@ pub fn lex_whitespace_consumes_until_eof_test() {
 
   assert tok
     == token.Token(kind: token.Space, span: source.Span(start: 0, end: 4))
-
   assert rest == bit_array.from_string("")
 }
 
@@ -28,6 +26,6 @@ pub fn lex_whitespace_respects_non_zero_start_and_size_test() {
 
   assert tok
     == token.Token(kind: token.Space, span: source.Span(start: 10, end: 13))
-
-  let assert <<"hello":utf8>> = rest
+  assert rest == <<"hello":utf8>>
 }
+

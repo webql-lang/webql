@@ -6,22 +6,19 @@ import webql/interpreter/progress
 import webql/memory/kv
 
 pub fn progress_gets_constant_returns_test() {
-  let assert Ok(returns) =
+  let assert Ok(raw) =
     progress.get_returns(kv.new(), [
       plan.Constant(value: dynamic.int(99), to: ["output"]),
     ])
   let assert Ok(returns) =
-    decode.run(returns, decode.dict(decode.string, decode.dynamic))
+    decode.run(raw, decode.dict(decode.string, decode.dynamic))
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(99)
 }
 
 pub fn progress_reports_missing_route_return_test() {
-  let assert Error(message) =
-    progress.get_returns(kv.new(), [
-      plan.Route(from: ["missing"], to: ["output"]),
-    ])
-
-  assert message == dynamic.nil()
+  assert progress.get_returns(kv.new(), [
+    plan.Route(from: ["missing"], to: ["output"]),
+  ]) == Error(dynamic.nil())
 }

@@ -100,7 +100,7 @@ pub fn interpreter_reports_missing_return_test() {
     )
 
   engine.finish_step(task, fn(result) {
-    let assert Error(_error) = result
+    let assert Error(_) = result
     Ok(kv.new())
   })
 }
