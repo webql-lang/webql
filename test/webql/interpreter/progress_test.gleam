@@ -10,6 +10,8 @@ pub fn progress_gets_constant_returns_test() {
     progress.get_returns(sandbox.memory(), [
       plan.Constant(value: dynamic.int(99), to: ["output"]),
     ])
+  let assert Ok(returns) =
+    decode.run(returns, decode.dict(decode.string, decode.dynamic))
 
   let assert Ok(value) = dict.get(returns, "output")
   assert decode.run(value, decode.int) == Ok(99)

@@ -10,14 +10,17 @@ import webql/graph
 /// Links a graph module into a scheduler program.
 pub fn link(
   module: graph.Module,
-  document: document.Document,
-) -> Result(program.Program, diagnostic.Diagnostic) {
+  document: document.Document(task),
+) -> Result(program.Program(task), diagnostic.Diagnostic) {
   link_program(module.operation, document)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-pub fn link_program(operation: graph.Operation, document: document.Document) {
+pub fn link_program(
+  operation: graph.Operation,
+  document: document.Document(task),
+) -> Result(program.Program(task), diagnostic.Diagnostic) {
   let graph.Operation(nodes:, edges:, ..) = operation
 
   use nodes <- result.try(link_nodes(nodes, document, dict.new()))
@@ -30,9 +33,9 @@ pub fn link_program(operation: graph.Operation, document: document.Document) {
 // =================
 fn link_nodes(
   nodes: List(graph.Node),
-  document: document.Document,
-  linked: dict.Dict(String, program.Resolver),
-) {
+  document: document.Document(task),
+  linked: dict.Dict(String, program.Resolver(task)),
+) -> Result(dict.Dict(String, program.Resolver(task)), diagnostic.Diagnostic) {
   case nodes {
     [node, ..nodes] -> {
       use #(name, resolver) <- result.try(link_node(node, document))
@@ -43,7 +46,10 @@ fn link_nodes(
   }
 }
 
-fn link_node(node: graph.Node, document: document.Document) {
+fn link_node(
+  node: graph.Node,
+  document: document.Document(task),
+) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
   case node {
     graph.ExternalNode(name:, node:) -> link_node.link(name, node, document)
 

@@ -1,27 +1,24 @@
-import gleam/dict
 import gleam/dynamic
 import webql/assembler/plan
-import webql/interpreter/diagnostic
+import webql/engine
 import webql/interpreter/interpret_plan
-import webql/interpreter/memory
-import webql/interpreter/runtime
-import webql/resolution
+import webql/memory
 
-pub opaque type Interpreter {
-  Interpreter(plan: plan.Plan)
+pub opaque type Interpreter(task) {
+  Interpreter(plan: plan.Plan(task))
 }
 
 /// Creates a new interpreter instance from an executable plan.
-pub fn new(plan: plan.Plan) -> Interpreter {
+pub fn new(plan: plan.Plan(task)) -> Interpreter(task) {
   Interpreter(plan:)
 }
 
 /// Runs an executable plan.
 pub fn interpret(
-  interpreter: Interpreter,
+  interpreter: Interpreter(task),
   memory: memory.Memory(storage),
-  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
-  parameters: dict.Dict(String, dynamic.Dynamic),
-) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
-  interpret_plan.interpret(interpreter.plan, memory, runtime, parameters)
+  engine: engine.Engine(task, memory.Memory(storage), error),
+  parameters: dynamic.Dynamic,
+) -> task {
+  interpret_plan.interpret(interpreter.plan, memory, engine, parameters)
 }

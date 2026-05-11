@@ -2,7 +2,7 @@ import gleam/dict
 import gleam/list
 import gleam/result
 import gleam/set
-import webql/assembler/linker/program as linker_program
+import webql/assembler/linker/program
 import webql/assembler/plan
 import webql/assembler/scheduler/diagnostic
 import webql/assembler/scheduler/schedule_route
@@ -10,9 +10,9 @@ import webql/assembler/scheduler/topology
 
 /// Builds an executable plan from a linker program.
 pub fn schedule(
-  linker_program: linker_program.Program,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
-  let linker_program.Program(nodes:, routes:) = linker_program
+  program: program.Program(task),
+) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
+  let program.Program(nodes:, routes:) = program
 
   let dependencies =
     nodes
@@ -35,19 +35,19 @@ pub fn schedule(
 
 // PRIVATE FUNCTIONS
 // =================
-fn schedule_routes(routes: List(linker_program.Route)) {
+fn schedule_routes(routes: List(program.Route)) {
   list.map(routes, fn(route) {
     case route {
-      linker_program.Route(from:, to:) -> plan.Route(from:, to:)
-      linker_program.Constant(value:, to:) -> plan.Constant(value:, to:)
+      program.Route(from:, to:) -> plan.Route(from:, to:)
+      program.Constant(value:, to:) -> plan.Constant(value:, to:)
     }
   })
 }
 
 fn schedule_batches(
   batches: List(List(String)),
-  nodes: dict.Dict(String, linker_program.Resolver),
-) {
+  nodes: dict.Dict(String, program.Resolver(task)),
+) -> Result(List(plan.Batch(task)), diagnostic.Diagnostic) {
   case batches {
     [batch, ..batches] -> {
       use batch <- result.try(schedule_batch(batch, nodes, []))
@@ -62,9 +62,9 @@ fn schedule_batches(
 
 fn schedule_batch(
   batch: List(String),
-  nodes: dict.Dict(String, linker_program.Resolver),
-  steps: List(plan.Step),
-) {
+  nodes: dict.Dict(String, program.Resolver(task)),
+  steps: List(plan.Step(task)),
+) -> Result(List(plan.Step(task)), diagnostic.Diagnostic) {
   case batch {
     [node, ..batch] -> {
       use resolver <- result.try(schedule_step(nodes, node))
@@ -76,22 +76,23 @@ fn schedule_batch(
 }
 
 fn schedule_step(
-  nodes: dict.Dict(String, linker_program.Resolver),
+  nodes: dict.Dict(String, program.Resolver(task)),
   node: String,
-) {
+) -> Result(plan.Resolver(task), diagnostic.Diagnostic) {
   case dict.get(nodes, node) {
     Ok(resolver) -> schedule_resolver(resolver)
     Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.InvalidPlan))
   }
 }
 
-fn schedule_resolver(resolver: linker_program.Resolver) {
+fn schedule_resolver(
+  resolver: program.Resolver(task),
+) -> Result(plan.Resolver(task), diagnostic.Diagnostic) {
   case resolver {
-    linker_program.FunctionResolver(function) ->
-      Ok(plan.FunctionResolver(function:))
+    program.FunctionResolver(function) -> Ok(plan.FunctionResolver(function:))
 
-    linker_program.InlineResolver(program: linker_program) -> {
-      use plan <- result.try(schedule(linker_program))
+    program.InlineResolver(program: program) -> {
+      use plan <- result.try(schedule(program))
       Ok(plan.InlineResolver(plan:))
     }
   }

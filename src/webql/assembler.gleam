@@ -1,25 +1,26 @@
 import gleam/result
 import webql/assembler/diagnostic
 import webql/assembler/linker
+import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler
 import webql/document
 import webql/graph
 
-pub opaque type Assembler {
-  Assembler(document: document.Document)
+pub opaque type Assembler(task) {
+  Assembler(document: document.Document(task))
 }
 
 /// Creates a new assembler instance from an executable plan.
-pub fn new(document: document.Document) -> Assembler {
+pub fn new(document: document.Document(task)) -> Assembler(task) {
   Assembler(document:)
 }
 
 /// Runs an executable plan.
 pub fn assemble(
-  assembler: Assembler,
+  assembler: Assembler(task),
   graph: graph.Module,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
+) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
   let linker = linker.new(graph)
   use plan <- result.try(assemble_linker(linker, assembler.document))
 
@@ -29,7 +30,10 @@ pub fn assemble(
 
 // PRIVATE FUNCTIONS
 // =================
-fn assemble_linker(linker: linker.Linker, document: document.Document) {
+fn assemble_linker(
+  linker: linker.Linker,
+  document: document.Document(task),
+) -> Result(linker_program.Program(task), diagnostic.Diagnostic) {
   case linker.link(linker, document) {
     Ok(plan) -> Ok(plan)
     Error(error) ->
@@ -39,7 +43,9 @@ fn assemble_linker(linker: linker.Linker, document: document.Document) {
   }
 }
 
-fn assemble_scheduler(scheduler: scheduler.Scheduler) {
+fn assemble_scheduler(
+  scheduler: scheduler.Scheduler(task),
+) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
   case scheduler.schedule(scheduler) {
     Ok(result) -> Ok(result)
 

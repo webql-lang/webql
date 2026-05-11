@@ -1,16 +1,18 @@
 import gleam/dict
 import gleam/dynamic
-import webql/resolution
 
-pub type Document {
-  Document(operators: dict.Dict(String, Operator), typenames: List(Typename))
+pub type Document(task) {
+  Document(
+    operators: dict.Dict(String, Operator(task)),
+    typenames: List(Typename),
+  )
 }
 
-pub type Operator {
+pub type Operator(task) {
   Operator(
     parameters: dict.Dict(String, Parameter),
     returns: dict.Dict(String, Return),
-    resolver: Resolver,
+    resolver: Resolver(task),
   )
 }
 
@@ -18,11 +20,8 @@ pub type Typename {
   Typename(name: String)
 }
 
-pub type Resolver {
-  Resolver(
-    resolver: fn(dynamic.Dynamic) ->
-      resolution.Resolution(dynamic.Dynamic, dynamic.Dynamic),
-  )
+pub type Resolver(task) {
+  Resolver(resolver: fn(dynamic.Dynamic) -> task)
 }
 
 pub type Parameter {

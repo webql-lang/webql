@@ -16,7 +16,7 @@ pub fn new(module: graph.Module) -> Linker {
 /// Links a graph module into a scheduler program.
 pub fn link(
   linker: Linker,
-  document: document.Document,
-) -> Result(program.Program, diagnostic.Diagnostic) {
+  document: document.Document(task),
+) -> Result(program.Program(task), diagnostic.Diagnostic) {
   link_program.link(linker.module, document)
 }

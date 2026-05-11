@@ -7,7 +7,6 @@ import webql/document
 import webql/interpreter
 import webql/interpreter/diagnostic
 import webql/interpreter/sandbox
-import webql/resolution
 
 fn add_resolver() {
   document.Resolver(resolver: fn(inputs) {
@@ -17,7 +16,7 @@ fn add_resolver() {
     let assert Ok(l) = decode.run(l, decode.int)
     let assert Ok(r) = decode.run(r, decode.int)
 
-    ok(dict.from_list([#("value", dynamic.int(l + r))]))
+    sandbox.ok(dict.from_list([#("value", dynamic.int(l + r))]))
   })
 }
 
@@ -25,7 +24,7 @@ fn identity_resolver() {
   document.Resolver(resolver: fn(inputs) {
     let inputs = decode_inputs(inputs)
     let assert Ok(value) = dict.get(inputs, "value")
-    ok(dict.from_list([#("value", value)]))
+    sandbox.ok(dict.from_list([#("value", value)]))
   })
 }
 
@@ -53,7 +52,7 @@ pub fn interpreter_executes_plan_test() {
     |> interpreter.interpret(
       sandbox.memory(),
       sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(2))]),
+      encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()
   let outputs = decode_inputs(outputs)
@@ -102,7 +101,7 @@ pub fn interpreter_executes_inline_plans_test() {
     |> interpreter.interpret(
       sandbox.memory(),
       sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(2))]),
+      encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()
   let outputs = decode_inputs(outputs)
@@ -141,10 +140,12 @@ pub fn interpreter_keeps_inline_memory_isolated_test() {
     |> interpreter.interpret(
       sandbox.memory(),
       sandbox.runtime(),
-      dict.from_list([
-        #("input", dynamic.int(2)),
-        #("value", dynamic.int(100)),
-      ]),
+      encode(
+        dict.from_list([
+          #("input", dynamic.int(2)),
+          #("value", dynamic.int(100)),
+        ]),
+      ),
     )
     |> sandbox.result()
   let outputs = decode_inputs(outputs)
@@ -175,7 +176,11 @@ pub fn interpreter_reports_missing_inputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(sandbox.memory(), sandbox.runtime(), dict.new())
+    |> interpreter.interpret(
+      sandbox.memory(),
+      sandbox.runtime(),
+      encode(dict.new()),
+    )
     |> sandbox.result()
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
@@ -194,20 +199,17 @@ pub fn interpreter_reports_missing_outputs_test() {
 
   assert plan
     |> interpreter.new()
-    |> interpreter.interpret(sandbox.memory(), sandbox.runtime(), dict.new())
+    |> interpreter.interpret(
+      sandbox.memory(),
+      sandbox.runtime(),
+      encode(dict.new()),
+    )
     |> sandbox.result()
     == Error(
       diagnostic.Diagnostic(
         kind: diagnostic.MissingReturn(message: dynamic.nil()),
       ),
     )
-}
-
-fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
-  values
-  |> encode()
-  |> Ok()
-  |> resolution.Done()
 }
 
 fn encode(values: dict.Dict(String, dynamic.Dynamic)) {

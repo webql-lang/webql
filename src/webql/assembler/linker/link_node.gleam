@@ -8,8 +8,8 @@ import webql/document
 pub fn link(
   name: String,
   node: String,
-  document: document.Document,
-) -> Result(#(String, program.Resolver), diagnostic.Diagnostic) {
+  document: document.Document(task),
+) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
   use function <- result.try(link_resolver(node, document))
   Ok(#(name, program.FunctionResolver(function:)))
 }
@@ -18,8 +18,8 @@ pub fn link(
 // =================
 fn link_resolver(
   node: String,
-  document: document.Document,
-) -> Result(document.Resolver, diagnostic.Diagnostic) {
+  document: document.Document(task),
+) -> Result(document.Resolver(task), diagnostic.Diagnostic) {
   let document.Document(operators:, ..) = document
 
   case dict.get(operators, node) {
