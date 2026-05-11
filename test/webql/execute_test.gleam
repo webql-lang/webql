@@ -76,7 +76,7 @@ pub fn execute_graph_module_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()

@@ -10,7 +10,7 @@ import webql/interpreter/sandbox
 pub fn interpret_batch_with_empty_batch_returns_progress_test() {
   let p = sandbox.memory()
   let assert Ok(result) =
-    interpret_batch.interpret([], [], sandbox.runtime(), p, interpret_inline)
+    interpret_batch.interpret([], [], sandbox.engine(), p, interpret_inline)
     |> sandbox.memory_result()
   assert result == p
 }
@@ -43,7 +43,7 @@ pub fn interpret_batch_short_circuits_on_error_test() {
     interpret_batch.interpret(
       [failing_step, ok_step],
       [],
-      sandbox.runtime(),
+      sandbox.engine(),
       sandbox.memory(),
       interpret_inline,
     )

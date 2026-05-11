@@ -51,7 +51,7 @@ pub fn interpreter_executes_plan_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()
@@ -100,7 +100,7 @@ pub fn interpreter_executes_inline_plans_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()
@@ -139,7 +139,7 @@ pub fn interpreter_keeps_inline_memory_isolated_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(
         dict.from_list([
           #("input", dynamic.int(2)),
@@ -178,7 +178,7 @@ pub fn interpreter_reports_missing_inputs_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.new()),
     )
     |> sandbox.result()
@@ -201,7 +201,7 @@ pub fn interpreter_reports_missing_outputs_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.new()),
     )
     |> sandbox.result()

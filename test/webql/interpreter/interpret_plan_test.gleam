@@ -19,7 +19,7 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
     interpret_plan.interpret(
       plan,
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(7))])),
     )
     |> sandbox.result()
@@ -40,7 +40,7 @@ pub fn interpret_plan_routes_constant_to_output_test() {
     interpret_plan.interpret(
       plan,
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.new()),
     )
     |> sandbox.result()
@@ -77,7 +77,7 @@ pub fn interpret_plan_runs_step_and_returns_output_test() {
     interpret_plan.interpret(
       plan,
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(4))])),
     )
     |> sandbox.result()
@@ -131,7 +131,7 @@ pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
     interpret_plan.interpret(
       plan,
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.from_list([#("input", dynamic.int(3))])),
     )
     |> sandbox.result()
@@ -154,7 +154,7 @@ pub fn interpret_plan_reports_missing_return_test() {
     interpret_plan.interpret(
       plan,
       sandbox.memory(),
-      sandbox.runtime(),
+      sandbox.engine(),
       encode(dict.new()),
     )
     |> sandbox.result()

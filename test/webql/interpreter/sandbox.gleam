@@ -9,20 +9,14 @@ pub type Storage {
   Storage(values: dict.Dict(List(String), dynamic.Dynamic))
 }
 
-pub type Task {
-  Dynamic(Result(dynamic.Dynamic, diagnostic.Diagnostic))
-  Memory(Result(webql_memory.Memory(Storage), diagnostic.Diagnostic))
-  Resolver(Result(dynamic.Dynamic, dynamic.Dynamic))
-  Steps(Result(List(Task), diagnostic.Diagnostic))
-}
-
-pub fn memory() -> webql_memory.Memory(Storage) {
-  webql_memory.Memory(
-    new: memory,
-    storage: Storage(dict.new()),
-    get: get,
-    set: set,
-    merge: merge,
+pub opaque type Task {
+  Pending(fn() -> Task)
+  Resolved(
+    value: fn() -> Result(dynamic.Dynamic, diagnostic.Diagnostic),
+    memory: fn() -> Result(webql_memory.Memory(Storage), diagnostic.Diagnostic),
+    operator: fn() ->
+      Result(Result(dynamic.Dynamic, dynamic.Dynamic), diagnostic.Diagnostic),
+    batch: fn() -> Result(List(Task), diagnostic.Diagnostic),
   )
 }
 
@@ -42,47 +36,44 @@ pub fn engine() -> engine.Engine(
   )
 }
 
-pub fn runtime() {
-  engine()
+pub fn memory() -> webql_memory.Memory(Storage) {
+  webql_memory.Memory(
+    new: memory,
+    storage: Storage(dict.new()),
+    get: get,
+    set: set,
+    merge: merge,
+  )
 }
 
 pub fn ok(values: dict.Dict(String, dynamic.Dynamic)) -> Task {
-  Resolver(Ok(encode(values)))
+  operator(Ok(encode(values)))
 }
 
 pub fn output(value: dynamic.Dynamic) -> Task {
-  Resolver(Ok(value))
+  operator(Ok(value))
 }
 
 pub fn fail(message: dynamic.Dynamic) -> Task {
-  Resolver(Error(message))
+  operator(Error(message))
 }
 
 pub fn memory_task(
   result: Result(webql_memory.Memory(Storage), diagnostic.Diagnostic),
 ) -> Task {
-  Memory(result)
+  progress(result)
 }
 
 pub fn result(task: Task) -> Result(dynamic.Dynamic, diagnostic.Diagnostic) {
-  case task {
-    Dynamic(result) -> result
-    Memory(Error(error)) -> Error(error)
-    Resolver(Error(message)) ->
-      Error(
-        diagnostic.Diagnostic(kind: diagnostic.RuntimeError(step: "", message:)),
-      )
-    _ -> panic
-  }
+  value_result(task)
 }
 
 pub fn memory_result(
   task: Task,
 ) -> Result(webql_memory.Memory(Storage), diagnostic.Diagnostic) {
   case task {
-    Memory(result) -> result
-    Dynamic(Error(error)) -> Error(error)
-    _ -> panic
+    Pending(next) -> memory_result(next())
+    Resolved(memory:, ..) -> memory()
   }
 }
 
@@ -121,87 +112,182 @@ pub fn merge(
   webql_memory.Memory(..left, storage: Storage(values:))
 }
 
+// ENGINE HOOKS
+// ============
+
 fn run(next) {
   case next() {
     Ok(task) -> task
-    Error(error) -> Dynamic(Error(error))
+    Error(error) -> value(Error(error))
   }
 }
 
 fn start_plan(next) {
-  case next() {
-    Ok(#(initial, batches)) -> run_batches(initial, batches)
-    Error(error) -> Memory(Error(error))
-  }
+  Pending(fn() {
+    case next() {
+      Ok(#(initial, batches)) -> run_batches(initial, batches)
+      Error(error) -> progress(Error(error))
+    }
+  })
+}
+
+fn finish_plan(task, next) {
+  Pending(fn() {
+    case memory_result(task) {
+      Ok(memory) -> value(next(memory))
+      Error(error) -> value(Error(error))
+    }
+  })
 }
 
 fn start_batch(next) {
-  Steps(next())
+  Pending(fn() { batch(next()) })
 }
 
 fn finish_batch(initial, task, merge) {
-  case task {
-    Steps(Ok(steps)) -> run_steps(initial, steps, merge)
-    Steps(Error(error)) -> Memory(Error(error))
-    _ -> panic
-  }
+  Pending(fn() {
+    case batch_result(task) {
+      Ok(steps) -> run_steps(initial, steps, merge)
+      Error(error) -> progress(Error(error))
+    }
+  })
 }
 
 fn start_step(next) {
   case next() {
     Ok(task) -> task
-    Error(error) -> Memory(Error(error))
+    Error(error) -> progress(Error(error))
   }
 }
 
 fn finish_step(task, next) {
-  case resolver_result(task) {
-    Ok(result) -> Memory(next(result))
-    Error(error) -> Memory(Error(error))
-  }
+  Pending(fn() {
+    case operator_result(task) {
+      Ok(result) -> progress(next(result))
+      Error(error) -> progress(Error(error))
+    }
+  })
 }
 
-fn finish_plan(task, next) {
-  case memory_result(task) {
-    Ok(memory) -> Dynamic(next(memory))
-    Error(error) -> Dynamic(Error(error))
-  }
-}
+// TASK EXECUTION
+// ==============
 
 fn run_batches(initial, batches) {
-  case batches {
-    [] -> Memory(Ok(initial))
-    [batch, ..rest] -> {
-      case memory_result(batch(initial)) {
-        Ok(memory) -> run_batches(memory, rest)
-        Error(error) -> Memory(Error(error))
+  Pending(fn() {
+    case batches {
+      [] -> progress(Ok(initial))
+      [batch, ..rest] -> {
+        case memory_result(batch(initial)) {
+          Ok(memory) -> run_batches(memory, rest)
+          Error(error) -> progress(Error(error))
+        }
       }
     }
-  }
+  })
 }
 
 fn run_steps(initial, steps, merge) {
-  case steps {
-    [] -> Memory(Ok(initial))
-    [step, ..rest] -> {
-      case memory_result(step) {
-        Ok(memory) -> run_steps(merge(initial, memory), rest, merge)
-        Error(error) -> Memory(Error(error))
+  Pending(fn() {
+    case steps {
+      [] -> progress(Ok(initial))
+      [step, ..rest] -> {
+        case memory_result(step) {
+          Ok(memory) -> run_steps(merge(initial, memory), rest, merge)
+          Error(error) -> progress(Error(error))
+        }
       }
     }
+  })
+}
+
+// TASK PROJECTIONS
+// ================
+
+fn value(result: Result(dynamic.Dynamic, diagnostic.Diagnostic)) -> Task {
+  Resolved(
+    value: fn() { result },
+    memory: fn() { propagate_error(result) },
+    operator: fn() {
+      case result {
+        Ok(value) -> Ok(Ok(value))
+        Error(error) -> Error(error)
+      }
+    },
+    batch: fn() { propagate_error(result) },
+  )
+}
+
+fn progress(
+  result: Result(webql_memory.Memory(Storage), diagnostic.Diagnostic),
+) -> Task {
+  Resolved(
+    value: fn() { propagate_error(result) },
+    memory: fn() { result },
+    operator: fn() { propagate_error(result) },
+    batch: fn() { propagate_error(result) },
+  )
+}
+
+fn operator(result: Result(dynamic.Dynamic, dynamic.Dynamic)) -> Task {
+  Resolved(
+    value: fn() {
+      case result {
+        Ok(value) -> Ok(value)
+        Error(message) -> Error(runtime_error(message))
+      }
+    },
+    memory: fn() {
+      case result {
+        Error(message) -> Error(runtime_error(message))
+        Ok(_value) -> panic
+      }
+    },
+    operator: fn() { Ok(result) },
+    batch: fn() { panic },
+  )
+}
+
+fn batch(result: Result(List(Task), diagnostic.Diagnostic)) -> Task {
+  Resolved(
+    value: fn() { propagate_error(result) },
+    memory: fn() { propagate_error(result) },
+    operator: fn() { propagate_error(result) },
+    batch: fn() { result },
+  )
+}
+
+fn value_result(task: Task) -> Result(dynamic.Dynamic, diagnostic.Diagnostic) {
+  case task {
+    Pending(next) -> value_result(next())
+    Resolved(value:, ..) -> value()
   }
 }
 
-fn resolver_result(
+fn operator_result(
   task: Task,
 ) -> Result(Result(dynamic.Dynamic, dynamic.Dynamic), diagnostic.Diagnostic) {
   case task {
-    Resolver(result) -> Ok(result)
-    Dynamic(Ok(value)) -> Ok(Ok(value))
-    Dynamic(Error(error)) -> Error(error)
-    Memory(Error(error)) -> Error(error)
-    _ -> panic
+    Pending(next) -> operator_result(next())
+    Resolved(operator:, ..) -> operator()
   }
+}
+
+fn batch_result(task: Task) -> Result(List(Task), diagnostic.Diagnostic) {
+  case task {
+    Pending(next) -> batch_result(next())
+    Resolved(batch:, ..) -> batch()
+  }
+}
+
+fn propagate_error(result: Result(a, diagnostic.Diagnostic)) {
+  case result {
+    Error(error) -> Error(error)
+    Ok(_value) -> panic
+  }
+}
+
+fn runtime_error(message: dynamic.Dynamic) {
+  diagnostic.Diagnostic(kind: diagnostic.RuntimeError(step: "", message:))
 }
 
 fn encode(values: dict.Dict(String, dynamic.Dynamic)) {
