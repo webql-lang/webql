@@ -1,58 +1,56 @@
-import gleam/dict
 import gleam/dynamic
+import gleam/result
 import webql/assembler
 import webql/compiler
 import webql/diagnostic
 import webql/document
+import webql/engine
 import webql/graph
 import webql/interpreter
-import webql/interpreter/diagnostic as interpreter_diagnostic
-import webql/interpreter/memory
-import webql/interpreter/runtime
 import webql/introspection
-import webql/resolution
+import webql/memory
 
-pub type Webql(storage) {
+pub type Webql(task, storage) {
   Webql(
-    document: document.Document,
+    document: document.Document(task),
     memory: memory.Memory(storage),
-    runtime: runtime.Runtime(
-      memory.Memory(storage),
-      interpreter_diagnostic.Diagnostic,
-    ),
+    engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
   )
 }
 
 /// Creates a new WebQL instance.
 pub fn new(
-  document: document.Document,
+  document: document.Document(task),
   memory: memory.Memory(storage),
-  runtime: runtime.Runtime(
-    memory.Memory(storage),
-    interpreter_diagnostic.Diagnostic,
-  ),
-) -> Webql(storage) {
-  Webql(document:, memory:, runtime:)
+  engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
+) -> Webql(task, storage) {
+  Webql(document:, memory:, engine:)
 }
 
 /// Runs a WebQL source against a document.
 pub fn run(
-  webql: Webql(storage),
+  webql: Webql(task, storage),
   source: String,
-  document: document.Document,
-  parameters: dict.Dict(String, dynamic.Dynamic),
-) -> resolution.Resolution(dynamic.Dynamic, diagnostic.Diagnostic) {
-  case compile(source, document) {
-    Ok(graph) -> run_plan(webql, graph, parameters)
+  document: document.Document(task),
+  parameters: dynamic.Dynamic,
+) -> task {
+  let Webql(engine:, memory:, ..) = webql
 
-    Error(error) -> resolution.Done(Error(error))
-  }
+  engine.run(fn() {
+    use graph <- result.try(compile(source, document))
+
+    let assembler = assembler.new(webql.document)
+    use plan <- result.try(run_assembler(assembler, graph))
+
+    let interpreter = interpreter.new(plan)
+    Ok(run_interpreter(interpreter, memory, engine, parameters))
+  })
 }
 
 /// Compiles a WebQL source into a executable graph.
 pub fn compile(
   source: String,
-  document: document.Document,
+  document: document.Document(task),
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
   let schema = introspection.introspect(document)
   let compiler = compiler.new(schema)
@@ -70,58 +68,24 @@ pub fn compile(
 
 // PRIVATE FUNCTIONS
 // =================
-fn run_plan(
-  webql: Webql(storage),
-  graph: graph.Module,
-  parameters: dict.Dict(String, dynamic.Dynamic),
-) {
-  let assembler = assembler.new(webql.document)
-
+fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Module) {
   case assembler.assemble(assembler, graph) {
-    Ok(plan) -> {
-      let interpreter = interpreter.new(plan)
-      interpret(interpreter, webql.memory, webql.runtime, parameters)
-    }
-
-    Error(diagnostic) ->
-      resolution.Done(
-        Error(
-          diagnostic.Diagnostic(kind: diagnostic.AssemblerDiagnostic(
-            diagnostic.kind,
-          )),
-        ),
-      )
-  }
-}
-
-fn interpret(
-  interpreter: interpreter.Interpreter,
-  memory: memory.Memory(storage),
-  runtime: runtime.Runtime(
-    memory.Memory(storage),
-    interpreter_diagnostic.Diagnostic,
-  ),
-  parameters: dict.Dict(String, dynamic.Dynamic),
-) {
-  case interpreter.interpret(interpreter, memory, runtime, parameters) {
-    resolution.Done(result) -> resolution.Done(normalize(result))
-
-    resolution.Pending(perform) ->
-      resolution.Pending(fn(done) {
-        perform(fn(result) { done(normalize(result)) })
-      })
-  }
-}
-
-fn normalize(result: Result(dynamic.Dynamic, interpreter_diagnostic.Diagnostic)) {
-  case result {
-    Ok(result) -> Ok(result)
+    Ok(plan) -> Ok(plan)
 
     Error(diagnostic) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.InterpreterDiagnostic(
+        diagnostic.Diagnostic(kind: diagnostic.AssemblerDiagnostic(
           diagnostic.kind,
         )),
       )
   }
+}
+
+fn run_interpreter(
+  interpreter: interpreter.Interpreter(task),
+  memory: memory.Memory(storage),
+  engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
+  parameters: dynamic.Dynamic,
+) {
+  interpreter.interpret(interpreter, memory, engine, parameters)
 }

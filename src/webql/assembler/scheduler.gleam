@@ -3,18 +3,18 @@ import webql/assembler/plan
 import webql/assembler/scheduler/diagnostic
 import webql/assembler/scheduler/schedule_plan
 
-pub opaque type Scheduler {
-  Scheduler(plan: linker_program.Program)
+pub opaque type Scheduler(task) {
+  Scheduler(plan: linker_program.Program(task))
 }
 
 /// Creates a new scheduler instance from a linker program.
-pub fn new(plan: linker_program.Program) -> Scheduler {
+pub fn new(plan: linker_program.Program(task)) -> Scheduler(task) {
   Scheduler(plan:)
 }
 
 /// Schedules a linker program.
 pub fn schedule(
-  scheduler: Scheduler,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
+  scheduler: Scheduler(task),
+) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
   schedule_plan.schedule(scheduler.plan)
 }

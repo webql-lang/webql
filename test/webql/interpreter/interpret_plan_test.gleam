@@ -7,10 +7,9 @@ import webql/document
 import webql/interpreter/diagnostic
 import webql/interpreter/interpret_plan
 import webql/interpreter/sandbox
-import webql/resolution
 
 pub fn interpret_plan_routes_parameter_to_output_test() {
-  let p =
+  let plan =
     plan.Plan(
       routes: [plan.Route(from: ["input"], to: ["output"])],
       batches: [],
@@ -18,10 +17,10 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
 
   let assert Ok(returns) =
     interpret_plan.interpret(
-      p,
+      plan,
       sandbox.memory(),
-      sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(7))]),
+      sandbox.engine(),
+      encode(dict.from_list([#("input", dynamic.int(7))])),
     )
     |> sandbox.result()
   let returns = decode_inputs(returns)
@@ -31,14 +30,19 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
 }
 
 pub fn interpret_plan_routes_constant_to_output_test() {
-  let p =
+  let plan =
     plan.Plan(
       routes: [plan.Constant(value: dynamic.int(99), to: ["output"])],
       batches: [],
     )
 
   let assert Ok(returns) =
-    interpret_plan.interpret(p, sandbox.memory(), sandbox.runtime(), dict.new())
+    interpret_plan.interpret(
+      plan,
+      sandbox.memory(),
+      sandbox.engine(),
+      encode(dict.new()),
+    )
     |> sandbox.result()
   let returns = decode_inputs(returns)
 
@@ -55,12 +59,12 @@ pub fn interpret_plan_runs_step_and_returns_output_test() {
           let inputs = decode_inputs(inputs)
           let assert Ok(n) = dict.get(inputs, "n")
           let assert Ok(n) = decode.run(n, decode.int)
-          ok(dict.from_list([#("value", dynamic.int(n + 1))]))
+          sandbox.ok(dict.from_list([#("value", dynamic.int(n + 1))]))
         }),
       ),
     )
 
-  let p =
+  let plan =
     plan.Plan(
       routes: [
         plan.Route(from: ["input"], to: ["inc", "n"]),
@@ -71,10 +75,10 @@ pub fn interpret_plan_runs_step_and_returns_output_test() {
 
   let assert Ok(returns) =
     interpret_plan.interpret(
-      p,
+      plan,
       sandbox.memory(),
-      sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(4))]),
+      sandbox.engine(),
+      encode(dict.from_list([#("input", dynamic.int(4))])),
     )
     |> sandbox.result()
   let returns = decode_inputs(returns)
@@ -92,7 +96,7 @@ pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
           let inputs = decode_inputs(inputs)
           let assert Ok(x) = dict.get(inputs, "x")
           let assert Ok(x) = decode.run(x, decode.int)
-          ok(dict.from_list([#("value", dynamic.int(x * 2))]))
+          sandbox.ok(dict.from_list([#("value", dynamic.int(x * 2))]))
         }),
       ),
     )
@@ -105,12 +109,12 @@ pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
           let inputs = decode_inputs(inputs)
           let assert Ok(n) = dict.get(inputs, "n")
           let assert Ok(n) = decode.run(n, decode.int)
-          ok(dict.from_list([#("value", dynamic.int(n + 1))]))
+          sandbox.ok(dict.from_list([#("value", dynamic.int(n + 1))]))
         }),
       ),
     )
 
-  let p =
+  let plan =
     plan.Plan(
       routes: [
         plan.Route(from: ["input"], to: ["double", "x"]),
@@ -125,10 +129,10 @@ pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
 
   let assert Ok(returns) =
     interpret_plan.interpret(
-      p,
+      plan,
       sandbox.memory(),
-      sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(3))]),
+      sandbox.engine(),
+      encode(dict.from_list([#("input", dynamic.int(3))])),
     )
     |> sandbox.result()
   let returns = decode_inputs(returns)
@@ -138,7 +142,7 @@ pub fn interpret_plan_runs_multiple_batches_in_sequence_test() {
 }
 
 pub fn interpret_plan_reports_missing_return_test() {
-  let p =
+  let plan =
     plan.Plan(
       routes: [plan.Route(from: ["missing"], to: ["output"])],
       batches: [],
@@ -147,15 +151,13 @@ pub fn interpret_plan_reports_missing_return_test() {
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(
     _message,
   ))) =
-    interpret_plan.interpret(p, sandbox.memory(), sandbox.runtime(), dict.new())
+    interpret_plan.interpret(
+      plan,
+      sandbox.memory(),
+      sandbox.engine(),
+      encode(dict.new()),
+    )
     |> sandbox.result()
-}
-
-fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
-  values
-  |> encode()
-  |> Ok()
-  |> resolution.Done()
 }
 
 fn encode(values: dict.Dict(String, dynamic.Dynamic)) {

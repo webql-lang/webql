@@ -1,21 +1,21 @@
 import gleam/dynamic
 import webql/document
 
-pub type Plan {
-  Plan(routes: List(Route), batches: List(Batch))
+pub type Plan(task) {
+  Plan(routes: List(Route), batches: List(Batch(task)))
 }
 
-pub type Batch {
-  Batch(batch: List(Step))
+pub type Batch(task) {
+  Batch(batch: List(Step(task)))
 }
 
-pub type Step {
-  Step(name: String, resolver: Resolver)
+pub type Step(task) {
+  Step(name: String, resolver: Resolver(task))
 }
 
-pub type Resolver {
-  FunctionResolver(function: document.Resolver)
-  InlineResolver(plan: Plan)
+pub type Resolver(task) {
+  FunctionResolver(function: document.Resolver(task))
+  InlineResolver(plan: Plan(task))
 }
 
 pub type Route {

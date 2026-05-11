@@ -6,7 +6,6 @@ import webql/assembler/plan
 import webql/assembler/scheduler/diagnostic
 import webql/assembler/scheduler/schedule_plan
 import webql/document
-import webql/resolution
 
 pub fn schedule_plan_builds_executable_plan_test() {
   let linker_program =
@@ -117,7 +116,5 @@ pub fn schedule_plan_reports_cycles_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) {
-    resolution.Done(Ok(dynamic.properties([])))
-  })
+  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }

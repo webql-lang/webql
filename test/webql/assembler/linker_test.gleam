@@ -5,7 +5,6 @@ import webql/assembler/linker/diagnostic
 import webql/assembler/linker/program
 import webql/document
 import webql/graph
-import webql/resolution
 
 pub fn linker_links_graph_module_test() {
   let module =
@@ -50,9 +49,7 @@ pub fn linker_reports_unknown_operators_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) {
-    resolution.Done(Ok(dynamic.properties([])))
-  })
+  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
 fn operator() {

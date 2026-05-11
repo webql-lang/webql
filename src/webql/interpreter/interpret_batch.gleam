@@ -1,23 +1,25 @@
 import gleam/list
 import webql/assembler/plan
-import webql/interpreter/diagnostic
+import webql/engine
 import webql/interpreter/interpret_step
-import webql/interpreter/memory
-import webql/interpreter/runtime
-import webql/resolution
+import webql/memory
 
 /// Runs the next batch in a plan.
 pub fn interpret(
-  batch: List(plan.Step),
+  batch: List(plan.Step(task)),
   routes: List(plan.Route),
-  runtime: runtime.Runtime(memory.Memory(storage), diagnostic.Diagnostic),
+  engine: engine.Engine(task, memory.Memory(storage), error),
   memory: memory.Memory(storage),
   interpret_plan,
-) -> resolution.Resolution(memory.Memory(storage), diagnostic.Diagnostic) {
+) -> task {
   let steps =
-    list.map(batch, fn(step) {
-      interpret_step.interpret(step, routes, runtime, memory, interpret_plan)
+    engine.start_batch(fn() {
+      batch
+      |> list.map(fn(step) {
+        interpret_step.interpret(step, routes, engine, memory, interpret_plan)
+      })
+      |> Ok()
     })
 
-  runtime.steps(memory, steps, memory.merge)
+  engine.finish_batch(memory, steps, memory.merge)
 }

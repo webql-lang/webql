@@ -19,7 +19,7 @@ pub type Return {
 }
 
 /// Builds the public schema exposed by a document.
-pub fn introspect(document: document.Document) -> Schema {
+pub fn introspect(document: document.Document(task)) -> Schema {
   let document.Document(operators:, typenames:) = document
 
   let operators = introspect_operators(operators)
@@ -34,7 +34,7 @@ fn introspect_typenames(typenames: List(document.Typename)) {
   list.map(typenames, fn(typename) { typename.name })
 }
 
-fn introspect_operators(operators: dict.Dict(String, document.Operator)) {
+fn introspect_operators(operators: dict.Dict(String, document.Operator(task))) {
   operators
   |> dict.to_list()
   |> list.map(fn(entry) {
@@ -43,7 +43,7 @@ fn introspect_operators(operators: dict.Dict(String, document.Operator)) {
   })
 }
 
-fn introspect_operator(name: String, operator: document.Operator) {
+fn introspect_operator(name: String, operator: document.Operator(task)) {
   let document.Operator(parameters:, returns:, ..) = operator
 
   Operator(

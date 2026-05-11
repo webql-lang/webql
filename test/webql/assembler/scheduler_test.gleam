@@ -4,7 +4,6 @@ import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler
 import webql/document
-import webql/resolution
 
 pub fn scheduler_returns_executable_plan_test() {
   let resolver = empty_resolver()
@@ -90,7 +89,5 @@ pub fn scheduler_schedules_inline_resolvers_test() {
 }
 
 fn empty_resolver() {
-  document.Resolver(resolver: fn(_inputs) {
-    resolution.Done(Ok(dynamic.properties([])))
-  })
+  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }

@@ -5,7 +5,6 @@ import webql/document
 import webql/interpreter/diagnostic
 import webql/interpreter/interpret_step
 import webql/interpreter/sandbox
-import webql/resolution
 
 pub fn interpret_step_reports_runtime_error_test() {
   let step =
@@ -13,7 +12,7 @@ pub fn interpret_step_reports_runtime_error_test() {
       name: "fail",
       resolver: plan.FunctionResolver(
         document.Resolver(resolver: fn(_inputs) {
-          resolution.Done(Error(dynamic.string("oops")))
+          sandbox.fail(dynamic.string("oops"))
         }),
       ),
     )
@@ -25,7 +24,7 @@ pub fn interpret_step_reports_runtime_error_test() {
     step
     |> interpret_step.interpret(
       [],
-      sandbox.runtime(),
+      sandbox.engine(),
       sandbox.memory(),
       interpret_inline,
     )
@@ -40,7 +39,7 @@ pub fn interpret_step_reports_missing_step_input_test() {
     plan.Step(
       name: "op",
       resolver: plan.FunctionResolver(
-        document.Resolver(resolver: fn(inputs) { resolution.Done(Ok(inputs)) }),
+        document.Resolver(resolver: fn(inputs) { sandbox.output(inputs) }),
       ),
     )
 
@@ -53,7 +52,7 @@ pub fn interpret_step_reports_missing_step_input_test() {
     interpret_step.interpret(
       step,
       routes,
-      sandbox.runtime(),
+      sandbox.engine(),
       sandbox.memory(),
       interpret_inline,
     )
@@ -63,5 +62,5 @@ pub fn interpret_step_reports_missing_step_input_test() {
 }
 
 fn interpret_inline(_plan, memory, _runtime, _parameters) {
-  resolution.Done(Ok(memory))
+  sandbox.memory_task(Ok(memory))
 }

@@ -8,7 +8,6 @@ import webql/document
 import webql/graph
 import webql/interpreter
 import webql/interpreter/sandbox
-import webql/resolution
 
 fn add_resolver() {
   document.Resolver(resolver: fn(inputs) {
@@ -18,7 +17,7 @@ fn add_resolver() {
     let assert Ok(l) = decode.run(l, decode.int)
     let assert Ok(r) = decode.run(r, decode.int)
 
-    ok(dict.from_list([#("value", dynamic.int(l + r))]))
+    sandbox.ok(dict.from_list([#("value", dynamic.int(l + r))]))
   })
 }
 
@@ -77,21 +76,14 @@ pub fn execute_graph_module_test() {
     |> interpreter.new()
     |> interpreter.interpret(
       sandbox.memory(),
-      sandbox.runtime(),
-      dict.from_list([#("input", dynamic.int(2))]),
+      sandbox.engine(),
+      encode(dict.from_list([#("input", dynamic.int(2))])),
     )
     |> sandbox.result()
   let outputs = decode_inputs(outputs)
 
   let assert Ok(output) = dict.get(outputs, "output")
   assert decode.run(output, decode.int) == Ok(3)
-}
-
-fn ok(values: dict.Dict(String, dynamic.Dynamic)) {
-  values
-  |> encode()
-  |> Ok()
-  |> resolution.Done()
 }
 
 fn encode(values: dict.Dict(String, dynamic.Dynamic)) {

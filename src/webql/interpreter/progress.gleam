@@ -5,15 +5,26 @@ import gleam/list
 import gleam/result
 import webql/assembler/plan
 import webql/interpreter/diagnostic
-import webql/interpreter/memory
+import webql/memory
 
 /// Stores initial plan parameters as root-level values.
 pub fn add_parameters(
   memory: memory.Memory(storage),
-  parameters: dict.Dict(String, dynamic.Dynamic),
-) -> memory.Memory(storage) {
-  use memory, name, value <- dict.fold(parameters, memory)
-  memory.set(memory, [name], value)
+  parameters: dynamic.Dynamic,
+) -> Result(memory.Memory(storage), diagnostic.Diagnostic) {
+  case decode(parameters) {
+    Ok(parameters) -> {
+      let memory =
+        dict.fold(parameters, memory, fn(memory, name, value) {
+          memory.set(memory, [name], value)
+        })
+
+      Ok(memory)
+    }
+
+    Error(errors) ->
+      Error(diagnostic.Diagnostic(kind: diagnostic.InvalidParameters(errors:)))
+  }
 }
 
 /// Stores outputs produced by a completed step.
@@ -22,7 +33,7 @@ pub fn add_outputs(
   step: String,
   outputs: dynamic.Dynamic,
 ) -> Result(memory.Memory(storage), diagnostic.Diagnostic) {
-  case decode.run(outputs, decode.dict(decode.string, decode.dynamic)) {
+  case decode(outputs) {
     Ok(outputs) -> {
       let memory =
         dict.fold(outputs, memory, fn(memory, name, value) {
@@ -62,16 +73,7 @@ pub fn get_inputs(
     })
 
   case results {
-    Ok(results) ->
-      results
-      |> dict.to_list()
-      |> list.map(fn(entry) {
-        let #(key, value) = entry
-        #(dynamic.string(key), value)
-      })
-      |> dynamic.properties()
-      |> Ok()
-
+    Ok(results) -> Ok(encode(results))
     Error(message) ->
       Error(
         diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(step:, message:)),
@@ -83,24 +85,29 @@ pub fn get_inputs(
 pub fn get_returns(
   memory: memory.Memory(storage),
   routes: List(plan.Route),
-) -> Result(dict.Dict(String, dynamic.Dynamic), dynamic.Dynamic) {
-  use returns, route <- list.try_fold(routes, dict.new())
+) -> Result(dynamic.Dynamic, dynamic.Dynamic) {
+  use returns <- result.try(
+    list.try_fold(routes, dict.new(), fn(returns, route) {
+      case route {
+        plan.Route(from:, to: [output]) -> {
+          use value <- result.try(memory.get(memory, from))
+          Ok(dict.insert(returns, output, value))
+        }
 
-  case route {
-    plan.Route(from:, to: [output]) -> {
-      use value <- result.try(memory.get(memory, from))
-      Ok(dict.insert(returns, output, value))
-    }
+        plan.Constant(value:, to: [output]) ->
+          Ok(dict.insert(returns, output, value))
 
-    plan.Constant(value:, to: [output]) ->
-      Ok(dict.insert(returns, output, value))
+        _route -> Ok(returns)
+      }
+    }),
+  )
 
-    _route -> Ok(returns)
-  }
+  Ok(encode(returns))
 }
 
-/// Encodes a dictionary of values into a dynamic to be used by an external runtime.
-pub fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
+// PRIVATE FUNCTIONS
+// =================
+fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
   values
   |> dict.to_list()
   |> list.map(fn(input) {
@@ -110,14 +117,12 @@ pub fn encode(values: dict.Dict(String, dynamic.Dynamic)) -> dynamic.Dynamic {
   |> dynamic.properties()
 }
 
-/// Decodes a dynamic into a dictionary of values.
-pub fn decode(
+fn decode(
   unknown: dynamic.Dynamic,
-) -> Result(dict.Dict(String, dynamic.Dynamic), diagnostic.Diagnostic) {
+) -> Result(dict.Dict(String, dynamic.Dynamic), List(decode.DecodeError)) {
   let schema = decode.dict(decode.string, decode.dynamic)
   case decode.run(unknown, schema) {
     Ok(result) -> Ok(result)
-    Error(errors) ->
-      Error(diagnostic.Diagnostic(diagnostic.InvalidReturn(errors:)))
+    Error(errors) -> Error(errors)
   }
 }
