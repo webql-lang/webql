@@ -15,9 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove test sources from release build
-        run: rm -rf test
-
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "27"
