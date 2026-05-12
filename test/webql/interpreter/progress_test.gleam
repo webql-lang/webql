@@ -2,8 +2,32 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
+import webql/interpreter/diagnostic
 import webql/interpreter/progress
 import webql/memory/kv
+
+pub fn progress_reports_invalid_parameters_test() {
+  let assert Error(diagnostic.Diagnostic(kind: diagnostic.InvalidParameters(
+    errors: _,
+  ))) = progress.add_parameters(kv.new(), dynamic.int(1))
+}
+
+pub fn progress_reports_invalid_step_output_test() {
+  let assert Error(diagnostic.Diagnostic(kind: diagnostic.InvalidStepOutput(
+    step: "op",
+    errors: _,
+  ))) = progress.add_outputs(kv.new(), "op", dynamic.int(1))
+}
+
+pub fn progress_reports_missing_step_input_test() {
+  let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
+    step: "op",
+    message: _,
+  ))) =
+    progress.get_inputs(kv.new(), "op", [
+      plan.Route(from: ["missing"], to: ["op", "value"]),
+    ])
+}
 
 pub fn progress_gets_constant_returns_test() {
   let assert Ok(raw) =

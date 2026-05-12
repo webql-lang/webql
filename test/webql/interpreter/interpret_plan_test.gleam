@@ -17,17 +17,20 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
       ),
       kv.new(),
       engine,
-      [#(dynamic.string("input"), dynamic.int(7))]
-        |> dynamic.properties(),
+      dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
 
-  engine.finish_step(task, fn(result) {
-    let assert Ok(outputs) = result
-    let assert Ok(outputs) =
-      decode.run(outputs, decode.dict(decode.string, decode.dynamic))
-    let assert Ok(output) = dict.get(outputs, "output")
-    assert decode.run(output, decode.int) == Ok(7)
-    Ok(kv.new())
+  engine.run(fn() {
+    Ok(
+      engine.finish_step(task, fn(result) {
+        let assert Ok(outputs) = result
+        let assert Ok(outputs) =
+          decode.run(outputs, decode.dict(decode.string, decode.dynamic))
+        let assert Ok(output) = dict.get(outputs, "output")
+        assert decode.run(output, decode.int) == Ok(7)
+        Ok(kv.new())
+      }),
+    )
   })
 }
 
@@ -51,15 +54,15 @@ pub fn interpret_plan_runs_function_resolver_test() {
                       inputs,
                       decode.dict(decode.string, decode.dynamic),
                     )
-                  let assert Ok(n) = dict.get(inputs, "n")
-                  let assert Ok(n) = decode.run(n, decode.int)
+                  let assert Ok(raw_number) = dict.get(inputs, "n")
+                  let assert Ok(number) = decode.run(raw_number, decode.int)
 
                   engine.finish_plan(
                     engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                     fn(_memory) {
                       Ok(
                         dynamic.properties([
-                          #(dynamic.string("value"), dynamic.int(n + 1)),
+                          #(dynamic.string("value"), dynamic.int(number + 1)),
                         ]),
                       )
                     },
@@ -72,17 +75,20 @@ pub fn interpret_plan_runs_function_resolver_test() {
       ),
       kv.new(),
       engine,
-      [#(dynamic.string("input"), dynamic.int(4))]
-        |> dynamic.properties(),
+      dynamic.properties([#(dynamic.string("input"), dynamic.int(4))]),
     )
 
-  engine.finish_step(task, fn(result) {
-    let assert Ok(outputs) = result
-    let assert Ok(outputs) =
-      decode.run(outputs, decode.dict(decode.string, decode.dynamic))
-    let assert Ok(output) = dict.get(outputs, "output")
-    assert decode.run(output, decode.int) == Ok(5)
-    Ok(kv.new())
+  engine.run(fn() {
+    Ok(
+      engine.finish_step(task, fn(result) {
+        let assert Ok(outputs) = result
+        let assert Ok(outputs) =
+          decode.run(outputs, decode.dict(decode.string, decode.dynamic))
+        let assert Ok(output) = dict.get(outputs, "output")
+        assert decode.run(output, decode.int) == Ok(5)
+        Ok(kv.new())
+      }),
+    )
   })
 }
 
@@ -99,8 +105,12 @@ pub fn interpret_plan_reports_missing_return_test() {
       dynamic.properties([]),
     )
 
-  engine.finish_step(task, fn(result) {
-    let assert Error(_) = result
-    Ok(kv.new())
+  engine.run(fn() {
+    Ok(
+      engine.finish_step(task, fn(result) {
+        let assert Error(_) = result
+        Ok(kv.new())
+      }),
+    )
   })
 }

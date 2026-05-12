@@ -20,15 +20,15 @@ pub fn interpret_batch_runs_step_test() {
             document.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
-              let assert Ok(n) = dict.get(inputs, "n")
-              let assert Ok(n) = decode.run(n, decode.int)
+              let assert Ok(raw_number) = dict.get(inputs, "n")
+              let assert Ok(number) = decode.run(raw_number, decode.int)
 
               engine.finish_plan(
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
-                      #(dynamic.string("value"), dynamic.int(n + 1)),
+                      #(dynamic.string("value"), dynamic.int(number + 1)),
                     ]),
                   )
                 },
@@ -43,10 +43,14 @@ pub fn interpret_batch_runs_step_test() {
       interpret_plan.interpret,
     )
 
-  engine.finish_plan(task, fn(memory) {
-    let assert Ok(output) = kv.get(memory, ["inc", "value"])
-    assert decode.run(output, decode.int) == Ok(5)
-    Ok(dynamic.nil())
+  engine.run(fn() {
+    Ok(
+      engine.finish_plan(task, fn(memory) {
+        let assert Ok(output) = kv.get(memory, ["inc", "value"])
+        assert decode.run(output, decode.int) == Ok(5)
+        Ok(dynamic.nil())
+      }),
+    )
   })
 }
 
@@ -56,10 +60,14 @@ pub fn interpret_batch_runs_empty_batch_test() {
   let task =
     interpret_batch.interpret([], [], engine, memory, interpret_plan.interpret)
 
-  engine.finish_plan(task, fn(memory) {
-    let assert Ok(value) = kv.get(memory, ["input"])
-    assert decode.run(value, decode.int) == Ok(42)
-    Ok(dynamic.nil())
+  engine.run(fn() {
+    Ok(
+      engine.finish_plan(task, fn(memory) {
+        let assert Ok(value) = kv.get(memory, ["input"])
+        assert decode.run(value, decode.int) == Ok(42)
+        Ok(dynamic.nil())
+      }),
+    )
   })
 }
 
@@ -75,15 +83,15 @@ pub fn interpret_batch_runs_multiple_steps_test() {
             document.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
-              let assert Ok(x) = dict.get(inputs, "x")
-              let assert Ok(x) = decode.run(x, decode.int)
+              let assert Ok(raw_value) = dict.get(inputs, "x")
+              let assert Ok(value) = decode.run(raw_value, decode.int)
 
               engine.finish_plan(
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
-                      #(dynamic.string("result"), dynamic.int(x * 2)),
+                      #(dynamic.string("result"), dynamic.int(value * 2)),
                     ]),
                   )
                 },
@@ -97,15 +105,15 @@ pub fn interpret_batch_runs_multiple_steps_test() {
             document.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
-              let assert Ok(x) = dict.get(inputs, "x")
-              let assert Ok(x) = decode.run(x, decode.int)
+              let assert Ok(raw_value) = dict.get(inputs, "x")
+              let assert Ok(value) = decode.run(raw_value, decode.int)
 
               engine.finish_plan(
                 engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
-                      #(dynamic.string("result"), dynamic.int(x + 1)),
+                      #(dynamic.string("result"), dynamic.int(value + 1)),
                     ]),
                   )
                 },
@@ -123,11 +131,15 @@ pub fn interpret_batch_runs_multiple_steps_test() {
       interpret_plan.interpret,
     )
 
-  engine.finish_plan(task, fn(memory) {
-    let assert Ok(doubled) = kv.get(memory, ["double", "result"])
-    let assert Ok(incremented) = kv.get(memory, ["inc", "result"])
-    assert decode.run(doubled, decode.int) == Ok(6)
-    assert decode.run(incremented, decode.int) == Ok(4)
-    Ok(dynamic.nil())
+  engine.run(fn() {
+    Ok(
+      engine.finish_plan(task, fn(memory) {
+        let assert Ok(doubled) = kv.get(memory, ["double", "result"])
+        let assert Ok(incremented) = kv.get(memory, ["inc", "result"])
+        assert decode.run(doubled, decode.int) == Ok(6)
+        assert decode.run(incremented, decode.int) == Ok(4)
+        Ok(dynamic.nil())
+      }),
+    )
   })
 }
