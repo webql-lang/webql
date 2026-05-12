@@ -1,0 +1,33 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          gleam-version: "1.12.0"
+          rebar3-version: "3"
+
+      - run: gleam deps download
+
+      - run: gleam build --target erlang
+      - run: tar -czf webql-erlang-${GITHUB_REF_NAME}.tar.gz build/dev/erlang
+
+      - run: gleam build --target javascript
+      - run: tar -czf webql-javascript-${GITHUB_REF_NAME}.tar.gz build/dev/javascript
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            webql-erlang-${{ github.ref_name }}.tar.gz
+            webql-javascript-${{ github.ref_name }}.tar.gz
