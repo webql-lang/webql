@@ -82,6 +82,68 @@ pub fn transient_new_runs_plan_batches_in_sequence_test() {
 }
 
 @target(erlang)
+pub fn transient_start_plan_starts_immediately_test() {
+  let engine = transient.new()
+  let events = process.new_subject()
+
+  let task =
+    engine.start_plan(fn() {
+      process.send(events, 1)
+      Ok(#(kv.new(), []))
+    })
+
+  let assert Ok(event) = process.receive(events, within: 1000)
+  assert event == 1
+
+  engine.run(fn() {
+    Ok(engine.finish_plan(task, fn(_memory) { Ok(dynamic.nil()) }))
+  })
+}
+
+@target(javascript)
+pub fn transient_start_plan_starts_immediately_test() {
+  let engine = transient.new()
+  let #(event, send_event) = promise.start()
+
+  let _task =
+    engine.start_plan(fn() {
+      send_event(1)
+      Ok(#(kv.new(), []))
+    })
+
+  promise.map(event, fn(event) {
+    assert event == 1
+    Nil
+  })
+}
+
+pub fn transient_batch_can_join_same_task_more_than_once_test() {
+  let engine = transient.new()
+  let shared =
+    engine.finish_batch(
+      kv.set(kv.new(), ["value"], dynamic.int(1)),
+      engine.start_batch(fn() { Ok([]) }),
+      kv.merge,
+    )
+
+  let task =
+    engine.finish_batch(
+      kv.new(),
+      engine.start_batch(fn() { Ok([shared, shared]) }),
+      kv.merge,
+    )
+
+  engine.run(fn() {
+    Ok(
+      engine.finish_plan(task, fn(memory) {
+        assert kv.get(memory, ["value"]) == Ok(dynamic.int(1))
+        Ok(dynamic.nil())
+      }),
+    )
+  })
+}
+
+@target(erlang)
 pub fn transient_batch_runs_steps_concurrently_test() {
   let engine = transient.new()
   let events = process.new_subject()

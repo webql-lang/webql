@@ -22,13 +22,13 @@ pub fn new() -> engine.Engine(
   )
 }
 
-@external(erlang, "transient_ffi", "run")
+@external(erlang, "Elixir.TransientFfi", "run")
 @external(javascript, "./transient_ffi.mjs", "run")
 pub fn run(
   next: fn() -> Result(Transient(storage), diagnostic.Diagnostic),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "start_plan")
+@external(erlang, "Elixir.TransientFfi", "start_plan")
 @external(javascript, "./transient_ffi.mjs", "startPlan")
 pub fn start_plan(
   next: fn() ->
@@ -41,7 +41,7 @@ pub fn start_plan(
     ),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "finish_plan")
+@external(erlang, "Elixir.TransientFfi", "finish_plan")
 @external(javascript, "./transient_ffi.mjs", "finishPlan")
 pub fn finish_plan(
   task: Transient(storage),
@@ -49,13 +49,13 @@ pub fn finish_plan(
     Result(dynamic.Dynamic, diagnostic.Diagnostic),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "start_batch")
+@external(erlang, "Elixir.TransientFfi", "start_batch")
 @external(javascript, "./transient_ffi.mjs", "startBatch")
 pub fn start_batch(
   next: fn() -> Result(List(Transient(storage)), diagnostic.Diagnostic),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "finish_batch")
+@external(erlang, "Elixir.TransientFfi", "finish_batch")
 @external(javascript, "./transient_ffi.mjs", "finishBatch")
 pub fn finish_batch(
   initial: memory.Memory(storage),
@@ -64,13 +64,13 @@ pub fn finish_batch(
     memory.Memory(storage),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "start_step")
+@external(erlang, "Elixir.TransientFfi", "start_step")
 @external(javascript, "./transient_ffi.mjs", "startStep")
 pub fn start_step(
   next: fn() -> Result(Transient(storage), diagnostic.Diagnostic),
 ) -> Transient(storage)
 
-@external(erlang, "transient_ffi", "finish_step")
+@external(erlang, "Elixir.TransientFfi", "finish_step")
 @external(javascript, "./transient_ffi.mjs", "finishStep")
 pub fn finish_step(
   task: Transient(storage),
