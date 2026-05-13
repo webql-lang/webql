@@ -13,6 +13,8 @@ git pull --ff-only
 git checkout -B "$branch"
 
 rm -rf test
+rm -rf .github
+rm -rf scripts/release.sh
 
 git add -A
 
