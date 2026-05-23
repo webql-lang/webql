@@ -3,12 +3,12 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/document
-import webql/engine/transient
+import webql/engine/basic
 import webql/interpreter/interpret_plan
 import webql/memory/kv
 
 pub fn interpret_plan_routes_parameter_to_output_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpret_plan.interpret(
       plan.Plan(
@@ -35,7 +35,7 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
 }
 
 pub fn interpret_plan_runs_function_resolver_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpret_plan.interpret(
       plan.Plan(
@@ -93,7 +93,7 @@ pub fn interpret_plan_runs_function_resolver_test() {
 }
 
 pub fn interpret_plan_reports_missing_return_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpret_plan.interpret(
       plan.Plan(

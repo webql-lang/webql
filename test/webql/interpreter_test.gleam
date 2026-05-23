@@ -2,12 +2,12 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/engine/transient
+import webql/engine/basic
 import webql/interpreter
 import webql/memory/kv
 
 pub fn interpreter_routes_parameter_to_output_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpreter.interpret(
       interpreter.new(

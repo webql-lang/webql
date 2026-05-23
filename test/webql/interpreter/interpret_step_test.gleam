@@ -3,14 +3,14 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/document
-import webql/engine/transient
+import webql/engine/basic
 import webql/interpreter/interpret_plan
 import webql/interpreter/interpret_step
 import webql/interpreter/progress
 import webql/memory/kv
 
 pub fn interpret_step_runs_function_resolver_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
   let task =
     interpret_step.interpret(
@@ -54,7 +54,7 @@ pub fn interpret_step_runs_function_resolver_test() {
 }
 
 pub fn interpret_step_reports_missing_input_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpret_step.interpret(
       plan.Step(
@@ -85,7 +85,7 @@ pub fn interpret_step_reports_missing_input_test() {
 }
 
 pub fn interpret_step_reports_invalid_output_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let task =
     interpret_step.interpret(
       plan.Step(
@@ -116,7 +116,7 @@ pub fn interpret_step_reports_invalid_output_test() {
 }
 
 pub fn interpret_step_runs_inline_resolver_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(9))
   let task =
     interpret_step.interpret(

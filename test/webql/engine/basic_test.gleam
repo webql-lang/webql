@@ -5,12 +5,12 @@ import gleam/erlang/process
 import gleam/javascript/promise
 @target(javascript)
 import gleam/list
-import webql/engine/transient
+import webql/engine/basic
 import webql/interpreter/diagnostic
 import webql/memory/kv
 
-pub fn transient_new_runs_empty_plan_test() {
-  let engine = transient.new()
+pub fn basic_new_runs_empty_plan_test() {
+  let engine = basic.new()
   let initial = kv.new()
   let task = engine.start_plan(fn() { Ok(#(initial, [])) })
 
@@ -24,8 +24,8 @@ pub fn transient_new_runs_empty_plan_test() {
   })
 }
 
-pub fn transient_new_runs_plan_batches_in_sequence_test() {
-  let engine = transient.new()
+pub fn basic_new_runs_plan_batches_in_sequence_test() {
+  let engine = basic.new()
   let initial = kv.new()
   let first = kv.set(kv.new(), ["first"], dynamic.int(1))
   let second = kv.set(kv.new(), ["second"], dynamic.int(2))
@@ -82,8 +82,8 @@ pub fn transient_new_runs_plan_batches_in_sequence_test() {
 }
 
 @target(erlang)
-pub fn transient_start_plan_starts_immediately_test() {
-  let engine = transient.new()
+pub fn basic_start_plan_starts_immediately_test() {
+  let engine = basic.new()
   let events = process.new_subject()
 
   let task =
@@ -101,8 +101,8 @@ pub fn transient_start_plan_starts_immediately_test() {
 }
 
 @target(javascript)
-pub fn transient_start_plan_starts_immediately_test() {
-  let engine = transient.new()
+pub fn basic_start_plan_starts_immediately_test() {
+  let engine = basic.new()
   let #(event, send_event) = promise.start()
 
   let _task =
@@ -117,8 +117,8 @@ pub fn transient_start_plan_starts_immediately_test() {
   })
 }
 
-pub fn transient_batch_can_join_same_task_more_than_once_test() {
-  let engine = transient.new()
+pub fn basic_batch_can_join_same_task_more_than_once_test() {
+  let engine = basic.new()
   let shared =
     engine.finish_batch(
       kv.set(kv.new(), ["value"], dynamic.int(1)),
@@ -144,8 +144,8 @@ pub fn transient_batch_can_join_same_task_more_than_once_test() {
 }
 
 @target(erlang)
-pub fn transient_batch_runs_steps_concurrently_test() {
-  let engine = transient.new()
+pub fn basic_batch_runs_steps_concurrently_test() {
+  let engine = basic.new()
   let events = process.new_subject()
 
   let slow =
@@ -203,7 +203,7 @@ pub fn transient_batch_runs_steps_concurrently_test() {
 }
 
 @target(javascript)
-pub fn transient_batch_runs_steps_concurrently_test() {
+pub fn basic_batch_runs_steps_concurrently_test() {
   let slow =
     promise.map(promise.wait(100), fn(_) {
       #(1, kv.set(kv.new(), ["winner"], dynamic.int(1)))
@@ -226,8 +226,8 @@ pub fn transient_batch_runs_steps_concurrently_test() {
   })
 }
 
-pub fn transient_finish_plan_skips_callback_on_error_test() {
-  let engine = transient.new()
+pub fn basic_finish_plan_skips_callback_on_error_test() {
+  let engine = basic.new()
   let task =
     engine.start_plan(fn() {
       Error(
