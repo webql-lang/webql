@@ -3,13 +3,13 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/document
-import webql/engine/transient
+import webql/engine/basic
 import webql/interpreter/interpret_batch
 import webql/interpreter/interpret_plan
 import webql/memory/kv
 
 pub fn interpret_batch_runs_step_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
   let task =
     interpret_batch.interpret(
@@ -55,7 +55,7 @@ pub fn interpret_batch_runs_step_test() {
 }
 
 pub fn interpret_batch_runs_empty_batch_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(42))
   let task =
     interpret_batch.interpret([], [], engine, memory, interpret_plan.interpret)
@@ -72,7 +72,7 @@ pub fn interpret_batch_runs_empty_batch_test() {
 }
 
 pub fn interpret_batch_runs_multiple_steps_test() {
-  let engine = transient.new()
+  let engine = basic.new()
   let memory = kv.set(kv.new(), ["n"], dynamic.int(3))
   let task =
     interpret_batch.interpret(

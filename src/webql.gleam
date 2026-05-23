@@ -31,10 +31,9 @@ pub fn new(
 pub fn run(
   webql: Webql(task, storage),
   source: String,
-  document: document.Document(task),
   parameters: dynamic.Dynamic,
 ) -> task {
-  let Webql(engine:, memory:, ..) = webql
+  let Webql(engine:, memory:, document:) = webql
 
   engine.run(fn() {
     use graph <- result.try(compile(source, document))
