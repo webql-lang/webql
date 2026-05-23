@@ -13,3 +13,6 @@
 ```
 
 WebQL is a dataflow language designed for building queries and representing directed graphs.
+
+> [!WARNING]
+> WebQL is experimental and APIs may change.
