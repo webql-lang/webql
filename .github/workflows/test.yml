@@ -1,24 +1,103 @@
-name: test
+name: ci
 
 on:
   push:
     branches:
-      - master
       - main
+    paths-ignore:
+      - "guides/**"
   pull_request:
+    paths-ignore:
+      - "guides/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  system:
+    name: system
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: system
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: extractions/setup-just@v3
+
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "28"
-          gleam-version: "1.14.0"
+          gleam-version: "1.16.0"
           rebar3-version: "3"
           elixir-version: "1"
-      - run: gleam deps download
-      - run: gleam test --target erlang
-      - run: gleam test --target javascript
-      - run: gleam format --check src test
+
+      - run: just -f ../Justfile system deps download
+      - run: just -f ../Justfile system test --target erlang
+      - run: just -f ../Justfile system test --target javascript
+      - run: just -f ../Justfile system format --check src test
+
+  platform-elixir:
+    name: elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }}
+    runs-on: ubuntu-24.04
+
+    env:
+      MIX_ENV: test
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.17"
+            otp: "27"
+          - elixir: "1.18"
+            otp: "27"
+            lint: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: extractions/setup-just@v3
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+          gleam-version: "1.16.0"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            platform/elixir/deps
+            platform/elixir/_build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Build system artifact
+        run: |
+          just system clean
+          just system deps download
+          just system build --target erlang
+
+      - name: Install dependencies
+        run: just platform-elixir deps.get
+
+      - name: Check formatting
+        if: ${{ matrix.lint }}
+        run: just platform-elixir format --check-formatted
+
+      - name: Compile
+        run: just platform-elixir compile ${{ matrix.lint && '--warnings-as-errors' || '' }}
+
+      - name: Run tests
+        run: just platform-elixir test
+
+      - name: Run dialyzer
+        if: ${{ matrix.lint }}
+        run: just platform-elixir dialyzer
