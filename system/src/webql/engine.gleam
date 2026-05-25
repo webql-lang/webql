@@ -22,8 +22,7 @@ pub type FinishStep(task, memory) =
     task,
     fn(Result(dynamic.Dynamic, dynamic.Dynamic)) ->
       Result(memory, diagnostic.Diagnostic),
-  ) ->
-    task
+  ) -> task
 
 pub type FinishPlan(task, memory) =
   fn(task, fn(memory) -> Result(dynamic.Dynamic, diagnostic.Diagnostic)) -> task

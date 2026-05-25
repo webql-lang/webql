@@ -8,30 +8,79 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  github-release:
+    runs-on: ubuntu-24.04
+
+    env:
+      MIX_ENV: prod
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: extractions/setup-just@v3
+
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "27"
-          gleam-version: "1.14.0"
-          rebar3-version: "3"
-          elixir-version: "1.18"
+          elixir-version: "1.17"
+          gleam-version: "1.16.0"
 
-      - run: gleam deps download
-
-      - run: gleam build --target erlang
-      - run: tar -czf webql-erlang-${GITHUB_REF_NAME}.tar.gz build/dev/erlang
-
-      - run: gleam build --target javascript
-      - run: tar -czf webql-javascript-${GITHUB_REF_NAME}.tar.gz build/dev/javascript
-
-      - uses: softprops/action-gh-release@v2
+      - uses: actions/cache@v4
         with:
-          files: |
-            webql-erlang-${{ github.ref_name }}.tar.gz
-            webql-javascript-${{ github.ref_name }}.tar.gz
+          path: |
+            platform/elixir/deps
+            platform/elixir/_build
+          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-release-1.17-27-
+
+      - name: Build system artifact
+        run: |
+          just system clean
+          just system deps download
+          just system build --target erlang
+
+      - name: Install dependencies
+        run: just platform-elixir deps.get
+
+      - name: Check formatting
+        run: just platform-elixir format --check-formatted
+
+      - name: Compile
+        run: just platform-elixir compile --warnings-as-errors
+
+      - name: Run tests
+        run: MIX_ENV=test just platform-elixir test
+
+      - name: Run dialyzer
+        run: just platform-elixir dialyzer
+
+      - name: Stage release source
+        run: |
+          package="webql-${GITHUB_REF_NAME}"
+          stage="${RUNNER_TEMP}/${package}"
+
+          mkdir -p "${stage}"
+          rsync -a --exclude-from=platform/elixir/.gitignore platform/elixir/ "${stage}/"
+          cp LICENSE README.md "${stage}/"
+
+          mkdir -p "${stage}/src"
+          rsync -a \
+            --exclude="*_test.erl" \
+            --include="*/" \
+            --include="*.erl" \
+            --exclude="*" \
+            system/build/dev/erlang/webql/_gleam_artefacts/ \
+            "${stage}/src/"
+
+          tar -czf "${GITHUB_WORKSPACE}/${package}.tar.gz" -C "${RUNNER_TEMP}" "${package}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: webql-${{ github.ref_name }}.tar.gz
