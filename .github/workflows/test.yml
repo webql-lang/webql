@@ -19,11 +19,17 @@ concurrency:
 
 jobs:
   system:
-    name: system
+    name: system (gleam ${{ matrix.gleam }})
     runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: system
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gleam: "1.16.0"
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +49,7 @@ jobs:
       - run: just -f ../Justfile system format --check src test
 
   platform-elixir:
-    name: elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }}
+    name: platform (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
     runs-on: ubuntu-24.04
 
     env:
