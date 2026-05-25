@@ -65,19 +65,17 @@ jobs:
           stage="${RUNNER_TEMP}/${package}"
 
           mkdir -p "${stage}"
-          tar \
-            --exclude="./_build" \
-            --exclude="./cover" \
-            --exclude="./deps" \
-            --exclude="./doc" \
-            --exclude="./tmp" \
-            -C platform/elixir \
-            -cf - . | tar -x -C "${stage}"
+          rsync -a --exclude-from=platform/elixir/.gitignore platform/elixir/ "${stage}/"
           cp LICENSE README.md "${stage}/"
-          mkdir -p "${stage}/src/webql/engine"
-          cp system/build/dev/erlang/webql/_gleam_artefacts/*.erl "${stage}/src/"
-          cp system/build/dev/erlang/webql/_gleam_artefacts/webql/engine/basic_ffi.erl "${stage}/src/webql/engine/"
-          rm -f "${stage}"/src/*_test.erl
+
+          mkdir -p "${stage}/src"
+          rsync -a \
+            --exclude="*_test.erl" \
+            --include="*/" \
+            --include="*.erl" \
+            --exclude="*" \
+            system/build/dev/erlang/webql/_gleam_artefacts/ \
+            "${stage}/src/"
 
           tar -czf "${GITHUB_WORKSPACE}/${package}.tar.gz" -C "${RUNNER_TEMP}" "${package}"
 

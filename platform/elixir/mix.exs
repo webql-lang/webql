@@ -10,10 +10,12 @@ defmodule Webql.MixProject do
       elixir: "~> 1.17",
       erlc_paths: [
         "deps/gleam_stdlib/src",
+        "src",
         "../../system/build/dev/erlang/webql/_gleam_artefacts"
       ],
       elixirc_paths: [
         "lib",
+        "src",
         "../../system/build/dev/erlang/webql/_gleam_artefacts"
       ],
       prune_code_paths: false,
