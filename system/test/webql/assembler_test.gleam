@@ -16,9 +16,9 @@ pub fn assembler_assembles_empty_graph_test() {
     graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
   let assert Ok(result) = assembler.assemble(a, empty_graph)
-  let plan.Plan(routes:, batches:) = result
+  let plan.Plan(edges:, batches:) = result
 
-  assert routes == []
+  assert edges == []
   assert batches == []
 }
 
@@ -62,17 +62,23 @@ pub fn assembler_assembles_graph_with_external_node_test() {
     )
 
   let assert Ok(result) = assembler.assemble(a, module)
-  let plan.Plan(routes:, batches:) = result
+  let plan.Plan(edges:, batches:) = result
 
-  assert routes
+  assert edges
     == [
-      plan.Constant(value: dynamic.int(1), to: ["user", "id"]),
-      plan.Route(from: ["user", "name"], to: ["out"]),
+      plan.Edge(
+        source: plan.Static(value: dynamic.int(1)),
+        target: plan.Input(path: ["user", "id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user", "name"]),
+        target: plan.Input(path: ["out"]),
+      ),
     ]
 
   let batch_step_names =
-    list.map(batches, fn(batch) {
-      let plan.Batch(batch: steps) = batch
+    list.map(batches, fn(steps) {
+      let plan.Batch(steps: steps) = steps
       list.map(steps, fn(step) {
         let plan.Step(name:, ..) = step
         name

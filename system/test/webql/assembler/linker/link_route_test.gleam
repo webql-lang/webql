@@ -11,7 +11,12 @@ pub fn link_route_links_output_edges_test() {
     )
 
   assert link_route.link([edge])
-    == [program.Route(from: ["user", "id"], to: ["posts", "user_id"])]
+    == [
+      program.Edge(
+        source: program.Output(path: ["user", "id"]),
+        target: program.Input(path: ["posts", "user_id"]),
+      ),
+    ]
 }
 
 pub fn link_route_links_int_constants_test() {
@@ -22,7 +27,12 @@ pub fn link_route_links_int_constants_test() {
     )
 
   assert link_route.link([edge])
-    == [program.Constant(value: dynamic.int(1), to: ["add", "r"])]
+    == [
+      program.Edge(
+        source: program.Static(value: dynamic.int(1)),
+        target: program.Input(path: ["add", "r"]),
+      ),
+    ]
 }
 
 pub fn link_route_links_float_constants_test() {
@@ -33,7 +43,12 @@ pub fn link_route_links_float_constants_test() {
     )
 
   assert link_route.link([edge])
-    == [program.Constant(value: dynamic.float(1.1), to: ["add", "r"])]
+    == [
+      program.Edge(
+        source: program.Static(value: dynamic.float(1.1)),
+        target: program.Input(path: ["add", "r"]),
+      ),
+    ]
 }
 
 pub fn link_route_links_string_constants_test() {
@@ -44,7 +59,12 @@ pub fn link_route_links_string_constants_test() {
     )
 
   assert link_route.link([edge])
-    == [program.Constant(value: dynamic.string("one"), to: ["format", "name"])]
+    == [
+      program.Edge(
+        source: program.Static(value: dynamic.string("one")),
+        target: program.Input(path: ["format", "name"]),
+      ),
+    ]
 }
 
 pub fn link_route_links_edges_test() {
@@ -61,7 +81,13 @@ pub fn link_route_links_edges_test() {
 
   assert link_route.link(edges)
     == [
-      program.Route(from: ["user_id"], to: ["user", "id"]),
-      program.Route(from: ["user", "id"], to: ["summary"]),
+      program.Edge(
+        source: program.Output(path: ["user_id"]),
+        target: program.Input(path: ["user", "id"]),
+      ),
+      program.Edge(
+        source: program.Output(path: ["user", "id"]),
+        target: program.Input(path: ["summary"]),
+      ),
     ]
 }

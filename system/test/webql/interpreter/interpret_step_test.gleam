@@ -16,7 +16,7 @@ pub fn interpret_step_runs_function_resolver_test() {
     interpret_step.interpret(
       plan.Step(
         name: "inc",
-        resolver: plan.FunctionResolver(
+        node: plan.Node(
           schema.Resolver(resolver: fn(inputs) {
             let assert Ok(inputs) =
               decode.run(inputs, decode.dict(decode.string, decode.dynamic))
@@ -36,7 +36,12 @@ pub fn interpret_step_runs_function_resolver_test() {
           }),
         ),
       ),
-      [plan.Route(from: ["input"], to: ["inc", "n"])],
+      [
+        plan.Edge(
+          source: plan.Output(path: ["input"]),
+          target: plan.Input(path: ["inc", "n"]),
+        ),
+      ],
       engine,
       memory,
       interpret_plan.interpret,
@@ -59,7 +64,7 @@ pub fn interpret_step_reports_missing_input_test() {
     interpret_step.interpret(
       plan.Step(
         name: "op",
-        resolver: plan.FunctionResolver(
+        node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
             engine.finish_plan(
               engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
@@ -68,7 +73,12 @@ pub fn interpret_step_reports_missing_input_test() {
           }),
         ),
       ),
-      [plan.Route(from: ["missing"], to: ["op", "value"])],
+      [
+        plan.Edge(
+          source: plan.Output(path: ["missing"]),
+          target: plan.Input(path: ["op", "value"]),
+        ),
+      ],
       engine,
       kv.new(),
       interpret_plan.interpret,
@@ -90,7 +100,7 @@ pub fn interpret_step_reports_invalid_output_test() {
     interpret_step.interpret(
       plan.Step(
         name: "invalid",
-        resolver: plan.FunctionResolver(
+        node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
             engine.finish_plan(
               engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
@@ -122,14 +132,24 @@ pub fn interpret_step_runs_inline_resolver_test() {
     interpret_step.interpret(
       plan.Step(
         name: "inline",
-        resolver: plan.InlineResolver(
+        node: plan.Supernode(
           plan: plan.Plan(
-            routes: [plan.Route(from: ["value"], to: ["output"])],
+            edges: [
+              plan.Edge(
+                source: plan.Output(path: ["value"]),
+                target: plan.Input(path: ["output"]),
+              ),
+            ],
             batches: [],
           ),
         ),
       ),
-      [plan.Route(from: ["input"], to: ["inline", "value"])],
+      [
+        plan.Edge(
+          source: plan.Output(path: ["input"]),
+          target: plan.Input(path: ["inline", "value"]),
+        ),
+      ],
       engine,
       memory,
       fn(_plan, memory, engine, inputs) {

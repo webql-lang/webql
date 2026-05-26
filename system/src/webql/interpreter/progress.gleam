@@ -50,25 +50,34 @@ pub fn add_outputs(
   }
 }
 
-/// Resolves all input values for a step by following routes that target it.
+/// Resolves all input values for a step by following edges that target it.
 pub fn get_inputs(
   memory: memory.Memory(storage),
   step: String,
-  routes: List(plan.Route),
+  edges: List(plan.Edge),
 ) -> Result(dynamic.Dynamic, diagnostic.Diagnostic) {
   let inputs = dict.new()
   let results =
-    list.try_fold(routes, inputs, fn(inputs, route) {
-      case route {
-        plan.Route(from:, to: [target, input]) if target == step -> {
-          use value <- result.try(memory.get(memory, from))
+    list.try_fold(edges, inputs, fn(inputs, edge) {
+      case edge {
+        plan.Edge(
+          source: plan.Output(path: source),
+          target: plan.Input(path: [target, input]),
+        )
+          if target == step
+        -> {
+          use value <- result.try(memory.get(memory, source))
           Ok(dict.insert(inputs, input, value))
         }
 
-        plan.Constant(value:, to: [target, input]) if target == step ->
-          Ok(dict.insert(inputs, input, value))
+        plan.Edge(
+          source: plan.Static(value:),
+          target: plan.Input(path: [target, input]),
+        )
+          if target == step
+        -> Ok(dict.insert(inputs, input, value))
 
-        _route -> Ok(inputs)
+        _edge -> Ok(inputs)
       }
     })
 
@@ -84,20 +93,25 @@ pub fn get_inputs(
 /// Resolves final return values from root-level values.
 pub fn get_returns(
   memory: memory.Memory(storage),
-  routes: List(plan.Route),
+  edges: List(plan.Edge),
 ) -> Result(dynamic.Dynamic, dynamic.Dynamic) {
   use returns <- result.try(
-    list.try_fold(routes, dict.new(), fn(returns, route) {
-      case route {
-        plan.Route(from:, to: [output]) -> {
-          use value <- result.try(memory.get(memory, from))
+    list.try_fold(edges, dict.new(), fn(returns, edge) {
+      case edge {
+        plan.Edge(
+          source: plan.Output(path: source),
+          target: plan.Input(path: [output]),
+        ) -> {
+          use value <- result.try(memory.get(memory, source))
           Ok(dict.insert(returns, output, value))
         }
 
-        plan.Constant(value:, to: [output]) ->
-          Ok(dict.insert(returns, output, value))
+        plan.Edge(
+          source: plan.Static(value:),
+          target: plan.Input(path: [output]),
+        ) -> Ok(dict.insert(returns, output, value))
 
-        _route -> Ok(returns)
+        _edge -> Ok(returns)
       }
     }),
   )

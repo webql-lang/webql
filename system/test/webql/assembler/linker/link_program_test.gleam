@@ -16,9 +16,9 @@ pub fn link_program_links_operation_test() {
 
   let assert Ok(linked) = link_program.link(module, operations())
 
-  assert linked.routes == []
+  assert linked.edges == []
   assert case dict.get(linked.nodes, "user") {
-    Ok(program.FunctionResolver(_)) -> True
+    Ok(program.Node(_)) -> True
     _ -> False
   }
 }
@@ -39,7 +39,13 @@ pub fn link_program_links_edges_to_routes_test() {
 
   let assert Ok(linked) = link_program.link(module, operations())
 
-  assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
+  assert linked.edges
+    == [
+      program.Edge(
+        source: program.Output(path: ["user_id"]),
+        target: program.Input(path: ["user", "id"]),
+      ),
+    ]
 }
 
 fn resolver() {

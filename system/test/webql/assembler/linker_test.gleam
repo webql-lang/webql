@@ -23,9 +23,15 @@ pub fn linker_links_graph_module_test() {
   let l = linker.new(module)
   let assert Ok(linked) = linker.link(l, operations())
 
-  assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
+  assert linked.edges
+    == [
+      program.Edge(
+        source: program.Output(path: ["user_id"]),
+        target: program.Input(path: ["user", "id"]),
+      ),
+    ]
   assert case dict.get(linked.nodes, "user") {
-    Ok(program.FunctionResolver(_)) -> True
+    Ok(program.Node(_)) -> True
     _ -> False
   }
 }
@@ -47,8 +53,13 @@ pub fn linker_links_constant_edges_test() {
   let l = linker.new(module)
   let assert Ok(linked) = linker.link(l, operations())
 
-  assert linked.routes
-    == [program.Constant(value: dynamic.int(42), to: ["user", "id"])]
+  assert linked.edges
+    == [
+      program.Edge(
+        source: program.Static(value: dynamic.int(42)),
+        target: program.Input(path: ["user", "id"]),
+      ),
+    ]
 }
 
 pub fn linker_reports_unknown_operators_test() {

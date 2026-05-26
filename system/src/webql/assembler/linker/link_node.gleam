@@ -9,9 +9,9 @@ pub fn link(
   name: String,
   node: String,
   schema: schema.Schema(task),
-) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
+) -> Result(#(String, program.Node(task)), diagnostic.Diagnostic) {
   use function <- result.try(link_resolver(node, schema))
-  Ok(#(name, program.FunctionResolver(function:)))
+  Ok(#(name, program.Node(resolver: function)))
 }
 
 // PRIVATE FUNCTIONS

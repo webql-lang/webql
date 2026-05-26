@@ -12,7 +12,12 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [plan.Route(from: ["input"], to: ["output"])],
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["input"]),
+            target: plan.Input(path: ["output"]),
+          ),
+        ],
         batches: [],
       ),
       kv.new(),
@@ -39,15 +44,21 @@ pub fn interpret_plan_runs_function_resolver_test() {
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [
-          plan.Route(from: ["input"], to: ["inc", "n"]),
-          plan.Route(from: ["inc", "value"], to: ["output"]),
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["input"]),
+            target: plan.Input(path: ["inc", "n"]),
+          ),
+          plan.Edge(
+            source: plan.Output(path: ["inc", "value"]),
+            target: plan.Input(path: ["output"]),
+          ),
         ],
         batches: [
-          plan.Batch(batch: [
+          plan.Batch(steps: [
             plan.Step(
               name: "inc",
-              resolver: plan.FunctionResolver(
+              node: plan.Node(
                 schema.Resolver(resolver: fn(inputs) {
                   let assert Ok(inputs) =
                     decode.run(
@@ -97,7 +108,12 @@ pub fn interpret_plan_reports_missing_return_test() {
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [plan.Route(from: ["missing"], to: ["output"])],
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["missing"]),
+            target: plan.Input(path: ["output"]),
+          ),
+        ],
         batches: [],
       ),
       kv.new(),

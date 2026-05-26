@@ -24,9 +24,9 @@ pub fn link_program(
   let graph.Graph(nodes:, edges:, ..) = graph
 
   use nodes <- result.try(link_nodes(nodes, schema, dict.new()))
-  let routes = link_route.link(edges)
+  let edges = link_route.link(edges)
 
-  Ok(program.Program(nodes:, routes:))
+  Ok(program.Program(nodes:, edges:))
 }
 
 // PRIVATE FUNCTIONS
@@ -34,8 +34,8 @@ pub fn link_program(
 fn link_nodes(
   nodes: List(graph.Node),
   schema: schema.Schema(task),
-  linked: dict.Dict(String, program.Resolver(task)),
-) -> Result(dict.Dict(String, program.Resolver(task)), diagnostic.Diagnostic) {
+  linked: dict.Dict(String, program.Node(task)),
+) -> Result(dict.Dict(String, program.Node(task)), diagnostic.Diagnostic) {
   case nodes {
     [node, ..nodes] -> {
       use #(name, resolver) <- result.try(link_node(node, schema))
@@ -49,13 +49,13 @@ fn link_nodes(
 fn link_node(
   node: graph.Node,
   schema: schema.Schema(task),
-) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
+) -> Result(#(String, program.Node(task)), diagnostic.Diagnostic) {
   case node {
     graph.Node(name:, node:) -> link_node.link(name, node, schema)
 
     graph.Supernode(name:, graph:) -> {
       use program <- result.try(link_program(graph, schema))
-      Ok(#(name, program.InlineResolver(program:)))
+      Ok(#(name, program.Supernode(program:)))
     }
   }
 }

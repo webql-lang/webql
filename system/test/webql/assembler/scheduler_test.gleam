@@ -12,44 +12,86 @@ pub fn scheduler_returns_executable_plan_test() {
   let prog =
     linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_program.FunctionResolver(resolver)),
-        #("user", linker_program.FunctionResolver(resolver)),
-        #("posts", linker_program.FunctionResolver(resolver)),
-        #("stats", linker_program.FunctionResolver(resolver)),
-        #("format", linker_program.FunctionResolver(resolver)),
+        #("normalize", linker_program.Node(resolver)),
+        #("user", linker_program.Node(resolver)),
+        #("posts", linker_program.Node(resolver)),
+        #("stats", linker_program.Node(resolver)),
+        #("format", linker_program.Node(resolver)),
       ]),
-      routes: [
-        linker_program.Route(from: ["user_id"], to: ["normalize", "value"]),
-        linker_program.Route(from: ["normalize", "value"], to: ["user", "id"]),
-        linker_program.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-        linker_program.Route(from: ["posts", "items"], to: ["stats", "posts"]),
-        linker_program.Route(from: ["user", "name"], to: ["format", "name"]),
-        linker_program.Route(from: ["stats", "count"], to: [
-          "format",
-          "post_count",
-        ]),
-        linker_program.Route(from: ["format", "text"], to: ["summary"]),
+      edges: [
+        linker_program.Edge(
+          source: linker_program.Output(path: ["user_id"]),
+          target: linker_program.Input(path: ["normalize", "value"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["normalize", "value"]),
+          target: linker_program.Input(path: ["user", "id"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["user", "id"]),
+          target: linker_program.Input(path: ["posts", "user_id"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["posts", "items"]),
+          target: linker_program.Input(path: ["stats", "posts"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["user", "name"]),
+          target: linker_program.Input(path: ["format", "name"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["stats", "count"]),
+          target: linker_program.Input(path: [
+            "format",
+            "post_count",
+          ]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["format", "text"]),
+          target: linker_program.Input(path: ["summary"]),
+        ),
       ],
     )
 
   let s = scheduler.new(prog)
   let assert Ok(result) = scheduler.schedule(s)
-  let plan.Plan(routes:, batches:) = result
+  let plan.Plan(edges:, batches:) = result
 
-  assert routes
+  assert edges
     == [
-      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-      plan.Route(from: ["posts", "items"], to: ["stats", "posts"]),
-      plan.Route(from: ["user", "name"], to: ["format", "name"]),
-      plan.Route(from: ["stats", "count"], to: ["format", "post_count"]),
-      plan.Route(from: ["format", "text"], to: ["summary"]),
+      plan.Edge(
+        source: plan.Output(path: ["user_id"]),
+        target: plan.Input(path: ["normalize", "value"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["normalize", "value"]),
+        target: plan.Input(path: ["user", "id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user", "id"]),
+        target: plan.Input(path: ["posts", "user_id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["posts", "items"]),
+        target: plan.Input(path: ["stats", "posts"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user", "name"]),
+        target: plan.Input(path: ["format", "name"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["stats", "count"]),
+        target: plan.Input(path: ["format", "post_count"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["format", "text"]),
+        target: plan.Input(path: ["summary"]),
+      ),
     ]
 
   let batch_step_names =
-    list.map(batches, fn(batch) {
-      let plan.Batch(batch: steps) = batch
+    list.map(batches, fn(steps) {
+      let plan.Batch(steps: steps) = steps
       list.map(steps, fn(step) {
         let plan.Step(name:, ..) = step
         name
@@ -66,36 +108,36 @@ pub fn scheduler_schedules_inline_resolvers_test() {
   let inline_prog =
     linker_program.Program(
       nodes: dict.from_list([
-        #("add", linker_program.FunctionResolver(resolver)),
+        #("add", linker_program.Node(resolver)),
       ]),
-      routes: [],
+      edges: [],
     )
 
   let prog =
     linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_program.InlineResolver(program: inline_prog)),
+        #("normalize", linker_program.Supernode(program: inline_prog)),
       ]),
-      routes: [],
+      edges: [],
     )
 
   let s = scheduler.new(prog)
   let assert Ok(result) = scheduler.schedule(s)
-  let assert [plan.Batch(batch: [step])] = result.batches
+  let assert [plan.Batch(steps: [step])] = result.batches
 
-  let plan.Step(name: step_name, resolver: step_resolver) = step
+  let plan.Step(name: step_name, node: step_resolver) = step
   assert step_name == "normalize"
 
   let inner_names = case step_resolver {
-    plan.InlineResolver(plan: inner) ->
+    plan.Supernode(plan: inner) ->
       list.map(inner.batches, fn(b) {
-        let plan.Batch(batch: batch_steps) = b
+        let plan.Batch(steps: batch_steps) = b
         list.map(batch_steps, fn(batch_step) {
           let plan.Step(name: n, ..) = batch_step
           n
         })
       })
-    plan.FunctionResolver(_) -> []
+    plan.Node(_) -> []
   }
 
   assert inner_names == [["add"]]

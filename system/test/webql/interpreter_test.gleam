@@ -12,7 +12,12 @@ pub fn interpreter_routes_parameter_to_output_test() {
     interpreter.interpret(
       interpreter.new(
         plan.Plan(
-          routes: [plan.Route(from: ["input"], to: ["output"])],
+          edges: [
+            plan.Edge(
+              source: plan.Output(path: ["input"]),
+              target: plan.Input(path: ["output"]),
+            ),
+          ],
           batches: [],
         ),
       ),

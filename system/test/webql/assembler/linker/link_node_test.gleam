@@ -10,8 +10,8 @@ pub fn link_node_links_external_nodes_test() {
 
   assert name == "add"
   assert case resolver {
-    program.FunctionResolver(_) -> True
-    program.InlineResolver(_) -> False
+    program.Node(_) -> True
+    program.Supernode(_) -> False
   }
 }
 

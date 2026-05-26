@@ -9,13 +9,13 @@ import webql/memory
 /// Runs a step in a batch.
 pub fn interpret(
   step: plan.Step(task),
-  routes: List(plan.Route),
+  edges: List(plan.Edge),
   engine: engine.Engine(task, memory.Memory(storage), error),
   memory: memory.Memory(storage),
   interpret_plan,
 ) -> task {
   engine.start_step(fn() {
-    use inputs <- result.try(progress.get_inputs(memory, step.name, routes))
+    use inputs <- result.try(progress.get_inputs(memory, step.name, edges))
     interpret_step(step, inputs, engine, memory, interpret_plan)
   })
 }
@@ -29,10 +29,10 @@ fn interpret_step(
   memory: memory.Memory(storage),
   interpret_plan,
 ) {
-  use results <- result.try(case step.resolver {
-    plan.FunctionResolver(function:) -> Ok(function.resolver(inputs))
+  use results <- result.try(case step.node {
+    plan.Node(resolver:) -> Ok(resolver.resolver(inputs))
 
-    plan.InlineResolver(plan:) ->
+    plan.Supernode(plan:) ->
       interpret_inline(inputs, plan, engine, memory, interpret_plan)
   })
 
@@ -64,7 +64,7 @@ fn interpret_inline(
 
   Ok(
     engine.finish_plan(results, fn(memory) {
-      case progress.get_returns(memory, plan.routes) {
+      case progress.get_returns(memory, plan.edges) {
         Ok(returns) -> Ok(returns)
         Error(message) ->
           Error(diagnostic.Diagnostic(kind: diagnostic.MissingReturn(message:)))

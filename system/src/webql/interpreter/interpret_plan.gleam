@@ -18,7 +18,7 @@ pub fn interpret(
   let result = interpret_plan(plan, memory, engine, parameters)
 
   engine.finish_plan(result, fn(memory) {
-    case progress.get_returns(memory, plan.routes) {
+    case progress.get_returns(memory, plan.edges) {
       Ok(returns) -> Ok(returns)
 
       Error(message) ->
@@ -35,7 +35,7 @@ fn interpret_plan(
   engine: engine.Engine(task, memory.Memory(storage), error),
   parameters: dynamic.Dynamic,
 ) {
-  let plan.Plan(routes:, batches:) = plan
+  let plan.Plan(edges:, batches:) = plan
 
   engine.start_plan(fn() {
     use memory <- result.try(progress.add_parameters(memory, parameters))
@@ -44,10 +44,10 @@ fn interpret_plan(
       memory,
       list.map(batches, fn(batch) {
         fn(memory) {
-          let plan.Batch(batch:) = batch
+          let plan.Batch(steps:) = batch
           interpret_batch.interpret(
-            batch,
-            routes,
+            steps,
+            edges,
             engine,
             memory,
             interpret_plan,

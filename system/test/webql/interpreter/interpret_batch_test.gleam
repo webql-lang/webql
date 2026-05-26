@@ -16,7 +16,7 @@ pub fn interpret_batch_runs_step_test() {
       [
         plan.Step(
           name: "inc",
-          resolver: plan.FunctionResolver(
+          node: plan.Node(
             schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
@@ -37,7 +37,12 @@ pub fn interpret_batch_runs_step_test() {
           ),
         ),
       ],
-      [plan.Route(from: ["input"], to: ["inc", "n"])],
+      [
+        plan.Edge(
+          source: plan.Output(path: ["input"]),
+          target: plan.Input(path: ["inc", "n"]),
+        ),
+      ],
       engine,
       memory,
       interpret_plan.interpret,
@@ -79,7 +84,7 @@ pub fn interpret_batch_runs_multiple_steps_test() {
       [
         plan.Step(
           name: "double",
-          resolver: plan.FunctionResolver(
+          node: plan.Node(
             schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
@@ -101,7 +106,7 @@ pub fn interpret_batch_runs_multiple_steps_test() {
         ),
         plan.Step(
           name: "inc",
-          resolver: plan.FunctionResolver(
+          node: plan.Node(
             schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
@@ -123,8 +128,14 @@ pub fn interpret_batch_runs_multiple_steps_test() {
         ),
       ],
       [
-        plan.Route(from: ["n"], to: ["double", "x"]),
-        plan.Route(from: ["n"], to: ["inc", "x"]),
+        plan.Edge(
+          source: plan.Output(path: ["n"]),
+          target: plan.Input(path: ["double", "x"]),
+        ),
+        plan.Edge(
+          source: plan.Output(path: ["n"]),
+          target: plan.Input(path: ["inc", "x"]),
+        ),
       ],
       engine,
       memory,

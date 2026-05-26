@@ -2,23 +2,31 @@ import gleam/dynamic
 import webql/schema
 
 pub type Plan(task) {
-  Plan(routes: List(Route), batches: List(Batch(task)))
+  Plan(edges: List(Edge), batches: List(Batch(task)))
 }
 
 pub type Batch(task) {
-  Batch(batch: List(Step(task)))
+  Batch(steps: List(Step(task)))
 }
 
 pub type Step(task) {
-  Step(name: String, resolver: Resolver(task))
+  Step(name: String, node: Node(task))
 }
 
-pub type Resolver(task) {
-  FunctionResolver(function: schema.Resolver(task))
-  InlineResolver(plan: Plan(task))
+pub type Node(task) {
+  Node(resolver: schema.Resolver(task))
+  Supernode(plan: Plan(task))
 }
 
-pub type Route {
-  Route(from: List(String), to: List(String))
-  Constant(value: dynamic.Dynamic, to: List(String))
+pub type Edge {
+  Edge(source: Source, target: Target)
+}
+
+pub type Source {
+  Output(path: List(String))
+  Static(value: dynamic.Dynamic)
+}
+
+pub type Target {
+  Input(path: List(String))
 }
