@@ -17,13 +17,11 @@ pub fn lower_external_node_binding_test() {
       span: source.Span(start: 0, end: 8),
     )
 
-  assert lower_binding.lower(binding, [])
-    == graph.ExternalNode(name: "m", node: "Math")
+  assert lower_binding.lower(binding, []) == graph.Node(name: "m", node: "Math")
 }
 
 pub fn lower_inline_node_binding_test() {
-  let operation =
-    graph.Operation(parameters: [], returns: [], nodes: [], edges: [])
+  let operation = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
   let binding =
     hir.Binding(
@@ -38,5 +36,5 @@ pub fn lower_inline_node_binding_test() {
     )
 
   assert lower_binding.lower(binding, [#("Inner", operation)])
-    == graph.InlineNode(name: "inner", operation:)
+    == graph.Supernode(name: "inner", graph: operation)
 }

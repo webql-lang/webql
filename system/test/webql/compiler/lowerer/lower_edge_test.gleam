@@ -23,8 +23,8 @@ pub fn lower_port_edge_test() {
 
   assert lower_edge.lower(edge)
     == graph.Edge(
-      from: graph.Output(path: ["m", "value"]),
-      to: graph.Input(path: ["out"]),
+      source: graph.Output(path: ["m", "value"]),
+      target: graph.Input(path: ["out"]),
     )
 }
 
@@ -51,7 +51,7 @@ pub fn lower_primitive_edge_output_test() {
 
   assert lower_edge.lower(edge)
     == graph.Edge(
-      from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-      to: graph.Input(path: ["m", "left"]),
+      source: graph.Static(value: graph.Int(1)),
+      target: graph.Input(path: ["m", "left"]),
     )
 }

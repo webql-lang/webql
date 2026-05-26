@@ -20,12 +20,5 @@ pub fn lower_module_test() {
     )
 
   assert lower_module.lower(module)
-    == graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [],
-        edges: [],
-      ),
-    )
+    == graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 }

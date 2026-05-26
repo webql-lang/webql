@@ -33,12 +33,10 @@ pub fn lowerer_lowers_module_test() {
   let lowerer = lowerer.new(module)
 
   assert lowerer.lower(lowerer)
-    == graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [graph.Return(name: "out", typename: "Int")],
-        nodes: [],
-        edges: [],
-      ),
+    == graph.Graph(
+      parameters: [],
+      returns: [graph.Return(name: "out", port: "Int")],
+      nodes: [],
+      edges: [],
     )
 }

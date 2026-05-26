@@ -12,6 +12,6 @@ pub fn new(module: hir.Module) -> Lowerer {
 }
 
 /// Lowers a resolver module into compiler IR.
-pub fn lower(lowerer: Lowerer) -> graph.Module {
+pub fn lower(lowerer: Lowerer) -> graph.Graph {
   lower_module.lower(lowerer.module)
 }

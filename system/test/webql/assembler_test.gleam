@@ -13,14 +13,7 @@ pub fn assembler_assembles_empty_graph_test() {
   let a = assembler.new(schema)
 
   let empty_graph =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [],
-        edges: [],
-      ),
-    )
+    graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
   let assert Ok(result) = assembler.assemble(a, empty_graph)
   let plan.Plan(routes:, batches:) = result
@@ -52,22 +45,20 @@ pub fn assembler_assembles_graph_with_external_node_test() {
   let a = assembler.new(schema)
 
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [graph.Return(name: "out", typename: "String")],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-          graph.Edge(
-            from: graph.Output(path: ["user", "name"]),
-            to: graph.Input(path: ["out"]),
-          ),
-        ],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [graph.Return(name: "out", port: "String")],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Static(value: graph.Int(1)),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+        graph.Edge(
+          source: graph.Output(path: ["user", "name"]),
+          target: graph.Input(path: ["out"]),
+        ),
+      ],
     )
 
   let assert Ok(result) = assembler.assemble(a, module)
@@ -96,13 +87,11 @@ pub fn assembler_reports_unknown_operator_test() {
   let a = assembler.new(schema)
 
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "node1", node: "UnknownOp")],
-        edges: [],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "node1", node: "UnknownOp")],
+      edges: [],
     )
 
   let assert Error(d) = assembler.assemble(a, module)

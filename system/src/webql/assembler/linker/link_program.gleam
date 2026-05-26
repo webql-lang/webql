@@ -9,19 +9,19 @@ import webql/schema
 
 /// Links a graph module into a scheduler program.
 pub fn link(
-  module: graph.Module,
+  graph: graph.Graph,
   schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
-  link_program(module.operation, schema)
+  link_program(graph, schema)
 }
 
 // PRIVATE FUNCTIONS
 // =================
 pub fn link_program(
-  operation: graph.Operation,
+  graph: graph.Graph,
   schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
-  let graph.Operation(nodes:, edges:, ..) = operation
+  let graph.Graph(nodes:, edges:, ..) = graph
 
   use nodes <- result.try(link_nodes(nodes, schema, dict.new()))
   let routes = link_route.link(edges)
@@ -51,10 +51,10 @@ fn link_node(
   schema: schema.Schema(task),
 ) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
   case node {
-    graph.ExternalNode(name:, node:) -> link_node.link(name, node, schema)
+    graph.Node(name:, node:) -> link_node.link(name, node, schema)
 
-    graph.InlineNode(name:, operation:) -> {
-      use program <- result.try(link_program(operation, schema))
+    graph.Supernode(name:, graph:) -> {
+      use program <- result.try(link_program(graph, schema))
       Ok(#(name, program.InlineResolver(program:)))
     }
   }

@@ -3,5 +3,5 @@ import webql/graph
 
 /// Lowers a resolved operation parameter into an IR input.
 pub fn lower(parameter: hir.Parameter) -> graph.Parameter {
-  graph.Parameter(name: parameter.name, typename: parameter.typename.name)
+  graph.Parameter(name: parameter.name, port: parameter.typename.name)
 }

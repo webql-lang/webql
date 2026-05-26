@@ -18,5 +18,5 @@ pub fn lower_parameter_test() {
     )
 
   assert lower_parameter.lower(parameter)
-    == graph.Parameter(name: "in", typename: "Int")
+    == graph.Parameter(name: "in", port: "Int")
 }

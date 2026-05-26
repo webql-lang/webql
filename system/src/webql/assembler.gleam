@@ -19,7 +19,7 @@ pub fn new(schema: schema.Schema(task)) -> Assembler(task) {
 /// Runs an executable plan.
 pub fn assemble(
   assembler: Assembler(task),
-  graph: graph.Module,
+  graph: graph.Graph,
 ) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
   let linker = linker.new(graph)
   use plan <- result.try(assemble_linker(linker, assembler.schema))

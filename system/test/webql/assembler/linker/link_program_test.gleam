@@ -7,13 +7,11 @@ import webql/schema
 
 pub fn link_program_links_operation_test() {
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [],
     )
 
   let assert Ok(linked) = link_program.link(module, operations())
@@ -27,18 +25,16 @@ pub fn link_program_links_operation_test() {
 
 pub fn link_program_links_edges_to_routes_test() {
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.Output(path: ["user_id"]),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-        ],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Output(path: ["user_id"]),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+      ],
     )
 
   let assert Ok(linked) = link_program.link(module, operations())

@@ -17,6 +17,5 @@ pub fn lower_return_test() {
       span: source.Span(start: 3, end: 11),
     )
 
-  assert lower_return.lower(return)
-    == graph.Return(name: "out", typename: "Int")
+  assert lower_return.lower(return) == graph.Return(name: "out", port: "Int")
 }

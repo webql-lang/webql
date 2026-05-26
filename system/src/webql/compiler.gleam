@@ -33,7 +33,7 @@ pub fn new(schema: introspection.Schema) -> Compiler {
 pub fn compile(
   compiler: Compiler,
   source: String,
-) -> Result(graph.Module, diagnostic.Diagnostic) {
+) -> Result(graph.Graph, diagnostic.Diagnostic) {
   let context = context.new()
 
   let lexer = lexer.new(source)

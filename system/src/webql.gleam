@@ -50,7 +50,7 @@ pub fn run(
 pub fn compile(
   source: String,
   schema: schema.Schema(task),
-) -> Result(graph.Module, diagnostic.Diagnostic) {
+) -> Result(graph.Graph, diagnostic.Diagnostic) {
   let introspection_schema = introspection.introspect(schema)
   let compiler = compiler.new(introspection_schema)
 
@@ -67,7 +67,7 @@ pub fn compile(
 
 // PRIVATE FUNCTIONS
 // =================
-fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Module) {
+fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
   case assembler.assemble(assembler, graph) {
     Ok(plan) -> Ok(plan)
 

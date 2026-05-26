@@ -38,8 +38,7 @@ pub fn lower_output_lowers_int_primitive_test() {
       span: source.Span(start: 0, end: 2),
     )
 
-  assert lower_output.lower(output)
-    == graph.PrimitiveOutput(value: graph.IntPrimitive(42))
+  assert lower_output.lower(output) == graph.Static(value: graph.Int(42))
 }
 
 pub fn lower_output_lowers_float_primitive_test() {
@@ -54,8 +53,7 @@ pub fn lower_output_lowers_float_primitive_test() {
       span: source.Span(start: 0, end: 4),
     )
 
-  assert lower_output.lower(output)
-    == graph.PrimitiveOutput(value: graph.FloatPrimitive(3.14))
+  assert lower_output.lower(output) == graph.Static(value: graph.Float(3.14))
 }
 
 pub fn lower_output_lowers_string_primitive_test() {
@@ -71,5 +69,5 @@ pub fn lower_output_lowers_string_primitive_test() {
     )
 
   assert lower_output.lower(output)
-    == graph.PrimitiveOutput(value: graph.StringPrimitive("hello"))
+    == graph.Static(value: graph.String("hello"))
 }

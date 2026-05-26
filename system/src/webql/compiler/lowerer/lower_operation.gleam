@@ -7,13 +7,13 @@ import webql/compiler/resolver/hir
 import webql/graph
 
 /// Lowers a resolved operation into IR.
-pub fn lower(operation: hir.Operation) -> graph.Operation {
+pub fn lower(operation: hir.Operation) -> graph.Graph {
   let definitions =
     list.map(operation.definitions, fn(definition) {
       #(definition.name, lower(definition.operation))
     })
 
-  graph.Operation(
+  graph.Graph(
     parameters: list.map(operation.parameters, lower_parameter.lower),
     returns: list.map(operation.returns, lower_return.lower),
     nodes: lower_nodes(operation.bindings, definitions),
@@ -25,7 +25,7 @@ pub fn lower(operation: hir.Operation) -> graph.Operation {
 // =================
 fn lower_nodes(
   bindings: List(hir.Binding),
-  definitions: List(#(String, graph.Operation)),
+  definitions: List(#(String, graph.Graph)),
 ) -> List(graph.Node) {
   case bindings {
     [binding, ..bindings] -> {

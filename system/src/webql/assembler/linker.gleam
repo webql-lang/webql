@@ -5,11 +5,11 @@ import webql/graph
 import webql/schema
 
 pub opaque type Linker {
-  Linker(module: graph.Module)
+  Linker(module: graph.Graph)
 }
 
 /// Creates a new linker instance from a graph module.
-pub fn new(module: graph.Module) -> Linker {
+pub fn new(module: graph.Graph) -> Linker {
   Linker(module:)
 }
 

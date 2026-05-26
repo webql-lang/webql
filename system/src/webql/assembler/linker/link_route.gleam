@@ -7,12 +7,14 @@ import webql/graph
 pub fn link(edges: List(graph.Edge)) -> List(program.Route) {
   list.map(edges, fn(edge) {
     case edge {
-      graph.Edge(from: graph.Output(path: from), to: graph.Input(path: to)) ->
-        program.Route(from:, to:)
+      graph.Edge(
+        source: graph.Output(path: from),
+        target: graph.Input(path: to),
+      ) -> program.Route(from:, to:)
 
       graph.Edge(
-        from: graph.PrimitiveOutput(value: value),
-        to: graph.Input(path: to),
+        source: graph.Static(value: value),
+        target: graph.Input(path: to),
       ) -> program.Constant(value: link_constant(value), to:)
     }
   })
@@ -20,10 +22,10 @@ pub fn link(edges: List(graph.Edge)) -> List(program.Route) {
 
 // PRIVATE FUNCTIONS
 // =================
-fn link_constant(primitive: graph.Primitive) -> dynamic.Dynamic {
-  case primitive {
-    graph.IntPrimitive(value:) -> dynamic.int(value)
-    graph.FloatPrimitive(value:) -> dynamic.float(value)
-    graph.StringPrimitive(value:) -> dynamic.string(value)
+fn link_constant(value: graph.Value) -> dynamic.Dynamic {
+  case value {
+    graph.Int(value:) -> dynamic.int(value)
+    graph.Float(value:) -> dynamic.float(value)
+    graph.String(value:) -> dynamic.string(value)
   }
 }

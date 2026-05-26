@@ -28,13 +28,11 @@ pub fn compile_resolves_module_test() {
   let assert Ok(module) = compiler.compile(c, operation_source)
 
   assert module
-    == graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [graph.Return(name: "out", typename: "Int")],
-        nodes: [],
-        edges: [],
-      ),
+    == graph.Graph(
+      parameters: [],
+      returns: [graph.Return(name: "out", port: "Int")],
+      nodes: [],
+      edges: [],
     )
 }
 
@@ -59,24 +57,23 @@ pub fn compile_materializes_node_binding_ports_test() {
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) =
-    compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, operation_source)
 
-  assert operation.nodes == [graph.ExternalNode(name: "m", node: "Math")]
+  assert graph.nodes == [graph.Node(name: "m", node: "Math")]
 
-  assert operation.edges
+  assert graph.edges
     == [
       graph.Edge(
-        from: graph.Output(path: ["in"]),
-        to: graph.Input(path: ["m", "l"]),
+        source: graph.Output(path: ["in"]),
+        target: graph.Input(path: ["m", "l"]),
       ),
       graph.Edge(
-        from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-        to: graph.Input(path: ["m", "r"]),
+        source: graph.Static(value: graph.Int(1)),
+        target: graph.Input(path: ["m", "r"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["m", "value"]),
-        to: graph.Input(path: ["out"]),
+        source: graph.Output(path: ["m", "value"]),
+        target: graph.Input(path: ["out"]),
       ),
     ]
 }
@@ -107,49 +104,48 @@ pub fn compile_materializes_definition_binding_ports_test() {
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) =
-    compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, operation_source)
 
-  assert operation.nodes
+  assert graph.nodes
     == [
-      graph.ExternalNode(name: "m", node: "Math"),
-      graph.InlineNode(
+      graph.Node(name: "m", node: "Math"),
+      graph.Supernode(
         name: "so",
-        operation: graph.Operation(
-          parameters: [graph.Parameter(name: "in", typename: "String")],
-          returns: [graph.Return(name: "out", typename: "Int")],
-          nodes: [graph.ExternalNode(name: "ti", node: "ToInt")],
+        graph: graph.Graph(
+          parameters: [graph.Parameter(name: "in", port: "String")],
+          returns: [graph.Return(name: "out", port: "Int")],
+          nodes: [graph.Node(name: "ti", node: "ToInt")],
           edges: [
             graph.Edge(
-              from: graph.Output(path: ["in"]),
-              to: graph.Input(path: ["ti", "value"]),
+              source: graph.Output(path: ["in"]),
+              target: graph.Input(path: ["ti", "value"]),
             ),
             graph.Edge(
-              from: graph.Output(path: ["ti", "value"]),
-              to: graph.Input(path: ["out"]),
+              source: graph.Output(path: ["ti", "value"]),
+              target: graph.Input(path: ["out"]),
             ),
           ],
         ),
       ),
     ]
 
-  assert operation.edges
+  assert graph.edges
     == [
       graph.Edge(
-        from: graph.PrimitiveOutput(value: graph.StringPrimitive("123")),
-        to: graph.Input(path: ["so", "in"]),
+        source: graph.Static(value: graph.String("123")),
+        target: graph.Input(path: ["so", "in"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["so", "out"]),
-        to: graph.Input(path: ["m", "l"]),
+        source: graph.Output(path: ["so", "out"]),
+        target: graph.Input(path: ["m", "l"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["in"]),
-        to: graph.Input(path: ["m", "r"]),
+        source: graph.Output(path: ["in"]),
+        target: graph.Input(path: ["m", "r"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["m", "value"]),
-        to: graph.Input(path: ["out"]),
+        source: graph.Output(path: ["m", "value"]),
+        target: graph.Input(path: ["out"]),
       ),
     ]
 }

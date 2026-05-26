@@ -8,18 +8,16 @@ import webql/schema
 
 pub fn linker_links_graph_module_test() {
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.Output(path: ["user_id"]),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-        ],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Output(path: ["user_id"]),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+      ],
     )
 
   let l = linker.new(module)
@@ -34,18 +32,16 @@ pub fn linker_links_graph_module_test() {
 
 pub fn linker_links_constant_edges_test() {
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.PrimitiveOutput(value: graph.IntPrimitive(42)),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-        ],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Static(value: graph.Int(42)),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+      ],
     )
 
   let l = linker.new(module)
@@ -57,13 +53,11 @@ pub fn linker_links_constant_edges_test() {
 
 pub fn linker_reports_unknown_operators_test() {
   let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "missing", node: "Missing")],
-        edges: [],
-      ),
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "missing", node: "Missing")],
+      edges: [],
     )
 
   let l = linker.new(module)

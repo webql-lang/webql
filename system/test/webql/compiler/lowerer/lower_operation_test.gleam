@@ -64,14 +64,14 @@ pub fn lower_operation_test() {
     )
 
   assert lower_operation.lower(operation)
-    == graph.Operation(
-      parameters: [graph.Parameter(name: "in", typename: "Int")],
-      returns: [graph.Return(name: "out", typename: "Int")],
-      nodes: [graph.ExternalNode(name: "m", node: "Math")],
+    == graph.Graph(
+      parameters: [graph.Parameter(name: "in", port: "Int")],
+      returns: [graph.Return(name: "out", port: "Int")],
+      nodes: [graph.Node(name: "m", node: "Math")],
       edges: [
         graph.Edge(
-          from: graph.Output(path: ["m", "value"]),
-          to: graph.Input(path: ["out"]),
+          source: graph.Output(path: ["m", "value"]),
+          target: graph.Input(path: ["out"]),
         ),
       ],
     )
