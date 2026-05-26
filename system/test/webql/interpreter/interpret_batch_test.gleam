@@ -2,11 +2,11 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/document
 import webql/engine/basic
 import webql/interpreter/interpret_batch
 import webql/interpreter/interpret_plan
 import webql/memory/kv
+import webql/schema
 
 pub fn interpret_batch_runs_step_test() {
   let engine = basic.new()
@@ -17,7 +17,7 @@ pub fn interpret_batch_runs_step_test() {
         plan.Step(
           name: "inc",
           resolver: plan.FunctionResolver(
-            document.Resolver(resolver: fn(inputs) {
+            schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
               let assert Ok(raw_number) = dict.get(inputs, "n")
@@ -80,7 +80,7 @@ pub fn interpret_batch_runs_multiple_steps_test() {
         plan.Step(
           name: "double",
           resolver: plan.FunctionResolver(
-            document.Resolver(resolver: fn(inputs) {
+            schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
               let assert Ok(raw_value) = dict.get(inputs, "x")
@@ -102,7 +102,7 @@ pub fn interpret_batch_runs_multiple_steps_test() {
         plan.Step(
           name: "inc",
           resolver: plan.FunctionResolver(
-            document.Resolver(resolver: fn(inputs) {
+            schema.Resolver(resolver: fn(inputs) {
               let assert Ok(inputs) =
                 decode.run(inputs, decode.dict(decode.string, decode.dynamic))
               let assert Ok(raw_value) = dict.get(inputs, "x")

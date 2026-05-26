@@ -16,12 +16,12 @@ pub fn compile_resolves_module_test() {
   let c =
     compiler.new(
       schema.Schema(
-        operators: [
-          schema.Operator(name: "Types", parameters: [], returns: [
-            schema.Return(name: "value", typename: "Int"),
+        operations: [
+          schema.Operation(name: "Types", inputs: [], outputs: [
+            schema.Output(name: "value", port: "Int"),
           ]),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
@@ -45,17 +45,17 @@ pub fn compile_materializes_node_binding_ports_test() {
   let c =
     compiler.new(
       schema.Schema(
-        operators: [
-          schema.Operator(
+        operations: [
+          schema.Operation(
             name: "Math",
-            parameters: [
-              schema.Parameter(name: "r", typename: "Int"),
-              schema.Parameter(name: "l", typename: "Int"),
+            inputs: [
+              schema.Input(name: "r", port: "Int"),
+              schema.Input(name: "l", port: "Int"),
             ],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            outputs: [schema.Output(name: "value", port: "Int")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
@@ -88,22 +88,22 @@ pub fn compile_materializes_definition_binding_ports_test() {
   let c =
     compiler.new(
       schema.Schema(
-        operators: [
-          schema.Operator(
+        operations: [
+          schema.Operation(
             name: "ToInt",
-            parameters: [schema.Parameter(name: "value", typename: "String")],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            inputs: [schema.Input(name: "value", port: "String")],
+            outputs: [schema.Output(name: "value", port: "Int")],
           ),
-          schema.Operator(
+          schema.Operation(
             name: "Math",
-            parameters: [
-              schema.Parameter(name: "l", typename: "Int"),
-              schema.Parameter(name: "r", typename: "Int"),
+            inputs: [
+              schema.Input(name: "l", port: "Int"),
+              schema.Input(name: "r", port: "Int"),
             ],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            outputs: [schema.Output(name: "value", port: "Int")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
@@ -161,12 +161,12 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
   let c =
     compiler.new(
       schema.Schema(
-        operators: [
-          schema.Operator(name: "Math", parameters: [], returns: [
-            schema.Return(name: "value", typename: "Int"),
+        operations: [
+          schema.Operation(name: "Math", inputs: [], outputs: [
+            schema.Output(name: "value", port: "Int"),
           ]),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
@@ -187,14 +187,14 @@ pub fn compile_rejects_port_typename_mismatch_test() {
   let c =
     compiler.new(
       schema.Schema(
-        operators: [
-          schema.Operator(
+        operations: [
+          schema.Operation(
             name: "Math",
-            parameters: [schema.Parameter(name: "unused", typename: "Int")],
-            returns: [schema.Return(name: "value", typename: "String")],
+            inputs: [schema.Input(name: "unused", port: "Int")],
+            outputs: [schema.Output(name: "value", port: "String")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
@@ -213,7 +213,7 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let c = compiler.new(schema.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "!")
 
@@ -225,7 +225,7 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let c = compiler.new(schema.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "{")
 
@@ -240,7 +240,7 @@ pub fn compile_wraps_parser_diagnostic_test() {
 
 pub fn compile_wraps_resolver_diagnostic_test() {
   let operation_source = "-> out: Int {}"
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let c = compiler.new(schema.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, operation_source)
 

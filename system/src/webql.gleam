@@ -3,16 +3,16 @@ import gleam/result
 import webql/assembler
 import webql/compiler
 import webql/diagnostic
-import webql/document
 import webql/engine
 import webql/graph
 import webql/interpreter
 import webql/introspection
 import webql/memory
+import webql/schema
 
 pub type Webql(task, storage) {
   Webql(
-    document: document.Document(task),
+    schema: schema.Schema(task),
     memory: memory.Memory(storage),
     engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
   )
@@ -20,39 +20,39 @@ pub type Webql(task, storage) {
 
 /// Creates a new WebQL instance.
 pub fn new(
-  document: document.Document(task),
+  schema: schema.Schema(task),
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
 ) -> Webql(task, storage) {
-  Webql(document:, memory:, engine:)
+  Webql(schema: schema, memory:, engine:)
 }
 
-/// Runs a WebQL source against a document.
+/// Runs a WebQL source against a schema.
 pub fn run(
   webql: Webql(task, storage),
   source: String,
-  parameters: dynamic.Dynamic,
+  inputs: dynamic.Dynamic,
 ) -> task {
-  let Webql(engine:, memory:, document:) = webql
+  let Webql(engine:, memory:, schema:) = webql
 
   engine.run(fn() {
-    use graph <- result.try(compile(source, document))
+    use graph <- result.try(compile(source, schema))
 
-    let assembler = assembler.new(webql.document)
+    let assembler = assembler.new(webql.schema)
     use plan <- result.try(run_assembler(assembler, graph))
 
     let interpreter = interpreter.new(plan)
-    Ok(run_interpreter(interpreter, memory, engine, parameters))
+    Ok(run_interpreter(interpreter, memory, engine, inputs))
   })
 }
 
 /// Compiles a WebQL source into a executable graph.
 pub fn compile(
   source: String,
-  document: document.Document(task),
+  schema: schema.Schema(task),
 ) -> Result(graph.Module, diagnostic.Diagnostic) {
-  let schema = introspection.introspect(document)
-  let compiler = compiler.new(schema)
+  let introspection_schema = introspection.introspect(schema)
+  let compiler = compiler.new(introspection_schema)
 
   case compiler.compile(compiler, source) {
     Ok(output) -> Ok(output)
@@ -84,7 +84,7 @@ fn run_interpreter(
   interpreter: interpreter.Interpreter(task),
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-  parameters: dynamic.Dynamic,
+  inputs: dynamic.Dynamic,
 ) {
-  interpreter.interpret(interpreter, memory, engine, parameters)
+  interpreter.interpret(interpreter, memory, engine, inputs)
 }

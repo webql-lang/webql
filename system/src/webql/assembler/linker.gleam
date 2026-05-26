@@ -1,8 +1,8 @@
 import webql/assembler/linker/diagnostic
 import webql/assembler/linker/link_program
 import webql/assembler/linker/program
-import webql/document
 import webql/graph
+import webql/schema
 
 pub opaque type Linker {
   Linker(module: graph.Module)
@@ -16,7 +16,7 @@ pub fn new(module: graph.Module) -> Linker {
 /// Links a graph module into a scheduler program.
 pub fn link(
   linker: Linker,
-  document: document.Document(task),
+  schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
-  link_program.link(linker.module, document)
+  link_program.link(linker.module, schema)
 }

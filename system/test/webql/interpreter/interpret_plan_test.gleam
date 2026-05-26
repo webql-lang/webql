@@ -2,10 +2,10 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/document
 import webql/engine/basic
 import webql/interpreter/interpret_plan
 import webql/memory/kv
+import webql/schema
 
 pub fn interpret_plan_routes_parameter_to_output_test() {
   let engine = basic.new()
@@ -48,7 +48,7 @@ pub fn interpret_plan_runs_function_resolver_test() {
             plan.Step(
               name: "inc",
               resolver: plan.FunctionResolver(
-                document.Resolver(resolver: fn(inputs) {
+                schema.Resolver(resolver: fn(inputs) {
                   let assert Ok(inputs) =
                     decode.run(
                       inputs,

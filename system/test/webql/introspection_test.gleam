@@ -1,46 +1,46 @@
 import gleam/dict
 import gleam/dynamic
-import webql/document
 import webql/introspection
+import webql/schema
 
-pub fn introspect_empty_document_test() {
+pub fn introspect_empty_operations_test() {
   assert introspection.introspect(
-      document.Document(operators: dict.new(), typenames: []),
+      schema.Schema(operations: dict.new(), ports: []),
     )
-    == introspection.Schema(operators: [], typenames: [])
+    == introspection.Schema(operations: [], ports: [])
 }
 
-pub fn introspect_document_operator_test() {
-  let document =
-    document.Document(
-      operators: dict.from_list([
+pub fn introspect_operations_operation_test() {
+  let schema =
+    schema.Schema(
+      operations: dict.from_list([
         #(
           "Test",
-          document.Operator(
-            parameters: dict.from_list([
-              #("in", document.Parameter(name: "in", typename: "Text")),
+          schema.Operation(
+            inputs: dict.from_list([
+              #("in", schema.Input(name: "in", port: "Text")),
             ]),
-            resolver: document.Resolver(resolver: fn(_parameters) {
+            resolver: schema.Resolver(resolver: fn(_parameters) {
               dynamic.properties([])
             }),
-            returns: dict.from_list([
-              #("out", document.Return(name: "out", typename: "Text")),
+            outputs: dict.from_list([
+              #("out", schema.Output(name: "out", port: "Text")),
             ]),
           ),
         ),
       ]),
-      typenames: [document.Typename(name: "Text")],
+      ports: [schema.Port(name: "Text")],
     )
 
-  let schema = introspection.introspect(document)
+  let introspection_schema = introspection.introspect(schema)
 
-  assert schema.typenames == ["Text"]
-  assert schema.operators
+  assert introspection_schema.ports == ["Text"]
+  assert introspection_schema.operations
     == [
-      introspection.Operator(
+      introspection.Operation(
         name: "Test",
-        parameters: [introspection.Parameter(name: "in", typename: "Text")],
-        returns: [introspection.Return(name: "out", typename: "Text")],
+        inputs: [introspection.Input(name: "in", port: "Text")],
+        outputs: [introspection.Output(name: "out", port: "Text")],
       ),
     ]
 }

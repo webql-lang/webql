@@ -1,72 +1,74 @@
 import gleam/dict
 import gleam/list
-import webql/document
+import webql/schema
 
 pub type Schema {
-  Schema(operators: List(Operator), typenames: List(String))
+  Schema(operations: List(Operation), ports: List(String))
 }
 
-pub type Operator {
-  Operator(name: String, parameters: List(Parameter), returns: List(Return))
+pub type Operation {
+  Operation(name: String, inputs: List(Input), outputs: List(Output))
 }
 
-pub type Parameter {
-  Parameter(name: String, typename: String)
+pub type Input {
+  Input(name: String, port: String)
 }
 
-pub type Return {
-  Return(name: String, typename: String)
+pub type Output {
+  Output(name: String, port: String)
 }
 
-/// Builds the public schema exposed by a document.
-pub fn introspect(document: document.Document(task)) -> Schema {
-  let document.Document(operators:, typenames:) = document
+/// Builds the public schema exposed by a runtime schema.
+pub fn introspect(schema: schema.Schema(task)) -> Schema {
+  let schema.Schema(operations:, ports:) = schema
 
-  let operators = introspect_operators(operators)
-  let typenames = introspect_typenames(typenames)
+  let operations = introspect_operations(operations)
+  let ports = introspect_ports(ports)
 
-  Schema(operators:, typenames:)
+  Schema(operations:, ports:)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn introspect_typenames(typenames: List(document.Typename)) {
-  list.map(typenames, fn(typename) { typename.name })
+fn introspect_ports(ports: List(schema.Port)) {
+  list.map(ports, fn(port) { port.name })
 }
 
-fn introspect_operators(operators: dict.Dict(String, document.Operator(task))) {
-  operators
+fn introspect_operations(
+  operations: dict.Dict(String, schema.Operation(task)),
+) {
+  operations
   |> dict.to_list()
   |> list.map(fn(entry) {
-    let #(name, operator) = entry
-    introspect_operator(name, operator)
+    let #(name, operation) = entry
+    introspect_operation(name, operation)
   })
 }
 
-fn introspect_operator(name: String, operator: document.Operator(task)) {
-  let document.Operator(parameters:, returns:, ..) = operator
+fn introspect_operation(name: String, operation: schema.Operation(task)) {
+  let schema.Operation(inputs:, outputs:, ..) = operation
 
-  Operator(
+  Operation(
     name:,
-    parameters: introspect_parameters(parameters),
-    returns: introspect_returns(returns),
+    inputs: introspect_parameters(inputs),
+    outputs: introspect_returns(outputs),
   )
 }
 
-fn introspect_parameters(parameters: dict.Dict(String, document.Parameter)) {
-  parameters
+fn introspect_parameters(inputs: dict.Dict(String, schema.Input)) {
+  inputs
   |> dict.values()
   |> list.map(fn(input) {
-    let document.Parameter(name:, typename:) = input
-    Parameter(name:, typename:)
+    let schema.Input(name:, port:) = input
+    Input(name:, port:)
   })
 }
 
-fn introspect_returns(returns: dict.Dict(String, document.Return)) {
-  returns
+fn introspect_returns(outputs: dict.Dict(String, schema.Output)) {
+  outputs
   |> dict.values()
   |> list.map(fn(output) {
-    let document.Return(name:, typename:) = output
-    Return(name:, typename:)
+    let schema.Output(name:, port:) = output
+    Output(name:, port:)
   })
 }

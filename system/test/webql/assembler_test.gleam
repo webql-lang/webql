@@ -5,12 +5,12 @@ import webql/assembler
 import webql/assembler/diagnostic as assembler_diagnostic
 import webql/assembler/linker/diagnostic as linker_diagnostic
 import webql/assembler/plan
-import webql/document
 import webql/graph
+import webql/schema
 
 pub fn assembler_assembles_empty_graph_test() {
-  let doc = document.Document(operators: dict.new(), typenames: [])
-  let a = assembler.new(doc)
+  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let a = assembler.new(schema)
 
   let empty_graph =
     graph.Module(
@@ -30,26 +30,26 @@ pub fn assembler_assembles_empty_graph_test() {
 }
 
 pub fn assembler_assembles_graph_with_external_node_test() {
-  let doc =
-    document.Document(
-      operators: dict.from_list([
+  let schema =
+    schema.Schema(
+      operations: dict.from_list([
         #(
           "GetUser",
-          document.Operator(
-            parameters: dict.from_list([
-              #("id", document.Parameter(name: "id", typename: "Int")),
+          schema.Operation(
+            inputs: dict.from_list([
+              #("id", schema.Input(name: "id", port: "Int")),
             ]),
-            returns: dict.from_list([
-              #("name", document.Return(name: "name", typename: "String")),
+            outputs: dict.from_list([
+              #("name", schema.Output(name: "name", port: "String")),
             ]),
-            resolver: document.Resolver(fn(_) { dynamic.properties([]) }),
+            resolver: schema.Resolver(fn(_) { dynamic.properties([]) }),
           ),
         ),
       ]),
-      typenames: [document.Typename("Int"), document.Typename("String")],
+      ports: [schema.Port("Int"), schema.Port("String")],
     )
 
-  let a = assembler.new(doc)
+  let a = assembler.new(schema)
 
   let module =
     graph.Module(
@@ -92,8 +92,8 @@ pub fn assembler_assembles_graph_with_external_node_test() {
 }
 
 pub fn assembler_reports_unknown_operator_test() {
-  let doc = document.Document(operators: dict.new(), typenames: [])
-  let a = assembler.new(doc)
+  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let a = assembler.new(schema)
 
   let module =
     graph.Module(

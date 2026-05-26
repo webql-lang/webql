@@ -2,8 +2,8 @@ import gleam/dict
 import gleam/dynamic
 import webql/assembler/linker/link_program
 import webql/assembler/linker/program
-import webql/document
 import webql/graph
+import webql/schema
 
 pub fn link_program_links_operation_test() {
   let module =
@@ -16,7 +16,7 @@ pub fn link_program_links_operation_test() {
       ),
     )
 
-  let assert Ok(linked) = link_program.link(module, document())
+  let assert Ok(linked) = link_program.link(module, operations())
 
   assert linked.routes == []
   assert case dict.get(linked.nodes, "user") {
@@ -41,26 +41,26 @@ pub fn link_program_links_edges_to_routes_test() {
       ),
     )
 
-  let assert Ok(linked) = link_program.link(module, document())
+  let assert Ok(linked) = link_program.link(module, operations())
 
   assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
+  schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
 fn operator() {
-  document.Operator(
-    parameters: dict.new(),
-    returns: dict.new(),
+  schema.Operation(
+    inputs: dict.new(),
+    outputs: dict.new(),
     resolver: resolver(),
   )
 }
 
-fn document() {
-  document.Document(
-    operators: dict.from_list([#("GetUser", operator())]),
-    typenames: [],
+fn operations() {
+  schema.Schema(
+    operations: dict.from_list([#("GetUser", operator())]),
+    ports: [],
   )
 }

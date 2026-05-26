@@ -14,7 +14,7 @@ defmodule WebqlTest do
   defmodule Instance do
     use Webql
 
-    typenames([:text])
+    ports([:text])
     operations([SearchOperation])
   end
 

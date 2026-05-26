@@ -44,9 +44,9 @@ defmodule Webql do
     engine = Keyword.fetch!(opts, :engine)
     memory = Keyword.fetch!(opts, :memory)
 
-    document = Webql.Builder.build(webql)
+    schema = Webql.Builder.build(webql)
 
-    document
+    schema
     |> :webql.new(memory, engine)
     |> :webql.run(source, inputs)
   end

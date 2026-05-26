@@ -2,12 +2,12 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/document
 import webql/engine/basic
 import webql/interpreter/interpret_plan
 import webql/interpreter/interpret_step
 import webql/interpreter/progress
 import webql/memory/kv
+import webql/schema
 
 pub fn interpret_step_runs_function_resolver_test() {
   let engine = basic.new()
@@ -17,7 +17,7 @@ pub fn interpret_step_runs_function_resolver_test() {
       plan.Step(
         name: "inc",
         resolver: plan.FunctionResolver(
-          document.Resolver(resolver: fn(inputs) {
+          schema.Resolver(resolver: fn(inputs) {
             let assert Ok(inputs) =
               decode.run(inputs, decode.dict(decode.string, decode.dynamic))
             let assert Ok(raw_number) = dict.get(inputs, "n")
@@ -60,7 +60,7 @@ pub fn interpret_step_reports_missing_input_test() {
       plan.Step(
         name: "op",
         resolver: plan.FunctionResolver(
-          document.Resolver(resolver: fn(_inputs) {
+          schema.Resolver(resolver: fn(_inputs) {
             engine.finish_plan(
               engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
@@ -91,7 +91,7 @@ pub fn interpret_step_reports_invalid_output_test() {
       plan.Step(
         name: "invalid",
         resolver: plan.FunctionResolver(
-          document.Resolver(resolver: fn(_inputs) {
+          schema.Resolver(resolver: fn(_inputs) {
             engine.finish_plan(
               engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
@@ -132,9 +132,9 @@ pub fn interpret_step_runs_inline_resolver_test() {
       [plan.Route(from: ["input"], to: ["inline", "value"])],
       engine,
       memory,
-      fn(_plan, memory, engine, parameters) {
+      fn(_plan, memory, engine, inputs) {
         engine.start_plan(fn() {
-          let assert Ok(memory) = progress.add_parameters(memory, parameters)
+          let assert Ok(memory) = progress.add_parameters(memory, inputs)
           Ok(#(memory, []))
         })
       },

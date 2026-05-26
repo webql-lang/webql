@@ -13,20 +13,20 @@ defmodule Webql.Schema.BuilderTest do
     end
   end
 
-  test "builds an operator tuple from an operation schema" do
+  test "builds an operation tuple from an operation schema" do
     assert {
              "SearchOperation",
              {
-               :operator,
+               :operation,
                %{
-                 "query" => {:parameter, "query", "Text"},
-                 "limit" => {:parameter, "limit", "Integer"}
+                 "query" => {:input, "query", "Text"},
+                 "limit" => {:input, "limit", "Integer"}
                },
+               {:resolver, resolver},
                %{
-                 "result" => {:return, "result", "Text"},
-                 "count" => {:return, "count", "Integer"}
-               },
-               {:resolver, resolver}
+                 "result" => {:output, "result", "Text"},
+                 "count" => {:output, "count", "Integer"}
+               }
              }
            } = Webql.Schema.Builder.build(SearchOperation)
 
@@ -41,10 +41,10 @@ defmodule Webql.Schema.BuilderTest do
     end
   end
 
-  test "derives the operator name from the final module segment" do
+  test "derives the operation name from the final module segment" do
     assert {
              "SpecialName",
-             {:operator, %{}, %{}, {:resolver, resolver}}
+             {:operation, %{}, {:resolver, resolver}, %{}}
            } = Webql.Schema.Builder.build(Nested.SpecialName)
 
     assert resolver.(%{}) == %{}

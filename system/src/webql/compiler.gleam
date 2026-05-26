@@ -17,13 +17,13 @@ pub opaque type Compiler {
 
 /// Creates a compiler instance with resolver context.
 pub fn new(schema: introspection.Schema) -> Compiler {
-  let introspection.Schema(operators:, typenames:) = schema
+  let introspection.Schema(operations:, ports:) = schema
 
   let environment =
     list.fold(
-      operators,
-      environment.add_typenames(environment.new(), typenames),
-      load_operator,
+      operations,
+      environment.add_typenames(environment.new(), ports),
+      load_operation,
     )
 
   Compiler(environment:)
@@ -58,29 +58,29 @@ pub fn compile(
 
 // PRIVATE FUNCTIONS
 // =================
-fn load_operator(
+fn load_operation(
   environment: environment.Environment,
-  operator: introspection.Operator,
+  operation: introspection.Operation,
 ) -> environment.Environment {
-  let introspection.Operator(name:, parameters:, returns:) = operator
+  let introspection.Operation(name:, inputs:, outputs:) = operation
 
   environment
   |> environment.add_node(name)
-  |> load_parameters(name, parameters)
-  |> load_returns(name, returns)
+  |> load_parameters(name, inputs)
+  |> load_returns(name, outputs)
 }
 
 fn load_parameters(
   environment: environment.Environment,
-  operator: String,
-  parameters: List(introspection.Parameter),
+  operation: String,
+  inputs: List(introspection.Input),
 ) -> environment.Environment {
-  use environment, input <- list.fold(parameters, environment)
-  let introspection.Parameter(name:, typename:) = input
+  use environment, input <- list.fold(inputs, environment)
+  let introspection.Input(name:, port:) = input
 
-  let environment = environment.add_typename(environment, typename)
-  let node = environment.get_node(environment, operator)
-  let typename = environment.get_typename(environment, typename)
+  let environment = environment.add_typename(environment, port)
+  let node = environment.get_node(environment, operation)
+  let typename = environment.get_typename(environment, port)
 
   case node, typename {
     Ok(node), Ok(typename) ->
@@ -92,15 +92,15 @@ fn load_parameters(
 
 fn load_returns(
   environment: environment.Environment,
-  operator: String,
-  returns: List(introspection.Return),
+  operation: String,
+  outputs: List(introspection.Output),
 ) -> environment.Environment {
-  use environment, output <- list.fold(returns, environment)
-  let introspection.Return(name:, typename:) = output
+  use environment, output <- list.fold(outputs, environment)
+  let introspection.Output(name:, port:) = output
 
-  let environment = environment.add_typename(environment, typename)
-  let node = environment.get_node(environment, operator)
-  let typename = environment.get_typename(environment, typename)
+  let environment = environment.add_typename(environment, port)
+  let node = environment.get_node(environment, operation)
+  let typename = environment.get_typename(environment, port)
 
   case node, typename {
     Ok(node), Ok(typename) ->

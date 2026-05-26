@@ -4,16 +4,16 @@ import webql/assembler/linker
 import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler
-import webql/document
 import webql/graph
+import webql/schema
 
 pub opaque type Assembler(task) {
-  Assembler(document: document.Document(task))
+  Assembler(schema: schema.Schema(task))
 }
 
 /// Creates a new assembler instance from an executable plan.
-pub fn new(document: document.Document(task)) -> Assembler(task) {
-  Assembler(document:)
+pub fn new(schema: schema.Schema(task)) -> Assembler(task) {
+  Assembler(schema: schema)
 }
 
 /// Runs an executable plan.
@@ -22,7 +22,7 @@ pub fn assemble(
   graph: graph.Module,
 ) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
   let linker = linker.new(graph)
-  use plan <- result.try(assemble_linker(linker, assembler.document))
+  use plan <- result.try(assemble_linker(linker, assembler.schema))
 
   let scheduler = scheduler.new(plan)
   assemble_scheduler(scheduler)
@@ -32,9 +32,9 @@ pub fn assemble(
 // =================
 fn assemble_linker(
   linker: linker.Linker,
-  document: document.Document(task),
+  schema: schema.Schema(task),
 ) -> Result(linker_program.Program(task), diagnostic.Diagnostic) {
-  case linker.link(linker, document) {
+  case linker.link(linker, schema) {
     Ok(plan) -> Ok(plan)
     Error(error) ->
       Error(

@@ -5,7 +5,7 @@ import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler/diagnostic
 import webql/assembler/scheduler/schedule_plan
-import webql/document
+import webql/schema
 
 pub fn schedule_plan_builds_executable_plan_test() {
   let linker_program =
@@ -131,5 +131,5 @@ pub fn schedule_plan_reports_cycles_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
+  schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }

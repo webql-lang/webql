@@ -1,5 +1,5 @@
 import gleam/dynamic
-import webql/document
+import webql/schema
 
 pub type Plan(task) {
   Plan(routes: List(Route), batches: List(Batch(task)))
@@ -14,7 +14,7 @@ pub type Step(task) {
 }
 
 pub type Resolver(task) {
-  FunctionResolver(function: document.Resolver(task))
+  FunctionResolver(function: schema.Resolver(task))
   InlineResolver(plan: Plan(task))
 }
 
