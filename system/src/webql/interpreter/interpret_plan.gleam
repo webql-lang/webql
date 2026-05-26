@@ -17,7 +17,7 @@ pub fn interpret(
 ) -> task {
   let result = interpret_plan(plan, memory, engine, parameters)
 
-  engine.finish_plan(result, fn(memory) {
+  engine.handle_finish_plan(result, fn(memory) {
     case progress.get_returns(memory, plan.edges) {
       Ok(returns) -> Ok(returns)
 
@@ -37,7 +37,7 @@ fn interpret_plan(
 ) {
   let plan.Plan(edges:, batches:) = plan
 
-  engine.start_plan(fn() {
+  engine.handle_start_plan(fn() {
     use memory <- result.try(progress.add_parameters(memory, parameters))
 
     Ok(#(

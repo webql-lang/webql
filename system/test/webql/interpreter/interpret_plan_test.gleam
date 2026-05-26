@@ -25,9 +25,9 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
       dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Ok(outputs) = result
         let assert Ok(outputs) =
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
@@ -68,8 +68,8 @@ pub fn interpret_plan_runs_function_resolver_test() {
                   let assert Ok(raw_number) = dict.get(inputs, "n")
                   let assert Ok(number) = decode.run(raw_number, decode.int)
 
-                  engine.finish_plan(
-                    engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+                  engine.handle_finish_plan(
+                    engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
                     fn(_memory) {
                       Ok(
                         dynamic.properties([
@@ -89,9 +89,9 @@ pub fn interpret_plan_runs_function_resolver_test() {
       dynamic.properties([#(dynamic.string("input"), dynamic.int(4))]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Ok(outputs) = result
         let assert Ok(outputs) =
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
@@ -121,9 +121,9 @@ pub fn interpret_plan_reports_missing_return_test() {
       dynamic.properties([]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
         Ok(kv.new())
       }),

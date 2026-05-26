@@ -1,40 +1,40 @@
 import gleam/dynamic
 import webql/interpreter/diagnostic
 
-pub type Run(task, error) =
+pub type HandleRun(task, error) =
   fn(fn() -> Result(task, error)) -> task
 
-pub type StartPlan(task, memory) =
+pub type HandleStartPlan(task, memory) =
   fn(fn() -> Result(#(memory, List(fn(memory) -> task)), diagnostic.Diagnostic)) ->
     task
 
-pub type StartBatch(task) =
+pub type HandleStartBatch(task) =
   fn(fn() -> Result(List(task), diagnostic.Diagnostic)) -> task
 
-pub type FinishBatch(task, memory) =
+pub type HandleFinishBatch(task, memory) =
   fn(memory, task, fn(memory, memory) -> memory) -> task
 
-pub type StartStep(task) =
+pub type HandleStartStep(task) =
   fn(fn() -> Result(task, diagnostic.Diagnostic)) -> task
 
-pub type FinishStep(task, memory) =
+pub type HandleFinishStep(task, memory) =
   fn(
     task,
     fn(Result(dynamic.Dynamic, dynamic.Dynamic)) ->
       Result(memory, diagnostic.Diagnostic),
   ) -> task
 
-pub type FinishPlan(task, memory) =
+pub type HandleFinishPlan(task, memory) =
   fn(task, fn(memory) -> Result(dynamic.Dynamic, diagnostic.Diagnostic)) -> task
 
 pub type Engine(task, memory, error) {
   Engine(
-    run: Run(task, error),
-    start_plan: StartPlan(task, memory),
-    finish_plan: FinishPlan(task, memory),
-    start_batch: StartBatch(task),
-    finish_batch: FinishBatch(task, memory),
-    start_step: StartStep(task),
-    finish_step: FinishStep(task, memory),
+    handle_run: HandleRun(task, error),
+    handle_start_plan: HandleStartPlan(task, memory),
+    handle_finish_plan: HandleFinishPlan(task, memory),
+    handle_start_batch: HandleStartBatch(task),
+    handle_finish_batch: HandleFinishBatch(task, memory),
+    handle_start_step: HandleStartStep(task),
+    handle_finish_step: HandleFinishStep(task, memory),
   )
 }

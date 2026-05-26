@@ -13,7 +13,7 @@ pub fn interpret(
   interpret_plan,
 ) -> task {
   let steps =
-    engine.start_batch(fn() {
+    engine.handle_start_batch(fn() {
       batch
       |> list.map(fn(step) {
         interpret_step.interpret(step, edges, engine, memory, interpret_plan)
@@ -21,5 +21,5 @@ pub fn interpret(
       |> Ok()
     })
 
-  engine.finish_batch(memory, steps, memory.merge)
+  engine.handle_finish_batch(memory, steps, memory.merge)
 }

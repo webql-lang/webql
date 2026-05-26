@@ -14,7 +14,7 @@ pub fn interpret(
   memory: memory.Memory(storage),
   interpret_plan,
 ) -> task {
-  engine.start_step(fn() {
+  engine.handle_start_step(fn() {
     use inputs <- result.try(progress.get_inputs(memory, step.name, edges))
     interpret_step(step, inputs, engine, memory, interpret_plan)
   })
@@ -37,7 +37,7 @@ fn interpret_step(
   })
 
   Ok(
-    engine.finish_step(results, fn(result) {
+    engine.handle_finish_step(results, fn(result) {
       case result {
         Ok(outputs) -> progress.add_outputs(memory, step.name, outputs)
 
@@ -63,7 +63,7 @@ fn interpret_inline(
   let results = interpret_plan(plan, memory.new(), engine, inputs)
 
   Ok(
-    engine.finish_plan(results, fn(memory) {
+    engine.handle_finish_plan(results, fn(memory) {
       case progress.get_returns(memory, plan.edges) {
         Ok(returns) -> Ok(returns)
         Error(message) ->

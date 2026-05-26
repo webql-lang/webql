@@ -35,7 +35,7 @@ pub fn run(
 ) -> task {
   let Webql(engine:, memory:, schema:) = webql
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     use graph <- result.try(compile(source, schema))
 
     let assembler = assembler.new(webql.schema)

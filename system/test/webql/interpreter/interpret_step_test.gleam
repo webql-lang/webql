@@ -23,8 +23,8 @@ pub fn interpret_step_runs_function_resolver_test() {
             let assert Ok(raw_number) = dict.get(inputs, "n")
             let assert Ok(number) = decode.run(raw_number, decode.int)
 
-            engine.finish_plan(
-              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+            engine.handle_finish_plan(
+              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) {
                 Ok(
                   dynamic.properties([
@@ -47,9 +47,9 @@ pub fn interpret_step_runs_function_resolver_test() {
       interpret_plan.interpret,
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         let assert Ok(output) = kv.get(memory, ["inc", "value"])
         assert decode.run(output, decode.int) == Ok(5)
         Ok(dynamic.nil())
@@ -66,8 +66,8 @@ pub fn interpret_step_reports_missing_input_test() {
         name: "op",
         node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
-            engine.finish_plan(
-              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+            engine.handle_finish_plan(
+              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
             )
           }),
@@ -84,9 +84,9 @@ pub fn interpret_step_reports_missing_input_test() {
       interpret_plan.interpret,
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
         Ok(kv.new())
       }),
@@ -102,8 +102,8 @@ pub fn interpret_step_reports_invalid_output_test() {
         name: "invalid",
         node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
-            engine.finish_plan(
-              engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+            engine.handle_finish_plan(
+              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
             )
           }),
@@ -115,9 +115,9 @@ pub fn interpret_step_reports_invalid_output_test() {
       interpret_plan.interpret,
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
         Ok(kv.new())
       }),
@@ -153,16 +153,16 @@ pub fn interpret_step_runs_inline_resolver_test() {
       engine,
       memory,
       fn(_plan, memory, engine, inputs) {
-        engine.start_plan(fn() {
+        engine.handle_start_plan(fn() {
           let assert Ok(memory) = progress.add_parameters(memory, inputs)
           Ok(#(memory, []))
         })
       },
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         let assert Ok(output) = kv.get(memory, ["inline", "output"])
         assert decode.run(output, decode.int) == Ok(9)
         Ok(dynamic.nil())

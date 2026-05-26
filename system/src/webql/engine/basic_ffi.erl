@@ -1,9 +1,9 @@
 -module(basic_ffi).
 
--export([run/1, start_plan/1, finish_plan/2, start_batch/1, finish_batch/3, start_step/1,
-         finish_step/2]).
+-export([handle_run/1, handle_start_plan/1, handle_finish_plan/2, handle_start_batch/1,
+         handle_finish_batch/3, handle_start_step/1, handle_finish_step/2]).
 
-run(Next) ->
+handle_run(Next) ->
   case Next() of
     {ok, Task} ->
       await(Task);
@@ -11,7 +11,7 @@ run(Next) ->
       Error
   end.
 
-start_plan(Next) ->
+handle_start_plan(Next) ->
   async(fun() ->
            case Next() of
              {ok, {Initial, Batches}} ->
@@ -24,7 +24,7 @@ start_plan(Next) ->
            end
         end).
 
-finish_plan(Task, Next) ->
+handle_finish_plan(Task, Next) ->
   async(fun() ->
            case await(Task) of
              {ok, Memory} -> Next(Memory);
@@ -32,10 +32,10 @@ finish_plan(Task, Next) ->
            end
         end).
 
-start_batch(Next) ->
+handle_start_batch(Next) ->
   Next().
 
-finish_batch(Initial, Task, Merge) ->
+handle_finish_batch(Initial, Task, Merge) ->
   async(fun() ->
            case await(Task) of
              {ok, Steps} ->
@@ -49,7 +49,7 @@ finish_batch(Initial, Task, Merge) ->
            end
         end).
 
-start_step(Next) ->
+handle_start_step(Next) ->
   async(fun() ->
            case Next() of
              {ok, Task} -> await(Task);
@@ -57,7 +57,7 @@ start_step(Next) ->
            end
         end).
 
-finish_step(Task, Next) ->
+handle_finish_step(Task, Next) ->
   async(fun() -> Next(await(Task)) end).
 
 %% PRIVATE FUNCTIONS

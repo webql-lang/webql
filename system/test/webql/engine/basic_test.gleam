@@ -12,11 +12,11 @@ import webql/memory/kv
 pub fn basic_new_runs_empty_plan_test() {
   let engine = basic.new()
   let initial = kv.new()
-  let task = engine.start_plan(fn() { Ok(#(initial, [])) })
+  let task = engine.handle_start_plan(fn() { Ok(#(initial, [])) })
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         assert memory == initial
         Ok(dynamic.nil())
       }),
@@ -30,49 +30,49 @@ pub fn basic_new_runs_plan_batches_in_sequence_test() {
   let first = kv.set(kv.new(), ["first"], dynamic.int(1))
   let second = kv.set(kv.new(), ["second"], dynamic.int(2))
   let task =
-    engine.start_plan(fn() {
+    engine.handle_start_plan(fn() {
       Ok(
         #(initial, [
           fn(memory) {
             let batch =
-              engine.start_batch(fn() {
+              engine.handle_start_batch(fn() {
                 Ok([
-                  engine.finish_batch(
+                  engine.handle_finish_batch(
                     memory,
-                    engine.start_batch(fn() { Ok([]) }),
+                    engine.handle_start_batch(fn() { Ok([]) }),
                     kv.merge,
                   ),
-                  engine.finish_batch(
+                  engine.handle_finish_batch(
                     first,
-                    engine.start_batch(fn() { Ok([]) }),
+                    engine.handle_start_batch(fn() { Ok([]) }),
                     kv.merge,
                   ),
                 ])
               })
 
-            engine.finish_batch(memory, batch, kv.merge)
+            engine.handle_finish_batch(memory, batch, kv.merge)
           },
           fn(memory) {
             let batch =
-              engine.start_batch(fn() {
+              engine.handle_start_batch(fn() {
                 Ok([
-                  engine.finish_batch(
+                  engine.handle_finish_batch(
                     second,
-                    engine.start_batch(fn() { Ok([]) }),
+                    engine.handle_start_batch(fn() { Ok([]) }),
                     kv.merge,
                   ),
                 ])
               })
 
-            engine.finish_batch(memory, batch, kv.merge)
+            engine.handle_finish_batch(memory, batch, kv.merge)
           },
         ]),
       )
     })
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         assert kv.get(memory, ["first"]) == Ok(dynamic.int(1))
         assert kv.get(memory, ["second"]) == Ok(dynamic.int(2))
         Ok(dynamic.nil())
@@ -87,7 +87,7 @@ pub fn basic_start_plan_starts_immediately_test() {
   let events = process.new_subject()
 
   let task =
-    engine.start_plan(fn() {
+    engine.handle_start_plan(fn() {
       process.send(events, 1)
       Ok(#(kv.new(), []))
     })
@@ -95,8 +95,8 @@ pub fn basic_start_plan_starts_immediately_test() {
   let assert Ok(event) = process.receive(events, within: 1000)
   assert event == 1
 
-  engine.run(fn() {
-    Ok(engine.finish_plan(task, fn(_memory) { Ok(dynamic.nil()) }))
+  engine.handle_run(fn() {
+    Ok(engine.handle_finish_plan(task, fn(_memory) { Ok(dynamic.nil()) }))
   })
 }
 
@@ -106,7 +106,7 @@ pub fn basic_start_plan_starts_immediately_test() {
   let #(event, send_event) = promise.start()
 
   let _task =
-    engine.start_plan(fn() {
+    engine.handle_start_plan(fn() {
       send_event(1)
       Ok(#(kv.new(), []))
     })
@@ -120,22 +120,22 @@ pub fn basic_start_plan_starts_immediately_test() {
 pub fn basic_batch_can_join_same_task_more_than_once_test() {
   let engine = basic.new()
   let shared =
-    engine.finish_batch(
+    engine.handle_finish_batch(
       kv.set(kv.new(), ["value"], dynamic.int(1)),
-      engine.start_batch(fn() { Ok([]) }),
+      engine.handle_start_batch(fn() { Ok([]) }),
       kv.merge,
     )
 
   let task =
-    engine.finish_batch(
+    engine.handle_finish_batch(
       kv.new(),
-      engine.start_batch(fn() { Ok([shared, shared]) }),
+      engine.handle_start_batch(fn() { Ok([shared, shared]) }),
       kv.merge,
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         assert kv.get(memory, ["value"]) == Ok(dynamic.int(1))
         Ok(dynamic.nil())
       }),
@@ -149,11 +149,11 @@ pub fn basic_batch_runs_steps_concurrently_test() {
   let events = process.new_subject()
 
   let slow =
-    engine.finish_step(
-      engine.start_step(fn() {
+    engine.handle_finish_step(
+      engine.handle_start_step(fn() {
         Ok(
-          engine.finish_plan(
-            engine.start_plan(fn() {
+          engine.handle_finish_plan(
+            engine.handle_start_plan(fn() {
               process.sleep(100)
               process.send(events, 1)
               Ok(#(kv.new(), []))
@@ -166,11 +166,11 @@ pub fn basic_batch_runs_steps_concurrently_test() {
     )
 
   let fast =
-    engine.finish_step(
-      engine.start_step(fn() {
+    engine.handle_finish_step(
+      engine.handle_start_step(fn() {
         Ok(
-          engine.finish_plan(
-            engine.start_plan(fn() {
+          engine.handle_finish_plan(
+            engine.handle_start_plan(fn() {
               process.send(events, 2)
               Ok(#(kv.new(), []))
             }),
@@ -182,15 +182,15 @@ pub fn basic_batch_runs_steps_concurrently_test() {
     )
 
   let task =
-    engine.finish_batch(
+    engine.handle_finish_batch(
       kv.new(),
-      engine.start_batch(fn() { Ok([slow, fast]) }),
+      engine.handle_start_batch(fn() { Ok([slow, fast]) }),
       kv.merge,
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(memory) {
+      engine.handle_finish_plan(task, fn(memory) {
         assert kv.get(memory, ["winner"]) == Ok(dynamic.int(2))
         Ok(dynamic.nil())
       }),
@@ -229,7 +229,7 @@ pub fn basic_batch_runs_steps_concurrently_test() {
 pub fn basic_finish_plan_skips_callback_on_error_test() {
   let engine = basic.new()
   let task =
-    engine.start_plan(fn() {
+    engine.handle_start_plan(fn() {
       Error(
         diagnostic.Diagnostic(
           kind: diagnostic.MissingReturn(message: dynamic.nil()),
@@ -237,9 +237,9 @@ pub fn basic_finish_plan_skips_callback_on_error_test() {
       )
     })
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_plan(task, fn(_memory) {
+      engine.handle_finish_plan(task, fn(_memory) {
         let called = True
         assert called == False
         Ok(dynamic.nil())
