@@ -1,8 +1,13 @@
 defmodule Webql do
+  @moduledoc """
+  Defines and runs WebQL instances.
+  """
+  @moduledoc version: "0.1.0"
+
   @doc """
   Runs an operation with the given parameters.
   """
-  @callback run(source :: binary(), schema :: module(), params :: map()) :: map()
+  @callback run(source :: binary(), dsl :: module(), params :: map()) :: map()
 
   @doc """
   Compile-time options for a WebQL instance.
@@ -19,8 +24,8 @@ defmodule Webql do
       end
 
       @impl Webql
-      def run(source, schema, params) do
-        Webql.run(__MODULE__, source, schema, params)
+      def run(source, dsl, params) do
+        Webql.run(__MODULE__, source, dsl, params)
       end
 
       defoverridable Webql
@@ -28,14 +33,14 @@ defmodule Webql do
   end
 
   @doc false
-  def run(webql, source, schema, params)
-      when is_binary(source) and is_atom(schema) and is_map(params) do
+  def run(webql, source, dsl, params)
+      when is_binary(source) and is_atom(dsl) and is_map(params) do
     opts = webql.__opts__()
 
     engine = Keyword.fetch!(opts, :engine)
     memory = Keyword.fetch!(opts, :memory)
 
-    schema = Webql.Schema.Builder.build(schema)
+    schema = Webql.Schema.Builder.build(dsl)
 
     schema
     |> :webql.new(memory, engine)
