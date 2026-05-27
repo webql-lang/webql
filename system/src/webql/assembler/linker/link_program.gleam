@@ -7,7 +7,7 @@ import webql/assembler/linker/program
 import webql/graph
 import webql/schema
 
-/// Links a graph module into a scheduler program.
+/// Links a graph document into a scheduler program.
 pub fn link(
   graph: graph.Graph,
   schema: schema.Schema(task),
@@ -17,7 +17,7 @@ pub fn link(
 
 // PRIVATE FUNCTIONS
 // =================
-pub fn link_program(
+fn link_program(
   graph: graph.Graph,
   schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
@@ -29,8 +29,6 @@ pub fn link_program(
   Ok(program.Program(nodes:, edges:))
 }
 
-// PRIVATE FUNCTIONS
-// =================
 fn link_nodes(
   nodes: List(graph.Node),
   schema: schema.Schema(task),

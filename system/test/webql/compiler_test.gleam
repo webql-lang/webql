@@ -25,9 +25,9 @@ pub fn compile_resolves_module_test() {
       ),
     )
 
-  let assert Ok(module) = compiler.compile(c, operation_source)
+  let assert Ok(document) = compiler.compile(c, operation_source)
 
-  assert module
+  assert document
     == graph.Graph(
       parameters: [],
       returns: [graph.Return(name: "out", port: "Int")],
@@ -200,8 +200,8 @@ pub fn compile_rejects_port_typename_mismatch_test() {
     == diagnostic.Diagnostic(
       kind: diagnostic.TypecheckerDiagnostic(
         typechecker_diagnostic.TypeMismatch(
-          expected: reference.Typename(0),
-          found: reference.Typename(1),
+          expected: reference.Port(0),
+          found: reference.Port(1),
         ),
       ),
       span: source.Span(start: 23, end: 38),
@@ -242,9 +242,7 @@ pub fn compile_wraps_resolver_diagnostic_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownTypename(
-        "Int",
-      )),
+      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownPort("Int")),
       span: source.Span(start: 8, end: 11),
     )
 }

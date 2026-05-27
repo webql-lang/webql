@@ -2,7 +2,7 @@ import webql/compiler/reference
 import webql/compiler/source
 
 pub type DiagnosticKind {
-  TypeMismatch(expected: reference.Typename, found: reference.Typename)
+  TypeMismatch(expected: reference.Port, found: reference.Port)
 }
 
 pub type Diagnostic {

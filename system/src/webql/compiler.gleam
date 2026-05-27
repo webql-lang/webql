@@ -22,14 +22,14 @@ pub fn new(schema: introspection.Schema) -> Compiler {
   let environment =
     list.fold(
       operations,
-      environment.add_typenames(environment.new(), ports),
+      environment.add_ports(environment.new(), ports),
       load_operation,
     )
 
   Compiler(environment:)
 }
 
-/// Compiles a text source into a finalized module.
+/// Compiles a text source into a finalized document.
 pub fn compile(
   compiler: Compiler,
   source: String,
@@ -40,19 +40,19 @@ pub fn compile(
   use tokens <- result.try(compile_lex(lexer))
 
   let parser = parser.new(source, tokens)
-  use module <- result.try(compile_parse(parser))
+  use document <- result.try(compile_parse(parser))
 
-  let resolver = resolver.new(module)
-  use #(module, context) <- result.try(compile_resolve(
+  let resolver = resolver.new(document)
+  use #(document, context) <- result.try(compile_resolve(
     compiler,
     context,
     resolver,
   ))
 
-  let typechecker = typechecker.new(module)
-  use module <- result.try(compile_typecheck(typechecker, context))
+  let typechecker = typechecker.new(document)
+  use document <- result.try(compile_typecheck(typechecker, context))
 
-  let lowerer = lowerer.new(module)
+  let lowerer = lowerer.new(document)
   Ok(lowerer.lower(lowerer))
 }
 
@@ -65,7 +65,7 @@ fn load_operation(
   let introspection.Operation(name:, inputs:, outputs:) = operation
 
   environment
-  |> environment.add_node(name)
+  |> environment.add_operation(name)
   |> load_parameters(name, inputs)
   |> load_returns(name, outputs)
 }
@@ -78,15 +78,15 @@ fn load_parameters(
   use environment, input <- list.fold(inputs, environment)
   let introspection.Input(name:, port:) = input
 
-  let environment = environment.add_typename(environment, port)
-  let node = environment.get_node(environment, operation)
-  let typename = environment.get_typename(environment, port)
+  let environment = environment.add_port(environment, port)
+  let operation = environment.get_operation(environment, operation)
+  let port = environment.get_port(environment, port)
 
-  case node, typename {
-    Ok(node), Ok(typename) ->
-      environment.add_input(environment, node, #(name, typename))
+  case operation, port {
+    Ok(operation), Ok(port) ->
+      environment.add_input(environment, operation, #(name, port))
 
-    _node, _typename -> environment
+    _, _ -> environment
   }
 }
 
@@ -98,15 +98,15 @@ fn load_returns(
   use environment, output <- list.fold(outputs, environment)
   let introspection.Output(name:, port:) = output
 
-  let environment = environment.add_typename(environment, port)
-  let node = environment.get_node(environment, operation)
-  let typename = environment.get_typename(environment, port)
+  let environment = environment.add_port(environment, port)
+  let operation = environment.get_operation(environment, operation)
+  let port = environment.get_port(environment, port)
 
-  case node, typename {
-    Ok(node), Ok(typename) ->
-      environment.add_output(environment, node, #(name, typename))
+  case operation, port {
+    Ok(operation), Ok(port) ->
+      environment.add_output(environment, operation, #(name, port))
 
-    _node, _typename -> environment
+    _, _ -> environment
   }
 }
 
@@ -124,7 +124,7 @@ fn compile_lex(lexer: lexer.Lexer) {
 
 fn compile_parse(parser: parser.Parser) {
   case parser.parse(parser) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(
@@ -140,7 +140,7 @@ fn compile_resolve(
   resolver: resolver.Resolver,
 ) {
   case resolver.resolve(resolver, compiler.environment, context) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(
@@ -155,7 +155,7 @@ fn compile_typecheck(
   context: context.Context,
 ) {
   case typechecker.resolve(typechecker, context) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(

@@ -8,12 +8,12 @@ import webql/compiler/resolver/resolve_return
 import webql/compiler/source
 
 pub fn resolve_resolves_return_with_named_type_annotation_test() {
-  let schema = environment.add_typename(environment.new(), "Int")
+  let schema = environment.add_port(environment.new(), "Int")
 
   let return_to_resolve =
     ast.Return(
       name: "value",
-      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -28,9 +28,9 @@ pub fn resolve_resolves_return_with_named_type_annotation_test() {
   assert value
     == hir.Return(
       name: "value",
-      typename: hir.Typename(
+      port: hir.Port(
         name: "Int",
-        reference: reference.Typename(0),
+        reference: reference.Port(0),
         span: source.Span(start: 7, end: 10),
       ),
       reference: reference.Return(0),
@@ -44,7 +44,7 @@ pub fn resolve_returns_unknown_type_for_missing_return_annotation_test() {
   let return_to_resolve =
     ast.Return(
       name: "value",
-      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -58,7 +58,7 @@ pub fn resolve_returns_unknown_type_for_missing_return_annotation_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnknownTypename("Int"),
+      kind: diagnostic.UnknownPort("Int"),
       span: source.Span(start: 7, end: 10),
     )
 }
@@ -69,7 +69,7 @@ pub fn resolve_returns_duplicate_return_for_existing_return_test() {
   let return_to_resolve =
     ast.Return(
       name: "value",
-      typename: ast.Typename(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 

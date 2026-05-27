@@ -6,7 +6,7 @@ import webql/graph
 import webql/schema
 
 pub fn link_program_links_operation_test() {
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -14,7 +14,7 @@ pub fn link_program_links_operation_test() {
       edges: [],
     )
 
-  let assert Ok(linked) = link_program.link(module, operations())
+  let assert Ok(linked) = link_program.link(document, operations())
 
   assert linked.edges == []
   assert case dict.get(linked.nodes, "user") {
@@ -24,7 +24,7 @@ pub fn link_program_links_operation_test() {
 }
 
 pub fn link_program_links_edges_to_routes_test() {
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -37,7 +37,7 @@ pub fn link_program_links_edges_to_routes_test() {
       ],
     )
 
-  let assert Ok(linked) = link_program.link(module, operations())
+  let assert Ok(linked) = link_program.link(document, operations())
 
   assert linked.edges
     == [

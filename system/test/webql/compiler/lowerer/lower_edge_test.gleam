@@ -7,12 +7,12 @@ import webql/graph
 pub fn lower_port_edge_test() {
   let edge =
     hir.Edge(
-      from: hir.PortOutput(
+      source: hir.Output(
         path: ["m", "value"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 7),
       ),
-      to: hir.PortInput(
+      target: hir.Input(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 11, end: 15),
@@ -28,19 +28,19 @@ pub fn lower_port_edge_test() {
     )
 }
 
-pub fn lower_primitive_edge_output_test() {
+pub fn lower_value_edge_output_test() {
   let edge =
     hir.Edge(
-      from: hir.PrimitiveOutput(
+      source: hir.Static(
         value: hir.Int(
           name: "Int",
           value: 1,
           span: source.Span(start: 0, end: 1),
         ),
-        typename: reference.Typename(0),
+        port: reference.Port(0),
         span: source.Span(start: 0, end: 1),
       ),
-      to: hir.PortInput(
+      target: hir.Input(
         path: ["m", "left"],
         reference: reference.Input(0),
         span: source.Span(start: 5, end: 11),

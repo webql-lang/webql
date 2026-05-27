@@ -7,7 +7,7 @@ import webql/graph
 import webql/schema
 
 pub fn linker_links_graph_module_test() {
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -20,7 +20,7 @@ pub fn linker_links_graph_module_test() {
       ],
     )
 
-  let l = linker.new(module)
+  let l = linker.new(document)
   let assert Ok(linked) = linker.link(l, operations())
 
   assert linked.edges
@@ -37,7 +37,7 @@ pub fn linker_links_graph_module_test() {
 }
 
 pub fn linker_links_constant_edges_test() {
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -50,7 +50,7 @@ pub fn linker_links_constant_edges_test() {
       ],
     )
 
-  let l = linker.new(module)
+  let l = linker.new(document)
   let assert Ok(linked) = linker.link(l, operations())
 
   assert linked.edges
@@ -63,7 +63,7 @@ pub fn linker_links_constant_edges_test() {
 }
 
 pub fn linker_reports_unknown_operators_test() {
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -71,7 +71,7 @@ pub fn linker_reports_unknown_operators_test() {
       edges: [],
     )
 
-  let l = linker.new(module)
+  let l = linker.new(document)
   let result = linker.link(l, operations())
 
   assert result

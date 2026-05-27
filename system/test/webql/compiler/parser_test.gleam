@@ -5,34 +5,30 @@ import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/source
 
-pub fn parse_allows_comments_before_inside_and_after_module_test() {
-  let source = "# module\n-> out: Int { # body\n}"
+pub fn parse_allows_comments_before_inside_and_after_document_test() {
+  let source = "# document\n-> out: Int { # body\n}"
 
   let assert Ok(tokens) =
     source
     |> lexer.new()
     |> lexer.lex()
 
-  let assert Ok(module) = parser.parse(parser.new(source, tokens))
+  let assert Ok(document) = parser.parse(parser.new(source, tokens))
 
-  assert module
-    == ast.Module(
-      span: source.Span(start: 9, end: 31),
-      operation: ast.Operation(
-        span: source.Span(start: 9, end: 31),
+  assert document
+    == ast.Document(
+      span: source.Span(start: 11, end: 33),
+      graph: ast.Graph(
+        span: source.Span(start: 11, end: 33),
         parameters: [],
         returns: [
           ast.Return(
-            span: source.Span(start: 12, end: 20),
+            span: source.Span(start: 14, end: 22),
             name: "out",
-            typename: ast.Typename(
-              span: source.Span(start: 17, end: 20),
-              name: "Int",
-            ),
+            port: ast.Port(span: source.Span(start: 19, end: 22), name: "Int"),
           ),
         ],
-        definitions: [],
-        bindings: [],
+        nodes: [],
         edges: [],
       ),
     )
@@ -63,32 +59,28 @@ pub fn parse_allows_trailing_spaces_before_eof_test() {
     token.Token(kind: token.EOF, span: source.Span(start: 17, end: 17)),
   ]
 
-  let assert Ok(module) = parser.parse(parser.new(source, tokens))
+  let assert Ok(document) = parser.parse(parser.new(source, tokens))
 
-  assert module
-    == ast.Module(
+  assert document
+    == ast.Document(
       span: source.Span(start: 0, end: 14),
-      operation: ast.Operation(
+      graph: ast.Graph(
         span: source.Span(start: 0, end: 14),
         parameters: [],
         returns: [
           ast.Return(
             span: source.Span(start: 3, end: 11),
             name: "out",
-            typename: ast.Typename(
-              span: source.Span(start: 8, end: 11),
-              name: "Int",
-            ),
+            port: ast.Port(span: source.Span(start: 8, end: 11), name: "Int"),
           ),
         ],
-        definitions: [],
-        bindings: [],
+        nodes: [],
         edges: [],
       ),
     )
 }
 
-pub fn parse_errors_when_meaningful_tokens_remain_after_module_test() {
+pub fn parse_errors_when_meaningful_tokens_remain_after_document_test() {
   let source = "-> out: Int {} next"
 
   let tokens = [

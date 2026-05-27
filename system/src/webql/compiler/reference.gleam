@@ -1,11 +1,11 @@
-/// A stable binding declaration reference.
-pub type Binding {
-  Binding(Int)
+/// A stable node declaration reference.
+pub type Node {
+  Node(Int)
 }
 
-/// A stable definition declaration reference.
-pub type Definition {
-  Definition(Int)
+/// A stable supernode declaration reference.
+pub type Supernode {
+  Supernode(Int)
 }
 
 /// A stable edge reference.
@@ -13,22 +13,22 @@ pub type Edge {
   Edge(Int)
 }
 
-/// A stable module reference.
-pub type Module {
-  Module(Int)
+/// A stable document reference.
+pub type Document {
+  Document(Int)
 }
 
-/// A stable node reference.
-pub type Node {
-  Node(Int)
+/// A stable schema operation reference.
+pub type Operation {
+  Operation(Int)
 }
 
-/// A stable operation parameter declaration reference.
+/// A stable graph parameter declaration reference.
 pub type Parameter {
   Parameter(Int)
 }
 
-/// A stable operation return declaration reference.
+/// A stable graph return declaration reference.
 pub type Return {
   Return(Int)
 }
@@ -43,7 +43,7 @@ pub type Output {
   Output(Int)
 }
 
-/// A stable type reference.
-pub type Typename {
-  Typename(Int)
+/// A stable port reference.
+pub type Port {
+  Port(Int)
 }

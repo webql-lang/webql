@@ -3,10 +3,10 @@ import webql/compiler/lexer/token
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
-import webql/compiler/parser/parse_typename
+import webql/compiler/parser/parse_port
 import webql/compiler/source
 
-/// Parses an operation return.
+/// Parses a graph return.
 pub fn parse(
   source: String,
   tokens: List(token.Token),
@@ -17,14 +17,11 @@ pub fn parse(
   use key <- result.try(parse_key(source, tokens))
   let #(name, key_span, rest) = key
   use rest <- result.try(parse_separator(rest))
-  use #(typename, typename_span, rest) <- result.try(parse_typename.parse(
-    source,
-    rest,
-  ))
+  use #(port, port_span, rest) <- result.try(parse_port.parse(source, rest))
 
-  let span = source.cover(key_span, typename_span)
+  let span = source.cover(key_span, port_span)
 
-  Ok(#(ast.Return(span:, name:, typename:), span, rest))
+  Ok(#(ast.Return(span:, name:, port:), span, rest))
 }
 
 // PRIVATE FUNCTIONS

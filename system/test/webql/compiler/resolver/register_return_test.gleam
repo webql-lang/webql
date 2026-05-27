@@ -9,9 +9,9 @@ pub fn register_registers_return_and_input_test() {
   let return =
     hir.Return(
       name: "out",
-      typename: hir.Typename(
+      port: hir.Port(
         name: "Int",
-        reference: reference.Typename(0),
+        reference: reference.Port(0),
         span: source.Span(start: 5, end: 8),
       ),
       reference: reference.Return(0),
@@ -24,6 +24,6 @@ pub fn register_registers_return_and_input_test() {
   assert returns == dict.from_list([#("out", reference.Return(0))])
   assert inputs
     == dict.from_list([
-      #(["out"], #(reference.Input(0), reference.Typename(0))),
+      #(["out"], #(reference.Input(0), reference.Port(0))),
     ])
 }

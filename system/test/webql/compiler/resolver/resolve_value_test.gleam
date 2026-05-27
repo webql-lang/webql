@@ -1,38 +1,46 @@
-import webql/compiler/environment
 import webql/compiler/parser/ast
-import webql/compiler/reference
-import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/resolve_value
 import webql/compiler/source
 
-pub fn resolve_node_value_test() {
-  let schema = environment.add_node(environment.new(), "Math")
-
+pub fn resolve_int_value_test() {
   let value_to_resolve =
-    ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
+    ast.Int(name: "Int", value: 123, span: source.Span(start: 0, end: 3))
 
-  let assert Ok(value) = resolve_value.resolve(schema, value_to_resolve)
+  let resolved = resolve_value.resolve(value_to_resolve)
 
-  assert value
-    == hir.NodeValue(
-      name: "Math",
-      reference: reference.Node(0),
+  assert resolved
+    == hir.Int(name: "Int", value: 123, span: source.Span(start: 0, end: 3))
+}
+
+pub fn resolve_float_value_test() {
+  let value_to_resolve =
+    ast.Float(name: "Float", value: 1.23, span: source.Span(start: 0, end: 4))
+
+  let resolved = resolve_value.resolve(value_to_resolve)
+
+  assert resolved
+    == hir.Float(
+      name: "Float",
+      value: 1.23,
       span: source.Span(start: 0, end: 4),
     )
 }
 
-pub fn resolve_returns_unknown_node_for_missing_node_value_test() {
-  let schema = environment.new()
-
+pub fn resolve_string_value_test() {
   let value_to_resolve =
-    ast.NodeValue(name: "Math", span: source.Span(start: 0, end: 4))
+    ast.String(
+      name: "String",
+      value: "hello",
+      span: source.Span(start: 0, end: 7),
+    )
 
-  let assert Error(error) = resolve_value.resolve(schema, value_to_resolve)
+  let resolved = resolve_value.resolve(value_to_resolve)
 
-  assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.UnknownNode("Math"),
-      span: source.Span(start: 0, end: 4),
+  assert resolved
+    == hir.String(
+      name: "String",
+      value: "hello",
+      span: source.Span(start: 0, end: 7),
     )
 }

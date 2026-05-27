@@ -7,29 +7,25 @@ import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/source
 
-pub fn resolve_module_through_public_entrypoint_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+pub fn resolve_document_through_public_entrypoint_test() {
+  let schema = schema.add_port(schema.new(), "Int")
   let context = context.new()
 
-  let module_to_resolve =
-    ast.Module(
-      operation: ast.Operation(
+  let document_to_resolve =
+    ast.Document(
+      graph: ast.Graph(
         parameters: [],
         returns: [
           ast.Return(
             name: "out",
-            typename: ast.Typename(
-              name: "Int",
-              span: source.Span(start: 8, end: 11),
-            ),
+            port: ast.Port(name: "Int", span: source.Span(start: 8, end: 11)),
             span: source.Span(start: 3, end: 11),
           ),
         ],
-        definitions: [],
-        bindings: [],
+        nodes: [],
         edges: [
           ast.Edge(
-            from: ast.PrimitiveOutput(
+            source: ast.Static(
               value: ast.Int(
                 name: "Int",
                 value: 1,
@@ -37,7 +33,7 @@ pub fn resolve_module_through_public_entrypoint_test() {
               ),
               span: source.Span(start: 15, end: 16),
             ),
-            to: ast.PortInput(
+            target: ast.Input(
               path: ["out"],
               span: source.Span(start: 20, end: 24),
             ),
@@ -49,41 +45,40 @@ pub fn resolve_module_through_public_entrypoint_test() {
       span: source.Span(start: 0, end: 26),
     )
 
-  let assert Ok(#(module, _context)) =
-    module_to_resolve
+  let assert Ok(#(document, _context)) =
+    document_to_resolve
     |> resolver.new()
     |> resolver.resolve(schema, context)
 
-  assert module
-    == hir.Module(
-      operation: hir.Operation(
+  assert document
+    == hir.Document(
+      graph: hir.Graph(
         parameters: [],
         returns: [
           hir.Return(
             name: "out",
-            typename: hir.Typename(
+            port: hir.Port(
               name: "Int",
-              reference: reference.Typename(0),
+              reference: reference.Port(0),
               span: source.Span(start: 8, end: 11),
             ),
             reference: reference.Return(0),
             span: source.Span(start: 3, end: 11),
           ),
         ],
-        definitions: [],
-        bindings: [],
+        nodes: [],
         edges: [
           hir.Edge(
-            from: hir.PrimitiveOutput(
+            source: hir.Static(
               value: hir.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 15, end: 16),
               ),
-              typename: reference.Typename(0),
+              port: reference.Port(0),
               span: source.Span(start: 15, end: 16),
             ),
-            to: hir.PortInput(
+            target: hir.Input(
               path: ["out"],
               reference: reference.Input(0),
               span: source.Span(start: 20, end: 24),
@@ -94,34 +89,30 @@ pub fn resolve_module_through_public_entrypoint_test() {
         ],
         span: source.Span(start: 0, end: 26),
       ),
-      reference: reference.Module(0),
+      reference: reference.Document(0),
       span: source.Span(start: 0, end: 26),
     )
 }
 
 pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
-  let schema = schema.add_typename(schema.new(), "Int")
+  let schema = schema.add_port(schema.new(), "Int")
   let context = context.new()
 
-  let module_to_resolve =
-    ast.Module(
-      operation: ast.Operation(
+  let document_to_resolve =
+    ast.Document(
+      graph: ast.Graph(
         parameters: [],
         returns: [
           ast.Return(
             name: "out",
-            typename: ast.Typename(
-              name: "Int",
-              span: source.Span(start: 8, end: 11),
-            ),
+            port: ast.Port(name: "Int", span: source.Span(start: 8, end: 11)),
             span: source.Span(start: 3, end: 11),
           ),
         ],
-        definitions: [],
-        bindings: [],
+        nodes: [],
         edges: [
           ast.Edge(
-            from: ast.PrimitiveOutput(
+            source: ast.Static(
               value: ast.Int(
                 name: "Int",
                 value: 1,
@@ -129,14 +120,14 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
               ),
               span: source.Span(start: 15, end: 16),
             ),
-            to: ast.PortInput(
+            target: ast.Input(
               path: ["out"],
               span: source.Span(start: 20, end: 24),
             ),
             span: source.Span(start: 15, end: 24),
           ),
           ast.Edge(
-            from: ast.PrimitiveOutput(
+            source: ast.Static(
               value: ast.Int(
                 name: "Int",
                 value: 2,
@@ -144,7 +135,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
               ),
               span: source.Span(start: 25, end: 26),
             ),
-            to: ast.PortInput(
+            target: ast.Input(
               path: ["out"],
               span: source.Span(start: 30, end: 34),
             ),
@@ -157,7 +148,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
     )
 
   let assert Error(error) =
-    module_to_resolve
+    document_to_resolve
     |> resolver.new()
     |> resolver.resolve(schema, context)
 

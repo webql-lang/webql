@@ -8,9 +8,9 @@ pub fn lower_parameter_test() {
   let parameter =
     hir.Parameter(
       name: "in",
-      typename: hir.Typename(
+      port: hir.Port(
         name: "Int",
-        reference: reference.Typename(0),
+        reference: reference.Port(0),
         span: source.Span(start: 4, end: 7),
       ),
       reference: reference.Parameter(0),

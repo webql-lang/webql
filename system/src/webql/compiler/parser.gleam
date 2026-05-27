@@ -2,7 +2,7 @@ import gleam/result
 import webql/compiler/lexer/token
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
-import webql/compiler/parser/parse_module
+import webql/compiler/parser/parse_document
 import webql/compiler/parser/parse_nonstarter
 
 pub opaque type Parser {
@@ -15,12 +15,12 @@ pub fn new(source: String, tokens: List(token.Token)) -> Parser {
 }
 
 /// Parses tokens into AST.
-pub fn parse(parser: Parser) -> Result(ast.Module, diagnostic.Diagnostic) {
-  use #(module, _, rest) <- result.try(parse_module.parse(
+pub fn parse(parser: Parser) -> Result(ast.Document, diagnostic.Diagnostic) {
+  use #(document, _, rest) <- result.try(parse_document.parse(
     parser.source,
     parser.tokens,
   ))
-  parse_eof(parser.source, rest, module)
+  parse_eof(parser.source, rest, document)
 }
 
 // PRIVATE FUNCTIONS
@@ -28,14 +28,14 @@ pub fn parse(parser: Parser) -> Result(ast.Module, diagnostic.Diagnostic) {
 fn parse_eof(
   source: String,
   tokens: List(token.Token),
-  module: ast.Module,
-) -> Result(ast.Module, diagnostic.Diagnostic) {
+  document: ast.Document,
+) -> Result(ast.Document, diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.EOF, ..)] -> Ok(module)
+    [token.Token(kind: token.EOF, ..)] -> Ok(document)
 
     _token -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
-      parse_eof(source, rest, module)
+      parse_eof(source, rest, document)
     }
   }
 }

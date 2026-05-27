@@ -226,7 +226,7 @@ pub fn interpret_lexer_on_basic_syntax_test() {
     "Addition = in: Int -> out: Int {
   m = Math
 
-  \"addition\"->m.operation
+  \"addition\"->m.graph
   1->m.lhs
   .in->m.rhs
 
@@ -291,54 +291,54 @@ pub fn interpret_lexer_on_basic_syntax_test() {
       token.Token(kind: token.Dot, span: source.Span(start: 60, end: 61)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 61, end: 70),
+        span: source.Span(start: 61, end: 66),
       ),
-      token.Token(kind: token.Space, span: source.Span(start: 70, end: 73)),
-      token.Token(kind: token.Int, span: source.Span(start: 73, end: 74)),
-      token.Token(kind: token.RArrow, span: source.Span(start: 74, end: 76)),
+      token.Token(kind: token.Space, span: source.Span(start: 66, end: 69)),
+      token.Token(kind: token.Int, span: source.Span(start: 69, end: 70)),
+      token.Token(kind: token.RArrow, span: source.Span(start: 70, end: 72)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 76, end: 77),
+        span: source.Span(start: 72, end: 73),
       ),
-      token.Token(kind: token.Dot, span: source.Span(start: 77, end: 78)),
+      token.Token(kind: token.Dot, span: source.Span(start: 73, end: 74)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 78, end: 81),
+        span: source.Span(start: 74, end: 77),
       ),
-      token.Token(kind: token.Space, span: source.Span(start: 81, end: 84)),
-      token.Token(kind: token.Dot, span: source.Span(start: 84, end: 85)),
+      token.Token(kind: token.Space, span: source.Span(start: 77, end: 80)),
+      token.Token(kind: token.Dot, span: source.Span(start: 80, end: 81)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 85, end: 87),
+        span: source.Span(start: 81, end: 83),
       ),
-      token.Token(kind: token.RArrow, span: source.Span(start: 87, end: 89)),
+      token.Token(kind: token.RArrow, span: source.Span(start: 83, end: 85)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 89, end: 90),
+        span: source.Span(start: 85, end: 86),
       ),
-      token.Token(kind: token.Dot, span: source.Span(start: 90, end: 91)),
+      token.Token(kind: token.Dot, span: source.Span(start: 86, end: 87)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 91, end: 94),
+        span: source.Span(start: 87, end: 90),
       ),
-      token.Token(kind: token.Space, span: source.Span(start: 94, end: 98)),
+      token.Token(kind: token.Space, span: source.Span(start: 90, end: 94)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 98, end: 99),
+        span: source.Span(start: 94, end: 95),
       ),
-      token.Token(kind: token.Dot, span: source.Span(start: 99, end: 100)),
+      token.Token(kind: token.Dot, span: source.Span(start: 95, end: 96)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 100, end: 103),
+        span: source.Span(start: 96, end: 99),
       ),
-      token.Token(kind: token.RArrow, span: source.Span(start: 103, end: 105)),
-      token.Token(kind: token.Dot, span: source.Span(start: 105, end: 106)),
+      token.Token(kind: token.RArrow, span: source.Span(start: 99, end: 101)),
+      token.Token(kind: token.Dot, span: source.Span(start: 101, end: 102)),
       token.Token(
         kind: token.LowerIdentifier,
-        span: source.Span(start: 106, end: 109),
+        span: source.Span(start: 102, end: 105),
       ),
-      token.Token(kind: token.Space, span: source.Span(start: 109, end: 110)),
-      token.Token(kind: token.RBrace, span: source.Span(start: 110, end: 111)),
-      token.Token(kind: token.EOF, span: source.Span(start: 111, end: 111)),
+      token.Token(kind: token.Space, span: source.Span(start: 105, end: 106)),
+      token.Token(kind: token.RBrace, span: source.Span(start: 106, end: 107)),
+      token.Token(kind: token.EOF, span: source.Span(start: 107, end: 107)),
     ]
 }

@@ -2,18 +2,18 @@ import webql/compiler/context
 import webql/compiler/resolver/hir
 import webql/compiler/typechecker/diagnostic
 
-/// Typechecks an edge from resolver AST.
+/// Typechecks a resolved edge.
 pub fn typecheck(
   edge: hir.Edge,
   context: context.Context,
 ) -> Result(Nil, diagnostic.Diagnostic) {
-  let hir.Edge(from:, to:, span:, ..) = edge
-  let expected = get_typename_input(context, to)
-  let found = get_typename_output(context, from)
+  let hir.Edge(source:, target:, span:, ..) = edge
+  let expected = get_port_target(context, target)
+  let found = get_port_source(context, source)
 
   case expected, found {
     expected, found if expected == found -> Ok(Nil)
-    _expected, _found ->
+    _, _ ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.TypeMismatch(expected:, found:),
         span:,
@@ -23,19 +23,19 @@ pub fn typecheck(
 
 // PRIVATE FUNCTIONS
 // =================
-fn get_typename_output(context: context.Context, output: hir.Output) {
-  case output {
-    hir.PortOutput(path:, ..) -> {
-      let assert Ok(#(_reference, typename)) = context.get_output(context, path)
-      typename
+fn get_port_source(context: context.Context, source: hir.Source) {
+  case source {
+    hir.Output(path:, ..) -> {
+      let assert Ok(#(_reference, port)) = context.get_output(context, path)
+      port
     }
 
-    hir.PrimitiveOutput(typename:, ..) -> typename
+    hir.Static(port:, ..) -> port
   }
 }
 
-fn get_typename_input(context: context.Context, input: hir.Input) {
-  let hir.PortInput(path:, ..) = input
-  let assert Ok(#(_reference, typename)) = context.get_input(context, path)
-  typename
+fn get_port_target(context: context.Context, target: hir.Target) {
+  let hir.Input(path:, ..) = target
+  let assert Ok(#(_reference, port)) = context.get_input(context, path)
+  port
 }

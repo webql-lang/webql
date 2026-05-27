@@ -44,7 +44,7 @@ pub fn assembler_assembles_graph_with_external_node_test() {
 
   let a = assembler.new(schema)
 
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [graph.Return(name: "out", port: "String")],
@@ -61,7 +61,7 @@ pub fn assembler_assembles_graph_with_external_node_test() {
       ],
     )
 
-  let assert Ok(result) = assembler.assemble(a, module)
+  let assert Ok(result) = assembler.assemble(a, document)
   let plan.Plan(edges:, batches:) = result
 
   assert edges
@@ -92,7 +92,7 @@ pub fn assembler_reports_unknown_operator_test() {
   let schema = schema.Schema(operations: dict.new(), ports: [])
   let a = assembler.new(schema)
 
-  let module =
+  let document =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -100,7 +100,7 @@ pub fn assembler_reports_unknown_operator_test() {
       edges: [],
     )
 
-  let assert Error(d) = assembler.assemble(a, module)
+  let assert Error(d) = assembler.assemble(a, document)
 
   assert d.kind
     == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperator(

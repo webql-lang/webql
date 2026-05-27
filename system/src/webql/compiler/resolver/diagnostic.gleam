@@ -1,15 +1,14 @@
 import webql/compiler/source
 
 pub type DiagnosticKind {
-  UnknownTypename(name: String)
+  UnknownPort(name: String)
   UnknownNode(name: String)
-  UnknownOperation(name: String)
   UnknownInput(path: List(String))
   UnknownOutput(path: List(String))
   DuplicateReturn(name: String)
   DuplicateParameter(name: String)
-  DuplicateDefinition(name: String)
-  DuplicateBinding(name: String)
+  DuplicateSupernode(name: String)
+  DuplicateNode(name: String)
   DuplicateEdgeInput(path: List(String))
 }
 

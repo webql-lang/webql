@@ -8,5 +8,5 @@ pub fn register(
 ) -> context.Context {
   context
   |> context.add_return(return.name)
-  |> context.add_input([return.name], return.typename.reference)
+  |> context.add_input([return.name], return.port.reference)
 }

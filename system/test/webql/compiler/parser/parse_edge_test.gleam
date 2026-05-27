@@ -5,7 +5,7 @@ import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_edge
 import webql/compiler/source
 
-pub fn parse_node_port_edge_definition_test() {
+pub fn parse_node_port_edge_supernode_test() {
   let source = "m.out -> .out"
 
   let assert Ok(tokens) =
@@ -18,18 +18,18 @@ pub fn parse_node_port_edge_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 13),
-      from: ast.PortOutput(span: source.Span(start: 0, end: 5), path: [
+      source: ast.Output(span: source.Span(start: 0, end: 5), path: [
         "m",
         "out",
       ]),
-      to: ast.PortInput(span: source.Span(start: 9, end: 13), path: ["out"]),
+      target: ast.Input(span: source.Span(start: 9, end: 13), path: ["out"]),
     )
 
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 13, end: 13))]
 }
 
-pub fn parse_literal_edge_definition_test() {
+pub fn parse_literal_edge_supernode_test() {
   let source = "\"test\" -> .out"
 
   let assert Ok(tokens) =
@@ -42,7 +42,7 @@ pub fn parse_literal_edge_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 14),
-      from: ast.PrimitiveOutput(
+      source: ast.Static(
         span: source.Span(start: 0, end: 6),
         value: ast.String(
           name: "String",
@@ -50,14 +50,14 @@ pub fn parse_literal_edge_definition_test() {
           value: "test",
         ),
       ),
-      to: ast.PortInput(span: source.Span(start: 10, end: 14), path: ["out"]),
+      target: ast.Input(span: source.Span(start: 10, end: 14), path: ["out"]),
     )
 
   assert rest
     == [token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14))]
 }
 
-pub fn parse_preserves_remaining_tokens_after_definition_test() {
+pub fn parse_preserves_remaining_tokens_after_supernode_test() {
   let source = ".in -> .out extra"
 
   let assert Ok(tokens) =
@@ -70,8 +70,8 @@ pub fn parse_preserves_remaining_tokens_after_definition_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 11),
-      from: ast.PortOutput(span: source.Span(start: 0, end: 3), path: ["in"]),
-      to: ast.PortInput(span: source.Span(start: 7, end: 11), path: ["out"]),
+      source: ast.Output(span: source.Span(start: 0, end: 3), path: ["in"]),
+      target: ast.Input(span: source.Span(start: 7, end: 11), path: ["out"]),
     )
 
   assert rest
@@ -85,7 +85,7 @@ pub fn parse_preserves_remaining_tokens_after_definition_test() {
     ]
 }
 
-pub fn parse_returns_unexpected_token_for_invalid_definition_start_test() {
+pub fn parse_returns_unexpected_token_for_invalid_supernode_start_test() {
   let source = "Math"
 
   let assert Ok(tokens) =
@@ -136,7 +136,7 @@ pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
     )
 }
 
-pub fn parse_returns_unexpected_token_for_primitive_edge_target_test() {
+pub fn parse_returns_unexpected_token_for_static_edge_target_test() {
   let source = ".in -> \"out\""
 
   let assert Ok(tokens) =
