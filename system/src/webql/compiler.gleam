@@ -86,7 +86,7 @@ fn load_parameters(
     Ok(operation), Ok(port) ->
       environment.add_input(environment, operation, #(name, port))
 
-    _, _ -> environment
+    _operation, _port -> environment
   }
 }
 
@@ -106,7 +106,7 @@ fn load_returns(
     Ok(operation), Ok(port) ->
       environment.add_output(environment, operation, #(name, port))
 
-    _, _ -> environment
+    _operation, _port -> environment
   }
 }
 

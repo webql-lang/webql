@@ -29,7 +29,7 @@ fn lower_node(
     [#(supernode, graph), ..] if supernode == node ->
       graph.Supernode(name:, graph:)
 
-    [_, ..supernodes] -> lower_node(name, node, supernodes)
+    [_supernode, ..supernodes] -> lower_node(name, node, supernodes)
     [] -> graph.Node(name:, node:)
   }
 }

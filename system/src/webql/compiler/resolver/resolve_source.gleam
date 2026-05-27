@@ -27,7 +27,7 @@ fn resolve_output(
   span: source.Span,
 ) {
   case context.get_output(context, path) {
-    Ok(#(reference, _)) -> Ok(hir.Output(path:, reference:, span:))
+    Ok(#(reference, _port)) -> Ok(hir.Output(path:, reference:, span:))
 
     Error(_nil) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOutput(path), span:))

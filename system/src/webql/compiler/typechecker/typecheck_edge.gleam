@@ -14,7 +14,7 @@ pub fn typecheck(
 
   case expected, found {
     expected, found if expected == found -> Ok(Nil)
-    _, _ ->
+    _expected, _found ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.TypeMismatch(expected:, found:),
         span:,
@@ -46,7 +46,7 @@ fn get_port_target(context: context.Context, target: hir.Target) {
 fn get_input(context: context.Context, path: List(String), span) {
   case context.get_input(context, path) {
     Ok(input) -> Ok(input)
-    Error(_) ->
+    Error(_error) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownInput(path), span:))
   }
 }
@@ -54,7 +54,7 @@ fn get_input(context: context.Context, path: List(String), span) {
 fn get_output(context: context.Context, path: List(String), span) {
   case context.get_output(context, path) {
     Ok(output) -> Ok(output)
-    Error(_) ->
+    Error(_error) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOutput(path), span:))
   }
 }

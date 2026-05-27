@@ -16,7 +16,7 @@ pub fn new(source: String, tokens: List(token.Token)) -> Parser {
 
 /// Parses tokens into AST.
 pub fn parse(parser: Parser) -> Result(ast.Document, diagnostic.Diagnostic) {
-  use #(document, _, rest) <- result.try(parse_document.parse(
+  use #(document, _span, rest) <- result.try(parse_document.parse(
     parser.source,
     parser.tokens,
   ))

@@ -38,7 +38,7 @@ fn typecheck_supernodes(context: context.Context, nodes: List(hir.Node)) {
 fn get_context(context: context.Context, reference, span) {
   case context.get_context(context, reference) {
     Ok(context) -> Ok(context)
-    Error(_) ->
+    Error(_error) ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnknownSupernode(reference),
         span:,

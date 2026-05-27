@@ -11,7 +11,7 @@ pub fn resolve(
   let ast.Input(path:, span:) = target
 
   case context.get_input(context, path) {
-    Ok(#(reference, _)) -> Ok(hir.Input(path:, reference:, span:))
+    Ok(#(reference, _port)) -> Ok(hir.Input(path:, reference:, span:))
 
     Error(_nil) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownInput(path), span:))
