@@ -4,14 +4,14 @@ defmodule Webql.Schema.Operation do
 
   ## Examples
 
-      defmodule MyApp.Schema.MathOperation do
+      defmodule MyApp.Schema.AddOperation do
      	  use Webql.Schema.Operation
 
         operation do
           input :lhs, :int
           input :rhs, :int
-          resolve fn params -> {:ok, %{out: params.l + params.r}} end
-          output :out, :int
+          resolve fn params -> {:ok, %{sum: params.l + params.r}} end
+          output :sum, :int
         end
       end
   """

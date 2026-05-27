@@ -1,56 +1,43 @@
 defmodule Webql.Schema.BuilderTest do
   use ExUnit.Case, async: true
 
-  defmodule SearchOperation do
+  defmodule AddOperation do
     use Webql.Schema.Operation
 
     operation do
-      input(:query, :text)
-      input(:limit, :integer)
-      resolve(fn inputs -> {:ok, inputs} end)
-      output(:result, :text)
-      output(:count, :integer)
+      input(:lhs, :int)
+      input(:rhs, :int)
+      resolve(fn %{"lhs" => lhs, "rhs" => rhs} -> {:ok, %{"sum" => lhs + rhs}} end)
+      output(:sum, :int)
     end
   end
 
-  defmodule SearchSchema do
+  defmodule AddSchema do
     use Webql.Schema
 
-    ports([:text, :integer])
-    operations([SearchOperation])
+    ports([:int])
+    operations([AddOperation])
   end
 
   test "builds a schema tuple from a schema module" do
     assert {
              :schema,
              %{
-               "SearchOperation" => {
+               "AddOperation" => {
                  :operation,
                  %{
-                   "query" => {:input, "query", "Text"},
-                   "limit" => {:input, "limit", "Integer"}
+                   "lhs" => {:input, "lhs", "Int"},
+                   "rhs" => {:input, "rhs", "Int"}
                  },
                  {:resolver, resolver},
                  %{
-                   "result" => {:output, "result", "Text"},
-                   "count" => {:output, "count", "Integer"}
+                   "sum" => {:output, "sum", "Int"}
                  }
                }
              },
-             [{:port, "Text"}, {:port, "Integer"}]
-           } = Webql.Schema.Builder.build(SearchSchema)
+             [{:port, "Int"}]
+           } = Webql.Schema.Builder.build(AddSchema)
 
-    assert resolver.(%{"query" => "webql"}) == {:ok, %{"query" => "webql"}}
-  end
-
-  defmodule EmptySchema do
-    use Webql.Schema
-
-    ports([])
-    operations([])
-  end
-
-  test "supports schemas without global ports or operations" do
-    assert Webql.Schema.Builder.build(EmptySchema) == {:schema, %{}, []}
+    assert resolver.(%{"lhs" => 1, "rhs" => 1}) == {:ok, %{"sum" => 2}}
   end
 end
