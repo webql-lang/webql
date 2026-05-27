@@ -1,52 +1,43 @@
 defmodule Webql.Schema.BuilderTest do
   use ExUnit.Case, async: true
 
-  defmodule SearchOperation do
-    use Webql.Schema
+  defmodule AddOperation do
+    use Webql.Schema.Operation
 
     operation do
-      input(:query, :text)
-      input(:limit, :integer)
-      resolve(fn inputs -> {:ok, inputs} end)
-      output(:result, :text)
-      output(:count, :integer)
+      input(:lhs, :int)
+      input(:rhs, :int)
+      resolve(fn %{"lhs" => lhs, "rhs" => rhs} -> {:ok, %{"sum" => lhs + rhs}} end)
+      output(:sum, :int)
     end
   end
 
-  test "builds an operation tuple from an operation schema" do
+  defmodule AddSchema do
+    use Webql.Schema
+
+    ports([:int])
+    operations([AddOperation])
+  end
+
+  test "builds a schema tuple from a schema module" do
     assert {
-             "SearchOperation",
-             {
-               :operation,
-               %{
-                 "query" => {:input, "query", "Text"},
-                 "limit" => {:input, "limit", "Integer"}
-               },
-               {:resolver, resolver},
-               %{
-                 "result" => {:output, "result", "Text"},
-                 "count" => {:output, "count", "Integer"}
+             :schema,
+             %{
+               "AddOperation" => {
+                 :operation,
+                 %{
+                   "lhs" => {:input, "lhs", "Int"},
+                   "rhs" => {:input, "rhs", "Int"}
+                 },
+                 {:resolver, resolver},
+                 %{
+                   "sum" => {:output, "sum", "Int"}
+                 }
                }
-             }
-           } = Webql.Schema.Builder.build(SearchOperation)
+             },
+             [{:port, "Int"}]
+           } = Webql.Schema.Builder.build(AddSchema)
 
-    assert resolver.(%{"query" => "webql"}) == {:ok, %{"query" => "webql"}}
-  end
-
-  defmodule Nested.SpecialName do
-    use Webql.Schema
-
-    operation do
-      resolve(fn inputs -> inputs end)
-    end
-  end
-
-  test "derives the operation name from the final module segment" do
-    assert {
-             "SpecialName",
-             {:operation, %{}, {:resolver, resolver}, %{}}
-           } = Webql.Schema.Builder.build(Nested.SpecialName)
-
-    assert resolver.(%{}) == %{}
+    assert resolver.(%{"lhs" => 1, "rhs" => 1}) == {:ok, %{"sum" => 2}}
   end
 end

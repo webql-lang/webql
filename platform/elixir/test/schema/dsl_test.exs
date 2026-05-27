@@ -1,47 +1,22 @@
 defmodule Webql.Schema.DslTest do
   use ExUnit.Case, async: true
 
-  defmodule Operation do
+  defmodule AddOperation do
+    use Webql.Schema.Operation
+  end
+
+  defmodule Schema do
     use Webql.Schema
 
-    operation do
-      input(:query, :text)
-      resolve(fn _inputs -> :ok end)
-      output(:result, :text)
-    end
+    ports([:int])
+    operations([AddOperation])
   end
 
-  test "stores operation inputs, resolver, and outputs in declaration order" do
-    assert [
-             %Webql.Schema.Dsl.Input{name: :query, type: :text},
-             %Webql.Schema.Dsl.Resolve{resolver: resolver},
-             %Webql.Schema.Dsl.Output{name: :result, type: :text}
-           ] = Spark.Dsl.Extension.get_entities(Operation, [:operation])
-
-    assert is_function(resolver, 1)
+  test "stores schema ports" do
+    assert Spark.Dsl.Extension.get_opt(Schema, [:webql], :ports) == [:int]
   end
 
-  defmodule MultipleFields do
-    use Webql.Schema
-
-    operation do
-      input(:query, :text)
-      input(:limit, :integer)
-      resolve(fn _inputs -> :ok end)
-      output(:result, :text)
-      output(:count, :integer)
-    end
-  end
-
-  test "supports multiple inputs and outputs" do
-    assert [
-             %Webql.Schema.Dsl.Input{name: :query, type: :text},
-             %Webql.Schema.Dsl.Input{name: :limit, type: :integer},
-             %Webql.Schema.Dsl.Resolve{resolver: resolver},
-             %Webql.Schema.Dsl.Output{name: :result, type: :text},
-             %Webql.Schema.Dsl.Output{name: :count, type: :integer}
-           ] = Spark.Dsl.Extension.get_entities(MultipleFields, [:operation])
-
-    assert is_function(resolver, 1)
+  test "stores schema operations" do
+    assert Spark.Dsl.Extension.get_opt(Schema, [:webql], :operations) == [AddOperation]
   end
 end

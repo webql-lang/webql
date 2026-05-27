@@ -1,34 +1,41 @@
 defmodule WebqlTest do
   use ExUnit.Case
 
-  defmodule SearchOperation do
-    use Webql.Schema
+  defmodule AddOperation do
+    use Webql.Schema.Operation
 
     operation do
-      input(:query, :text)
-      resolve(fn inputs -> {:ok, inputs} end)
-      output(:result, :text)
+      input(:lhs, :int)
+      input(:rhs, :int)
+      resolve(fn %{"lhs" => lhs, "rhs" => rhs} -> {:ok, %{"sum" => lhs + rhs}} end)
+      output(:sum, :int)
     end
+  end
+
+  defmodule AddSchema do
+    use Webql.Schema
+
+    ports([:int])
+    operations([AddOperation])
   end
 
   defmodule Instance do
     use Webql
-
-    ports([:text])
-    operations([SearchOperation])
   end
 
   test "runs an operation through the WebQL API" do
-    source = "query: Text -> result: Text { .query -> .result }"
+    source =
+      "lhs: Int, rhs: Int -> sum: Int { add = AddOperation .lhs -> add.lhs .rhs -> add.rhs add.sum -> .sum }"
 
-    assert Webql.run(Instance, source, %{"query" => "webql"}) ==
-             {:ok, %{"result" => "webql"}}
+    assert Webql.run(Instance, source, AddSchema, %{"lhs" => 1, "rhs" => 1}) ==
+             {:ok, %{"sum" => 2}}
   end
 
-  test "injects run/2 into WebQL instances" do
-    source = "query: Text -> result: Text { .query -> .result }"
+  test "injects run/3 into WebQL instances" do
+    source =
+      "lhs: Int, rhs: Int -> sum: Int { add = AddOperation .lhs -> add.lhs .rhs -> add.rhs add.sum -> .sum }"
 
-    assert Instance.run(source, %{"query" => "webql"}) ==
-             {:ok, %{"result" => "webql"}}
+    assert Instance.run(source, AddSchema, %{"lhs" => 1, "rhs" => 1}) ==
+             {:ok, %{"sum" => 2}}
   end
 end
