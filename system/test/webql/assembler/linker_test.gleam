@@ -44,7 +44,7 @@ pub fn linker_links_constant_edges_test() {
       nodes: [graph.Node(name: "user", node: "GetUser")],
       edges: [
         graph.Edge(
-          source: graph.Static(value: graph.Int(42)),
+          source: graph.Literal(value: graph.Int(42)),
           target: graph.Input(path: ["user", "id"]),
         ),
       ],
@@ -56,7 +56,7 @@ pub fn linker_links_constant_edges_test() {
   assert linked.edges
     == [
       program.Edge(
-        source: program.Static(value: dynamic.int(42)),
+        source: program.Literal(value: dynamic.int(42)),
         target: program.Input(path: ["user", "id"]),
       ),
     ]

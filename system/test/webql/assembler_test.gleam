@@ -51,7 +51,7 @@ pub fn assembler_assembles_graph_with_external_node_test() {
       nodes: [graph.Node(name: "user", node: "GetUser")],
       edges: [
         graph.Edge(
-          source: graph.Static(value: graph.Int(1)),
+          source: graph.Literal(value: graph.Int(1)),
           target: graph.Input(path: ["user", "id"]),
         ),
         graph.Edge(
@@ -67,7 +67,7 @@ pub fn assembler_assembles_graph_with_external_node_test() {
   assert edges
     == [
       plan.Edge(
-        source: plan.Static(value: dynamic.int(1)),
+        source: plan.Literal(value: dynamic.int(1)),
         target: plan.Input(path: ["user", "id"]),
       ),
       plan.Edge(

@@ -16,7 +16,7 @@ pub fn typecheck_accepts_matching_edge_types_test() {
         nodes: [],
         edges: [
           hir.Edge(
-            source: hir.Static(
+            source: hir.Literal(
               value: hir.String(
                 name: "String",
                 value: "ok",
@@ -54,7 +54,7 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
         nodes: [],
         edges: [
           hir.Edge(
-            source: hir.Static(
+            source: hir.Literal(
               value: hir.Int(
                 name: "Int",
                 value: 1,
@@ -111,7 +111,7 @@ pub fn typecheck_rejects_nested_supernode_mismatch_test() {
               nodes: [],
               edges: [
                 hir.Edge(
-                  source: hir.Static(
+                  source: hir.Literal(
                     value: hir.Int(
                       name: "Int",
                       value: 1,
@@ -175,7 +175,7 @@ pub fn typecheck_accepts_matching_nested_supernode_test() {
               nodes: [],
               edges: [
                 hir.Edge(
-                  source: hir.Static(
+                  source: hir.Literal(
                     value: hir.String(
                       name: "String",
                       value: "ok",

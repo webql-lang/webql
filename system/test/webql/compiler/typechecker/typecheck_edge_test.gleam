@@ -10,7 +10,7 @@ pub fn typecheck_accepts_matching_value_edge_test() {
 
   let edge =
     hir.Edge(
-      source: hir.Static(
+      source: hir.Literal(
         value: hir.String(
           name: "String",
           value: "ok",
@@ -36,7 +36,7 @@ pub fn typecheck_rejects_mismatched_value_edge_test() {
 
   let edge =
     hir.Edge(
-      source: hir.Static(
+      source: hir.Literal(
         value: hir.Int(
           name: "Int",
           value: 1,

@@ -22,7 +22,7 @@ pub fn parse_node_supernode_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 8, end: 8))]
 }
 
-pub fn parse_returns_unexpected_token_for_static_node_value_test() {
+pub fn parse_returns_unexpected_token_for_literal_node_value_test() {
   let source = "count = 123"
 
   let assert Ok(tokens) =

@@ -54,7 +54,7 @@ pub fn resolve_value_output_edge_test() {
 
   let edge_to_resolve =
     ast.Edge(
-      source: ast.Static(
+      source: ast.Literal(
         value: ast.String(
           name: "String",
           value: "test",
@@ -71,7 +71,7 @@ pub fn resolve_value_output_edge_test() {
 
   assert edge
     == hir.Edge(
-      source: hir.Static(
+      source: hir.Literal(
         value: hir.String(
           name: "String",
           value: "test",

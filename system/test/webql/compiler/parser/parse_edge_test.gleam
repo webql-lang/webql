@@ -42,7 +42,7 @@ pub fn parse_literal_edge_supernode_test() {
   assert edge
     == ast.Edge(
       span: source.Span(start: 0, end: 14),
-      source: ast.Static(
+      source: ast.Literal(
         span: source.Span(start: 0, end: 6),
         value: ast.String(
           name: "String",
@@ -136,7 +136,7 @@ pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
     )
 }
 
-pub fn parse_returns_unexpected_token_for_static_edge_target_test() {
+pub fn parse_returns_unexpected_token_for_literal_edge_target_test() {
   let source = ".in -> \"out\""
 
   let assert Ok(tokens) =

@@ -68,7 +68,7 @@ pub fn compile_materializes_node_ports_test() {
         target: graph.Input(path: ["m", "l"]),
       ),
       graph.Edge(
-        source: graph.Static(value: graph.Int(1)),
+        source: graph.Literal(value: graph.Int(1)),
         target: graph.Input(path: ["m", "r"]),
       ),
       graph.Edge(
@@ -132,7 +132,7 @@ pub fn compile_materializes_supernode_and_node_ports_test() {
   assert graph.edges
     == [
       graph.Edge(
-        source: graph.Static(value: graph.String("123")),
+        source: graph.Literal(value: graph.String("123")),
         target: graph.Input(path: ["so", "in"]),
       ),
       graph.Edge(

@@ -45,7 +45,7 @@ pub fn resolve_value_output_test() {
   let schema = environment.add_port(environment.new(), "Int")
 
   let output_to_resolve =
-    ast.Static(
+    ast.Literal(
       value: ast.Int(
         name: "Int",
         value: 123,
@@ -58,7 +58,7 @@ pub fn resolve_value_output_test() {
     resolve_source.resolve(schema, context.new(), output_to_resolve)
 
   assert output
-    == hir.Static(
+    == hir.Literal(
       value: hir.Int(
         name: "Int",
         value: 123,
@@ -73,7 +73,7 @@ pub fn resolve_returns_unknown_type_for_missing_value_output_port_test() {
   let schema = environment.new()
 
   let output_to_resolve =
-    ast.Static(
+    ast.Literal(
       value: ast.Int(
         name: "Int",
         value: 123,

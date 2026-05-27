@@ -25,7 +25,7 @@ pub fn resolve_document_through_public_entrypoint_test() {
         nodes: [],
         edges: [
           ast.Edge(
-            source: ast.Static(
+            source: ast.Literal(
               value: ast.Int(
                 name: "Int",
                 value: 1,
@@ -69,7 +69,7 @@ pub fn resolve_document_through_public_entrypoint_test() {
         nodes: [],
         edges: [
           hir.Edge(
-            source: hir.Static(
+            source: hir.Literal(
               value: hir.Int(
                 name: "Int",
                 value: 1,
@@ -112,7 +112,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
         nodes: [],
         edges: [
           ast.Edge(
-            source: ast.Static(
+            source: ast.Literal(
               value: ast.Int(
                 name: "Int",
                 value: 1,
@@ -127,7 +127,7 @@ pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
             span: source.Span(start: 15, end: 24),
           ),
           ast.Edge(
-            source: ast.Static(
+            source: ast.Literal(
               value: ast.Int(
                 name: "Int",
                 value: 2,

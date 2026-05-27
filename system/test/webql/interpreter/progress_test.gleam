@@ -36,7 +36,7 @@ pub fn progress_gets_constant_returns_test() {
   let assert Ok(raw) =
     progress.get_returns(kv.new(), [
       plan.Edge(
-        source: plan.Static(value: dynamic.int(99)),
+        source: plan.Literal(value: dynamic.int(99)),
         target: plan.Input(path: ["output"]),
       ),
     ])

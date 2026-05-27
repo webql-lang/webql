@@ -211,7 +211,7 @@ pub fn resolve_graph_returns_duplicate_edge_for_second_value_output_to_same_inpu
       nodes: [],
       edges: [
         ast.Edge(
-          source: ast.Static(
+          source: ast.Literal(
             value: ast.Int(
               name: "Int",
               value: 1,
@@ -226,7 +226,7 @@ pub fn resolve_graph_returns_duplicate_edge_for_second_value_output_to_same_inpu
           span: source.Span(start: 13, end: 22),
         ),
         ast.Edge(
-          source: ast.Static(
+          source: ast.Literal(
             value: ast.Int(
               name: "Int",
               value: 2,

@@ -5,7 +5,7 @@ import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_value
 import webql/compiler/source
 
-pub fn parse_int_static_test() {
+pub fn parse_int_literal_test() {
   let source = "123"
 
   let assert Ok(tokens) =
@@ -22,7 +22,7 @@ pub fn parse_int_static_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 3, end: 3))]
 }
 
-pub fn parse_float_static_test() {
+pub fn parse_float_literal_test() {
   let source = "1.23"
 
   let assert Ok(tokens) =
@@ -43,7 +43,7 @@ pub fn parse_float_static_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
 }
 
-pub fn parse_string_static_test() {
+pub fn parse_string_literal_test() {
   let source = "\"test\""
 
   let assert Ok(tokens) =

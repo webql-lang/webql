@@ -171,7 +171,7 @@ pub fn parse_parses_graph_body_with_lowercase_node_and_edge_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 38, end: 38))]
 }
 
-pub fn parse_rejects_static_node_when_spaces_exist_before_equal_test() {
+pub fn parse_rejects_literal_node_when_spaces_exist_before_equal_test() {
   let source = "-> out: Int { value   = 123 }"
 
   let assert Ok(tokens) =

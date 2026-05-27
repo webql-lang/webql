@@ -41,7 +41,7 @@ pub fn parse_graph_source_test() {
     == [token.Token(kind: token.EOF, span: source.Span(start: 4, end: 4))]
 }
 
-pub fn parse_static_test() {
+pub fn parse_literal_test() {
   let source = "123"
 
   let assert Ok(tokens) =
@@ -53,7 +53,7 @@ pub fn parse_static_test() {
 
   assert span == source.Span(start: 0, end: 3)
   assert output
-    == ast.Static(
+    == ast.Literal(
       span: source.Span(start: 0, end: 3),
       value: ast.Int(
         name: "Int",

@@ -31,7 +31,7 @@ pub fn lower_port_edge_test() {
 pub fn lower_value_edge_output_test() {
   let edge =
     hir.Edge(
-      source: hir.Static(
+      source: hir.Literal(
         value: hir.Int(
           name: "Int",
           value: 1,
@@ -51,7 +51,7 @@ pub fn lower_value_edge_output_test() {
 
   assert lower_edge.lower(edge)
     == graph.Edge(
-      source: graph.Static(value: graph.Int(1)),
+      source: graph.Literal(value: graph.Int(1)),
       target: graph.Input(path: ["m", "left"]),
     )
 }

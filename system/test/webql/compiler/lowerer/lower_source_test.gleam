@@ -28,7 +28,7 @@ pub fn lower_source_lowers_multi_part_port_output_test() {
 
 pub fn lower_source_lowers_int_value_test() {
   let output =
-    hir.Static(
+    hir.Literal(
       value: hir.Int(
         name: "Int",
         value: 42,
@@ -38,12 +38,12 @@ pub fn lower_source_lowers_int_value_test() {
       span: source.Span(start: 0, end: 2),
     )
 
-  assert lower_source.lower(output) == graph.Static(value: graph.Int(42))
+  assert lower_source.lower(output) == graph.Literal(value: graph.Int(42))
 }
 
 pub fn lower_source_lowers_float_value_test() {
   let output =
-    hir.Static(
+    hir.Literal(
       value: hir.Float(
         name: "Float",
         value: 3.14,
@@ -53,12 +53,12 @@ pub fn lower_source_lowers_float_value_test() {
       span: source.Span(start: 0, end: 4),
     )
 
-  assert lower_source.lower(output) == graph.Static(value: graph.Float(3.14))
+  assert lower_source.lower(output) == graph.Literal(value: graph.Float(3.14))
 }
 
 pub fn lower_source_lowers_string_value_test() {
   let output =
-    hir.Static(
+    hir.Literal(
       value: hir.String(
         name: "String",
         value: "hello",
@@ -69,5 +69,5 @@ pub fn lower_source_lowers_string_value_test() {
     )
 
   assert lower_source.lower(output)
-    == graph.Static(value: graph.String("hello"))
+    == graph.Literal(value: graph.String("hello"))
 }

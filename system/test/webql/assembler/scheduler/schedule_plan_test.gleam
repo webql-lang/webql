@@ -17,7 +17,7 @@ pub fn schedule_plan_builds_executable_plan_test() {
       ]),
       edges: [
         linker_program.Edge(
-          source: linker_program.Static(value: dynamic.int(0)),
+          source: linker_program.Literal(value: dynamic.int(0)),
           target: linker_program.Input(path: ["normalize", "zero"]),
         ),
         linker_program.Edge(
@@ -45,7 +45,7 @@ pub fn schedule_plan_builds_executable_plan_test() {
   assert edges
     == [
       plan.Edge(
-        source: plan.Static(value: dynamic.int(0)),
+        source: plan.Literal(value: dynamic.int(0)),
         target: plan.Input(path: ["normalize", "zero"]),
       ),
       plan.Edge(

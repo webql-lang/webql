@@ -56,6 +56,7 @@ pub type Port {
 ///
 /// ## Examples
 ///
+///     m = Math
 ///     Inner = in: Int -> out: Int { .in -> .out }
 pub type Node {
   Supernode(name: String, graph: Graph, span: source.Span)

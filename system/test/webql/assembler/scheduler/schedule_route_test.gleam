@@ -107,7 +107,7 @@ pub fn schedule_route_ignores_constants_test() {
   let dependencies =
     dependencies
     |> schedule_route.schedule(program.Edge(
-      source: program.Static(value: dynamic.int(1)),
+      source: program.Literal(value: dynamic.int(1)),
       target: program.Input(path: ["math", "r"]),
     ))
 
