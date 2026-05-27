@@ -22,8 +22,8 @@ fn typecheck_graph(context: context.Context, graph: hir.Graph) {
 
 fn typecheck_supernodes(context: context.Context, nodes: List(hir.Node)) {
   case nodes {
-    [hir.Supernode(reference:, graph:, ..), ..rest] -> {
-      let assert Ok(nested_context) = context.get_context(context, reference)
+    [hir.Supernode(reference:, graph:, span:, ..), ..rest] -> {
+      use nested_context <- result.try(get_context(context, reference, span))
 
       use _ok <- result.try(typecheck_graph(nested_context, graph))
       typecheck_supernodes(context, rest)
@@ -32,6 +32,17 @@ fn typecheck_supernodes(context: context.Context, nodes: List(hir.Node)) {
     [hir.Node(..), ..rest] -> typecheck_supernodes(context, rest)
 
     [] -> Ok(Nil)
+  }
+}
+
+fn get_context(context: context.Context, reference, span) {
+  case context.get_context(context, reference) {
+    Ok(context) -> Ok(context)
+    Error(_) ->
+      Error(diagnostic.Diagnostic(
+        kind: diagnostic.UnknownSupernode(reference),
+        span:,
+      ))
   }
 }
 
