@@ -6,15 +6,12 @@ import webql/compiler/parser/ast
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/register_edge
-import webql/compiler/resolver/register_node
 import webql/compiler/resolver/register_parameter
 import webql/compiler/resolver/register_return
-import webql/compiler/resolver/register_supernode
 import webql/compiler/resolver/resolve_edge
 import webql/compiler/resolver/resolve_node
 import webql/compiler/resolver/resolve_parameter
 import webql/compiler/resolver/resolve_return
-import webql/compiler/resolver/resolve_supernode
 
 /// Resolves a graph body and its nested declarations.
 pub fn resolve(
@@ -143,19 +140,12 @@ fn resolve_supernodes(
 ) {
   case nodes {
     [ast.Supernode(..) as supernode, ..nodes] -> {
-      let reference = context.next_supernode(context)
-
-      use #(supernode, sub_context) <- result.try(resolve_supernode.resolve(
+      use #(supernode, context, environment) <- result.try(resolve_node.resolve(
         environment,
         context,
         supernode,
-        reference,
         resolve,
       ))
-
-      let context = register_supernode.register(context, supernode, sub_context)
-
-      let environment = register_supernode_operation(environment, supernode)
 
       use #(nodes, context, environment) <- result.try(resolve_supernodes(
         environment,
@@ -172,31 +162,6 @@ fn resolve_supernodes(
   }
 }
 
-fn register_supernode_operation(
-  environment: environment.Environment,
-  supernode: hir.Node,
-) -> environment.Environment {
-  let assert hir.Supernode(name:, graph:, ..) = supernode
-
-  let environment = environment.add_operation(environment, name)
-  let assert Ok(operation) = environment.get_operation(environment, name)
-
-  let environment =
-    list.fold(graph.parameters, environment, fn(environment, parameter) {
-      environment.add_input(environment, operation, #(
-        parameter.name,
-        parameter.port.reference,
-      ))
-    })
-
-  list.fold(graph.returns, environment, fn(environment, return) {
-    environment.add_output(environment, operation, #(
-      return.name,
-      return.port.reference,
-    ))
-  })
-}
-
 fn resolve_nodes(
   environment: environment.Environment,
   context: context.Context,
@@ -204,16 +169,12 @@ fn resolve_nodes(
 ) {
   case nodes {
     [ast.Node(..) as node, ..nodes] -> {
-      let reference = context.next_node(context)
-
-      use node <- result.try(resolve_node.resolve(
+      use #(node, context, _environment) <- result.try(resolve_node.resolve(
         environment,
         context,
         node,
-        reference,
+        resolve,
       ))
-
-      let context = register_node.register(environment, context, node)
 
       use #(nodes, context) <- result.try(resolve_nodes(
         environment,

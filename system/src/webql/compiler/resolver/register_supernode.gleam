@@ -1,14 +1,13 @@
 import webql/compiler/context
-import webql/compiler/resolver/hir
+import webql/compiler/reference
 
 /// Registers a supernode.
 pub fn register(
   context: context.Context,
-  supernode: hir.Node,
+  name: String,
+  reference: reference.Supernode,
   sub_context: context.Context,
 ) -> context.Context {
-  let assert hir.Supernode(name:, reference:, ..) = supernode
-
   context
   |> context.add_supernode(name)
   |> context.add_context(reference, sub_context)
