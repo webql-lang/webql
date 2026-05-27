@@ -2,7 +2,7 @@ defmodule Webql.Schema.BuilderTest do
   use ExUnit.Case, async: true
 
   defmodule SearchOperation do
-    use Webql.Schema
+    use Webql.Schema.Operation
 
     operation do
       input(:query, :text)
@@ -13,40 +13,44 @@ defmodule Webql.Schema.BuilderTest do
     end
   end
 
-  test "builds an operation tuple from an operation schema" do
+  defmodule SearchSchema do
+    use Webql.Schema
+
+    ports([:text, :integer])
+    operations([SearchOperation])
+  end
+
+  test "builds a schema tuple from a schema module" do
     assert {
-             "SearchOperation",
-             {
-               :operation,
-               %{
-                 "query" => {:input, "query", "Text"},
-                 "limit" => {:input, "limit", "Integer"}
-               },
-               {:resolver, resolver},
-               %{
-                 "result" => {:output, "result", "Text"},
-                 "count" => {:output, "count", "Integer"}
+             :schema,
+             %{
+               "SearchOperation" => {
+                 :operation,
+                 %{
+                   "query" => {:input, "query", "Text"},
+                   "limit" => {:input, "limit", "Integer"}
+                 },
+                 {:resolver, resolver},
+                 %{
+                   "result" => {:output, "result", "Text"},
+                   "count" => {:output, "count", "Integer"}
+                 }
                }
-             }
-           } = Webql.Schema.Builder.build(SearchOperation)
+             },
+             [{:port, "Text"}, {:port, "Integer"}]
+           } = Webql.Schema.Builder.build(SearchSchema)
 
     assert resolver.(%{"query" => "webql"}) == {:ok, %{"query" => "webql"}}
   end
 
-  defmodule Nested.SpecialName do
+  defmodule EmptySchema do
     use Webql.Schema
 
-    operation do
-      resolve(fn inputs -> inputs end)
-    end
+    ports([])
+    operations([])
   end
 
-  test "derives the operation name from the final module segment" do
-    assert {
-             "SpecialName",
-             {:operation, %{}, {:resolver, resolver}, %{}}
-           } = Webql.Schema.Builder.build(Nested.SpecialName)
-
-    assert resolver.(%{}) == %{}
+  test "supports schemas without global ports or operations" do
+    assert Webql.Schema.Builder.build(EmptySchema) == {:schema, %{}, []}
   end
 end

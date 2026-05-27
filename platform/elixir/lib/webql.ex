@@ -1,25 +1,15 @@
 defmodule Webql do
-  @moduledoc """
-  Defines and runs WebQL instances.
-  """
-  use Spark.Dsl,
-    default_extensions: [extensions: [Webql.Dsl]]
-
   @doc """
-  Runs an operation with the given inputs.
+  Runs an operation with the given parameters.
   """
-  @callback run(source :: binary(), inputs :: map()) :: map()
+  @callback run(source :: binary(), schema :: module(), params :: map()) :: map()
 
   @doc """
   Compile-time options for a WebQL instance.
   """
   @callback __opts__() :: Keyword.t()
 
-  @doc false
-  @impl Spark.Dsl
-  def handle_opts(opts) do
-    opts = Macro.escape(opts)
-
+  defmacro __using__(opts) do
     quote location: :keep do
       @behaviour Webql
 
@@ -29,8 +19,8 @@ defmodule Webql do
       end
 
       @impl Webql
-      def run(source, inputs) do
-        Webql.run(__MODULE__, source, inputs)
+      def run(source, schema, params) do
+        Webql.run(__MODULE__, source, schema, params)
       end
 
       defoverridable Webql
@@ -38,17 +28,18 @@ defmodule Webql do
   end
 
   @doc false
-  def run(webql, source, inputs) when is_binary(source) and is_map(inputs) do
+  def run(webql, source, schema, params)
+      when is_binary(source) and is_atom(schema) and is_map(params) do
     opts = webql.__opts__()
 
     engine = Keyword.fetch!(opts, :engine)
     memory = Keyword.fetch!(opts, :memory)
 
-    schema = Webql.Builder.build(webql)
+    schema = Webql.Schema.Builder.build(schema)
 
     schema
     |> :webql.new(memory, engine)
-    |> :webql.run(source, inputs)
+    |> :webql.run(source, params)
   end
 
   @doc false

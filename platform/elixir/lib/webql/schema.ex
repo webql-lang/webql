@@ -1,6 +1,15 @@
 defmodule Webql.Schema do
   @moduledoc """
-  WebQL schema definitions.
+  The primary WebQL schema.
+
+  ## Examples
+
+      defmodule MyApp.Schema do
+        use Webql.Schema
+
+        ports [:string, :int, :float]
+        operations [MyApp.Schema.MathOperation]
+      end
   """
 
   use Spark.Dsl,
