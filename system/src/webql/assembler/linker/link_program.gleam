@@ -7,7 +7,7 @@ import webql/assembler/linker/program
 import webql/graph
 import webql/schema
 
-/// Links a graph document into a scheduler program.
+/// Links a graph into a scheduler program.
 pub fn link(
   graph: graph.Graph,
   schema: schema.Schema(task),

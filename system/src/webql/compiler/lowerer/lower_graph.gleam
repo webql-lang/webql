@@ -39,8 +39,8 @@ fn lower_nodes(
   case nodes {
     [hir.Supernode(..), ..nodes] -> lower_nodes(nodes, supernodes)
 
-    [node, ..nodes] -> {
-      let node = lower_node.lower(node, supernodes)
+    [hir.Node(name:, node:, ..), ..nodes] -> {
+      let node = lower_node.lower(name, node, supernodes)
       [node, ..lower_nodes(nodes, supernodes)]
     }
 
