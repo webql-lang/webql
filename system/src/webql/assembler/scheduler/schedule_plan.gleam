@@ -81,12 +81,9 @@ fn schedule_batch(
   steps: List(plan.Step(task)),
 ) -> Result(List(plan.Step(task)), diagnostic.Diagnostic) {
   case batch {
-    [node, ..batch] -> {
-      use step_node <- result.try(schedule_step(nodes, node))
-      schedule_batch(batch, nodes, [
-        plan.Step(name: node, node: step_node),
-        ..steps
-      ])
+    [name, ..batch] -> {
+      use node <- result.try(schedule_step(nodes, name))
+      schedule_batch(batch, nodes, [plan.Step(name:, node:), ..steps])
     }
 
     [] -> Ok(list.reverse(steps))

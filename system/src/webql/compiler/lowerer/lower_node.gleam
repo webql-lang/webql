@@ -11,7 +11,7 @@ pub fn lower(
   supernodes: List(#(String, graph.Graph)),
 ) -> graph.Node {
   case node {
-    hir.Supernode(name:, graph: graph, ..) ->
+    hir.Supernode(name:, graph:, ..) ->
       graph.Supernode(name:, graph: lower_graph(graph))
 
     hir.Node(name:, node:, ..) -> lower_node(name, node, supernodes)

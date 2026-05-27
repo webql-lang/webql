@@ -76,7 +76,8 @@ fn resolve_supernode(
 
   let reference = context.next_supernode(context)
 
-  let nested_context =
+  use #(graph, sub_context) <- result.try(resolve_graph(
+    environment,
     context.Context(
       ..context,
       parameters: dict.new(),
@@ -85,11 +86,7 @@ fn resolve_supernode(
       outputs: dict.new(),
       nodes: dict.new(),
       edges: dict.new(),
-    )
-
-  use #(graph, sub_context) <- result.try(resolve_graph(
-    environment,
-    nested_context,
+    ),
     graph,
   ))
 
