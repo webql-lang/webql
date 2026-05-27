@@ -8,26 +8,26 @@ import webql/compiler/resolver/diagnostic as resolver_diagnostic
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic as typechecker_diagnostic
 import webql/graph
-import webql/introspection as schema
+import webql/introspection
 
-pub fn compile_resolves_module_test() {
-  let operation_source = "-> out: Int {}"
+pub fn compile_resolves_document_test() {
+  let graph_source = "-> out: Int {}"
 
   let c =
     compiler.new(
-      schema.Schema(
+      introspection.Schema(
         operations: [
-          schema.Operation(name: "Types", inputs: [], outputs: [
-            schema.Output(name: "value", port: "Int"),
+          introspection.Operation(name: "Types", inputs: [], outputs: [
+            introspection.Output(name: "value", port: "Int"),
           ]),
         ],
         ports: [],
       ),
     )
 
-  let assert Ok(document) = compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
-  assert document
+  assert graph
     == graph.Graph(
       parameters: [],
       returns: [graph.Return(name: "out", port: "Int")],
@@ -36,28 +36,28 @@ pub fn compile_resolves_module_test() {
     )
 }
 
-pub fn compile_materializes_node_binding_ports_test() {
-  let operation_source =
+pub fn compile_materializes_node_ports_test() {
+  let graph_source =
     "in: Int -> out: Int { m = Math .in -> m.l 1 -> m.r m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
+      introspection.Schema(
         operations: [
-          schema.Operation(
+          introspection.Operation(
             name: "Math",
             inputs: [
-              schema.Input(name: "r", port: "Int"),
-              schema.Input(name: "l", port: "Int"),
+              introspection.Input(name: "r", port: "Int"),
+              introspection.Input(name: "l", port: "Int"),
             ],
-            outputs: [schema.Output(name: "value", port: "Int")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
         ],
         ports: [],
       ),
     )
 
-  let assert Ok(graph) = compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
   assert graph.nodes == [graph.Node(name: "m", node: "Math")]
 
@@ -78,33 +78,33 @@ pub fn compile_materializes_node_binding_ports_test() {
     ]
 }
 
-pub fn compile_materializes_definition_binding_ports_test() {
-  let operation_source =
+pub fn compile_materializes_supernode_and_node_ports_test() {
+  let graph_source =
     "in: Int -> out: Int { SubOperation = in: String -> out: Int { ti = ToInt .in -> ti.value ti.value -> .out } m = Math so = SubOperation \"123\" -> so.in so.out -> m.l .in -> m.r m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
+      introspection.Schema(
         operations: [
-          schema.Operation(
+          introspection.Operation(
             name: "ToInt",
-            inputs: [schema.Input(name: "value", port: "String")],
-            outputs: [schema.Output(name: "value", port: "Int")],
+            inputs: [introspection.Input(name: "value", port: "String")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
-          schema.Operation(
+          introspection.Operation(
             name: "Math",
             inputs: [
-              schema.Input(name: "l", port: "Int"),
-              schema.Input(name: "r", port: "Int"),
+              introspection.Input(name: "l", port: "Int"),
+              introspection.Input(name: "r", port: "Int"),
             ],
-            outputs: [schema.Output(name: "value", port: "Int")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
         ],
         ports: [],
       ),
     )
 
-  let assert Ok(graph) = compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
   assert graph.nodes
     == [
@@ -151,22 +151,22 @@ pub fn compile_materializes_definition_binding_ports_test() {
 }
 
 pub fn compile_ignores_unknown_node_port_registration_test() {
-  let operation_source =
+  let graph_source =
     "in: Int -> out: Int { m = Math .in -> m.l m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
+      introspection.Schema(
         operations: [
-          schema.Operation(name: "Math", inputs: [], outputs: [
-            schema.Output(name: "value", port: "Int"),
+          introspection.Operation(name: "Math", inputs: [], outputs: [
+            introspection.Output(name: "value", port: "Int"),
           ]),
         ],
         ports: [],
       ),
     )
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(
@@ -177,24 +177,24 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
     )
 }
 
-pub fn compile_rejects_port_typename_mismatch_test() {
-  let operation_source = "-> out: Int { m = Math m.value -> .out }"
+pub fn compile_rejects_port_mismatch_test() {
+  let graph_source = "-> out: Int { m = Math m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
+      introspection.Schema(
         operations: [
-          schema.Operation(
+          introspection.Operation(
             name: "Math",
-            inputs: [schema.Input(name: "unused", port: "Int")],
-            outputs: [schema.Output(name: "value", port: "String")],
+            inputs: [introspection.Input(name: "unused", port: "Int")],
+            outputs: [introspection.Output(name: "value", port: "String")],
           ),
         ],
         ports: [],
       ),
     )
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(
@@ -209,7 +209,7 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operations: [], ports: []))
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "!")
 
@@ -221,7 +221,7 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operations: [], ports: []))
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "{")
 
@@ -235,10 +235,10 @@ pub fn compile_wraps_parser_diagnostic_test() {
 }
 
 pub fn compile_wraps_resolver_diagnostic_test() {
-  let operation_source = "-> out: Int {}"
-  let c = compiler.new(schema.Schema(operations: [], ports: []))
+  let graph_source = "-> out: Int {}"
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(

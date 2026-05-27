@@ -88,7 +88,7 @@ pub fn assembler_assembles_graph_with_external_node_test() {
   assert batch_step_names == [["user"]]
 }
 
-pub fn assembler_reports_unknown_operator_test() {
+pub fn assembler_reports_unknown_operation_test() {
   let schema = schema.Schema(operations: dict.new(), ports: [])
   let a = assembler.new(schema)
 
@@ -103,7 +103,7 @@ pub fn assembler_reports_unknown_operator_test() {
   let assert Error(d) = assembler.assemble(a, document)
 
   assert d.kind
-    == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperator(
+    == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperation(
       "UnknownOp",
     ))
 }

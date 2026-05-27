@@ -26,6 +26,6 @@ fn link_resolver(
     Ok(schema.Operation(resolver:, ..)) -> Ok(resolver)
 
     Error(_nil) ->
-      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOperator(node)))
+      Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOperation(node)))
   }
 }

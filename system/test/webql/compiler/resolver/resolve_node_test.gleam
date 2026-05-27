@@ -7,7 +7,7 @@ import webql/compiler/resolver/hir
 import webql/compiler/resolver/resolve_node
 import webql/compiler/source
 
-pub fn resolve_node_node_test() {
+pub fn resolve_node_test() {
   let schema = environment.add_operation(environment.new(), "Math")
 
   let node_to_resolve =

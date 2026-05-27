@@ -1,5 +1,5 @@
 import webql/compiler/context
-import webql/compiler/environment as schema
+import webql/compiler/environment
 import webql/compiler/parser/ast
 import webql/compiler/reference
 import webql/compiler/resolver
@@ -8,7 +8,7 @@ import webql/compiler/resolver/hir
 import webql/compiler/source
 
 pub fn resolve_document_through_public_entrypoint_test() {
-  let schema = schema.add_port(schema.new(), "Int")
+  let schema = environment.add_port(environment.new(), "Int")
   let context = context.new()
 
   let document_to_resolve =
@@ -95,7 +95,7 @@ pub fn resolve_document_through_public_entrypoint_test() {
 }
 
 pub fn resolve_returns_duplicate_edge_from_public_entrypoint_test() {
-  let schema = schema.add_port(schema.new(), "Int")
+  let schema = environment.add_port(environment.new(), "Int")
   let context = context.new()
 
   let document_to_resolve =

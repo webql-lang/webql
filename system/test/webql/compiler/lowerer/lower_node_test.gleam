@@ -4,7 +4,7 @@ import webql/compiler/resolver/hir
 import webql/compiler/source
 import webql/graph
 
-pub fn lower_external_node_node_test() {
+pub fn lower_external_node_test() {
   let node =
     hir.Node(
       name: "m",
@@ -17,7 +17,7 @@ pub fn lower_external_node_node_test() {
   assert lower_node.lower(node, []) == graph.Node(name: "m", node: "Math")
 }
 
-pub fn lower_inline_node_node_test() {
+pub fn lower_inline_node_test() {
   let graph = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
   let node =

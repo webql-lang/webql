@@ -9,13 +9,12 @@ pub type Graph {
   )
 }
 
-/// A declared incoming interface on an operation.
+/// A declared incoming interface on a graph.
 pub type Parameter {
   Parameter(name: String, port: String)
 }
 
-/// A declared outgoing interface on an operation.
-///
+/// A declared outgoing interface on a graph.
 pub type Return {
   Return(name: String, port: String)
 }

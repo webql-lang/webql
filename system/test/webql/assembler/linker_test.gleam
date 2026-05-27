@@ -6,7 +6,7 @@ import webql/assembler/linker/program
 import webql/graph
 import webql/schema
 
-pub fn linker_links_graph_module_test() {
+pub fn linker_links_graph_document_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -62,7 +62,7 @@ pub fn linker_links_constant_edges_test() {
     ]
 }
 
-pub fn linker_reports_unknown_operators_test() {
+pub fn linker_reports_unknown_operations_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -75,14 +75,16 @@ pub fn linker_reports_unknown_operators_test() {
   let result = linker.link(l, operations())
 
   assert result
-    == Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOperator("Missing")))
+    == Error(
+      diagnostic.Diagnostic(kind: diagnostic.UnknownOperation("Missing")),
+    )
 }
 
 fn resolver() {
   schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
-fn operator() {
+fn operation() {
   schema.Operation(
     inputs: dict.new(),
     outputs: dict.new(),
@@ -92,7 +94,7 @@ fn operator() {
 
 fn operations() {
   schema.Schema(
-    operations: dict.from_list([#("GetUser", operator())]),
+    operations: dict.from_list([#("GetUser", operation())]),
     ports: [],
   )
 }

@@ -15,10 +15,12 @@ pub fn link_node_links_external_nodes_test() {
   }
 }
 
-pub fn link_node_reports_unknown_operators_test() {
-  assert link_node.link("missing", "MissingOperator", operations())
+pub fn link_node_reports_unknown_operations_test() {
+  assert link_node.link("missing", "MissingOperation", operations())
     == Error(
-      diagnostic.Diagnostic(kind: diagnostic.UnknownOperator("MissingOperator")),
+      diagnostic.Diagnostic(kind: diagnostic.UnknownOperation(
+        "MissingOperation",
+      )),
     )
 }
 
@@ -26,7 +28,7 @@ fn resolver() {
   schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
-fn operator() {
+fn operation() {
   schema.Operation(
     inputs: dict.new(),
     outputs: dict.new(),
@@ -35,5 +37,5 @@ fn operator() {
 }
 
 fn operations() {
-  schema.Schema(operations: dict.from_list([#("Add", operator())]), ports: [])
+  schema.Schema(operations: dict.from_list([#("Add", operation())]), ports: [])
 }

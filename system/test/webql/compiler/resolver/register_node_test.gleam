@@ -6,7 +6,7 @@ import webql/compiler/resolver/hir
 import webql/compiler/resolver/register_node
 import webql/compiler/source
 
-pub fn register_registers_node_node_ports_from_schema_test() {
+pub fn register_registers_node_ports_from_schema_test() {
   let schema =
     environment.new()
     |> environment.add_operation("Math")

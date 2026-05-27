@@ -52,7 +52,7 @@ fn resolver() {
   schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
-fn operator() {
+fn operation() {
   schema.Operation(
     inputs: dict.new(),
     outputs: dict.new(),
@@ -62,7 +62,7 @@ fn operator() {
 
 fn operations() {
   schema.Schema(
-    operations: dict.from_list([#("GetUser", operator())]),
+    operations: dict.from_list([#("GetUser", operation())]),
     ports: [],
   )
 }
