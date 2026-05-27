@@ -8,169 +8,165 @@ import webql/compiler/resolver/diagnostic as resolver_diagnostic
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic as typechecker_diagnostic
 import webql/graph
-import webql/introspection as schema
+import webql/introspection
 
-pub fn compile_resolves_module_test() {
-  let operation_source = "-> out: Int {}"
+pub fn compile_resolves_document_test() {
+  let graph_source = "-> out: Int {}"
 
   let c =
     compiler.new(
-      schema.Schema(
-        operators: [
-          schema.Operator(name: "Types", parameters: [], returns: [
-            schema.Return(name: "value", typename: "Int"),
+      introspection.Schema(
+        operations: [
+          introspection.Operation(name: "Types", inputs: [], outputs: [
+            introspection.Output(name: "value", port: "Int"),
           ]),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
-  let assert Ok(module) = compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
-  assert module
-    == graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [graph.Return(name: "out", typename: "Int")],
-        nodes: [],
-        edges: [],
-      ),
+  assert graph
+    == graph.Graph(
+      parameters: [],
+      returns: [graph.Return(name: "out", port: "Int")],
+      nodes: [],
+      edges: [],
     )
 }
 
-pub fn compile_materializes_node_binding_ports_test() {
-  let operation_source =
+pub fn compile_materializes_node_ports_test() {
+  let graph_source =
     "in: Int -> out: Int { m = Math .in -> m.l 1 -> m.r m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
-        operators: [
-          schema.Operator(
+      introspection.Schema(
+        operations: [
+          introspection.Operation(
             name: "Math",
-            parameters: [
-              schema.Parameter(name: "r", typename: "Int"),
-              schema.Parameter(name: "l", typename: "Int"),
+            inputs: [
+              introspection.Input(name: "r", port: "Int"),
+              introspection.Input(name: "l", port: "Int"),
             ],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) =
-    compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
-  assert operation.nodes == [graph.ExternalNode(name: "m", node: "Math")]
+  assert graph.nodes == [graph.Node(name: "m", node: "Math")]
 
-  assert operation.edges
+  assert graph.edges
     == [
       graph.Edge(
-        from: graph.Output(path: ["in"]),
-        to: graph.Input(path: ["m", "l"]),
+        source: graph.Output(path: ["in"]),
+        target: graph.Input(path: ["m", "l"]),
       ),
       graph.Edge(
-        from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-        to: graph.Input(path: ["m", "r"]),
+        source: graph.Literal(value: graph.Int(1)),
+        target: graph.Input(path: ["m", "r"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["m", "value"]),
-        to: graph.Input(path: ["out"]),
+        source: graph.Output(path: ["m", "value"]),
+        target: graph.Input(path: ["out"]),
       ),
     ]
 }
 
-pub fn compile_materializes_definition_binding_ports_test() {
-  let operation_source =
+pub fn compile_materializes_supernode_and_node_ports_test() {
+  let graph_source =
     "in: Int -> out: Int { SubOperation = in: String -> out: Int { ti = ToInt .in -> ti.value ti.value -> .out } m = Math so = SubOperation \"123\" -> so.in so.out -> m.l .in -> m.r m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
-        operators: [
-          schema.Operator(
+      introspection.Schema(
+        operations: [
+          introspection.Operation(
             name: "ToInt",
-            parameters: [schema.Parameter(name: "value", typename: "String")],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            inputs: [introspection.Input(name: "value", port: "String")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
-          schema.Operator(
+          introspection.Operation(
             name: "Math",
-            parameters: [
-              schema.Parameter(name: "l", typename: "Int"),
-              schema.Parameter(name: "r", typename: "Int"),
+            inputs: [
+              introspection.Input(name: "l", port: "Int"),
+              introspection.Input(name: "r", port: "Int"),
             ],
-            returns: [schema.Return(name: "value", typename: "Int")],
+            outputs: [introspection.Output(name: "value", port: "Int")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
-  let assert Ok(graph.Module(operation:)) =
-    compiler.compile(c, operation_source)
+  let assert Ok(graph) = compiler.compile(c, graph_source)
 
-  assert operation.nodes
+  assert graph.nodes
     == [
-      graph.ExternalNode(name: "m", node: "Math"),
-      graph.InlineNode(
+      graph.Node(name: "m", node: "Math"),
+      graph.Supernode(
         name: "so",
-        operation: graph.Operation(
-          parameters: [graph.Parameter(name: "in", typename: "String")],
-          returns: [graph.Return(name: "out", typename: "Int")],
-          nodes: [graph.ExternalNode(name: "ti", node: "ToInt")],
+        graph: graph.Graph(
+          parameters: [graph.Parameter(name: "in", port: "String")],
+          returns: [graph.Return(name: "out", port: "Int")],
+          nodes: [graph.Node(name: "ti", node: "ToInt")],
           edges: [
             graph.Edge(
-              from: graph.Output(path: ["in"]),
-              to: graph.Input(path: ["ti", "value"]),
+              source: graph.Output(path: ["in"]),
+              target: graph.Input(path: ["ti", "value"]),
             ),
             graph.Edge(
-              from: graph.Output(path: ["ti", "value"]),
-              to: graph.Input(path: ["out"]),
+              source: graph.Output(path: ["ti", "value"]),
+              target: graph.Input(path: ["out"]),
             ),
           ],
         ),
       ),
     ]
 
-  assert operation.edges
+  assert graph.edges
     == [
       graph.Edge(
-        from: graph.PrimitiveOutput(value: graph.StringPrimitive("123")),
-        to: graph.Input(path: ["so", "in"]),
+        source: graph.Literal(value: graph.String("123")),
+        target: graph.Input(path: ["so", "in"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["so", "out"]),
-        to: graph.Input(path: ["m", "l"]),
+        source: graph.Output(path: ["so", "out"]),
+        target: graph.Input(path: ["m", "l"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["in"]),
-        to: graph.Input(path: ["m", "r"]),
+        source: graph.Output(path: ["in"]),
+        target: graph.Input(path: ["m", "r"]),
       ),
       graph.Edge(
-        from: graph.Output(path: ["m", "value"]),
-        to: graph.Input(path: ["out"]),
+        source: graph.Output(path: ["m", "value"]),
+        target: graph.Input(path: ["out"]),
       ),
     ]
 }
 
 pub fn compile_ignores_unknown_node_port_registration_test() {
-  let operation_source =
+  let graph_source =
     "in: Int -> out: Int { m = Math .in -> m.l m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
-        operators: [
-          schema.Operator(name: "Math", parameters: [], returns: [
-            schema.Return(name: "value", typename: "Int"),
+      introspection.Schema(
+        operations: [
+          introspection.Operation(name: "Math", inputs: [], outputs: [
+            introspection.Output(name: "value", port: "Int"),
           ]),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(
@@ -181,31 +177,31 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
     )
 }
 
-pub fn compile_rejects_port_typename_mismatch_test() {
-  let operation_source = "-> out: Int { m = Math m.value -> .out }"
+pub fn compile_rejects_port_mismatch_test() {
+  let graph_source = "-> out: Int { m = Math m.value -> .out }"
 
   let c =
     compiler.new(
-      schema.Schema(
-        operators: [
-          schema.Operator(
+      introspection.Schema(
+        operations: [
+          introspection.Operation(
             name: "Math",
-            parameters: [schema.Parameter(name: "unused", typename: "Int")],
-            returns: [schema.Return(name: "value", typename: "String")],
+            inputs: [introspection.Input(name: "unused", port: "Int")],
+            outputs: [introspection.Output(name: "value", port: "String")],
           ),
         ],
-        typenames: [],
+        ports: [],
       ),
     )
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(
       kind: diagnostic.TypecheckerDiagnostic(
         typechecker_diagnostic.TypeMismatch(
-          expected: reference.Typename(0),
-          found: reference.Typename(1),
+          expected: reference.Port(0),
+          found: reference.Port(1),
         ),
       ),
       span: source.Span(start: 23, end: 38),
@@ -213,7 +209,7 @@ pub fn compile_rejects_port_typename_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "!")
 
@@ -225,7 +221,7 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "{")
 
@@ -239,16 +235,14 @@ pub fn compile_wraps_parser_diagnostic_test() {
 }
 
 pub fn compile_wraps_resolver_diagnostic_test() {
-  let operation_source = "-> out: Int {}"
-  let c = compiler.new(schema.Schema(operators: [], typenames: []))
+  let graph_source = "-> out: Int {}"
+  let c = compiler.new(introspection.Schema(operations: [], ports: []))
 
-  let assert Error(error) = compiler.compile(c, operation_source)
+  let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownTypename(
-        "Int",
-      )),
+      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownPort("Int")),
       span: source.Span(start: 8, end: 11),
     )
 }

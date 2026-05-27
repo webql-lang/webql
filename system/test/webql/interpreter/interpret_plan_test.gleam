@@ -2,17 +2,22 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/document
 import webql/engine/basic
 import webql/interpreter/interpret_plan
 import webql/memory/kv
+import webql/schema
 
 pub fn interpret_plan_routes_parameter_to_output_test() {
   let engine = basic.new()
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [plan.Route(from: ["input"], to: ["output"])],
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["input"]),
+            target: plan.Input(path: ["output"]),
+          ),
+        ],
         batches: [],
       ),
       kv.new(),
@@ -20,9 +25,9 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
       dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Ok(outputs) = result
         let assert Ok(outputs) =
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
@@ -39,16 +44,22 @@ pub fn interpret_plan_runs_function_resolver_test() {
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [
-          plan.Route(from: ["input"], to: ["inc", "n"]),
-          plan.Route(from: ["inc", "value"], to: ["output"]),
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["input"]),
+            target: plan.Input(path: ["inc", "n"]),
+          ),
+          plan.Edge(
+            source: plan.Output(path: ["inc", "value"]),
+            target: plan.Input(path: ["output"]),
+          ),
         ],
         batches: [
-          plan.Batch(batch: [
+          plan.Batch(steps: [
             plan.Step(
               name: "inc",
-              resolver: plan.FunctionResolver(
-                document.Resolver(resolver: fn(inputs) {
+              node: plan.Node(
+                schema.Resolver(resolver: fn(inputs) {
                   let assert Ok(inputs) =
                     decode.run(
                       inputs,
@@ -57,8 +68,8 @@ pub fn interpret_plan_runs_function_resolver_test() {
                   let assert Ok(raw_number) = dict.get(inputs, "n")
                   let assert Ok(number) = decode.run(raw_number, decode.int)
 
-                  engine.finish_plan(
-                    engine.start_plan(fn() { Ok(#(kv.new(), [])) }),
+                  engine.handle_finish_plan(
+                    engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
                     fn(_memory) {
                       Ok(
                         dynamic.properties([
@@ -78,9 +89,9 @@ pub fn interpret_plan_runs_function_resolver_test() {
       dynamic.properties([#(dynamic.string("input"), dynamic.int(4))]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Ok(outputs) = result
         let assert Ok(outputs) =
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
@@ -97,7 +108,12 @@ pub fn interpret_plan_reports_missing_return_test() {
   let task =
     interpret_plan.interpret(
       plan.Plan(
-        routes: [plan.Route(from: ["missing"], to: ["output"])],
+        edges: [
+          plan.Edge(
+            source: plan.Output(path: ["missing"]),
+            target: plan.Input(path: ["output"]),
+          ),
+        ],
         batches: [],
       ),
       kv.new(),
@@ -105,9 +121,9 @@ pub fn interpret_plan_reports_missing_return_test() {
       dynamic.properties([]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
         Ok(kv.new())
       }),

@@ -2,65 +2,67 @@ import gleam/dict
 import gleam/dynamic
 import webql/assembler/linker/link_program
 import webql/assembler/linker/program
-import webql/document
 import webql/graph
+import webql/schema
 
 pub fn link_program_links_operation_test() {
-  let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [],
-      ),
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [],
     )
 
-  let assert Ok(linked) = link_program.link(module, document())
+  let assert Ok(linked) = link_program.link(document, operations())
 
-  assert linked.routes == []
+  assert linked.edges == []
   assert case dict.get(linked.nodes, "user") {
-    Ok(program.FunctionResolver(_)) -> True
+    Ok(program.Node(_)) -> True
     _ -> False
   }
 }
 
 pub fn link_program_links_edges_to_routes_test() {
-  let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.Output(path: ["user_id"]),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-        ],
-      ),
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Output(path: ["user_id"]),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+      ],
     )
 
-  let assert Ok(linked) = link_program.link(module, document())
+  let assert Ok(linked) = link_program.link(document, operations())
 
-  assert linked.routes == [program.Route(from: ["user_id"], to: ["user", "id"])]
+  assert linked.edges
+    == [
+      program.Edge(
+        source: program.Output(path: ["user_id"]),
+        target: program.Input(path: ["user", "id"]),
+      ),
+    ]
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
+  schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }
 
-fn operator() {
-  document.Operator(
-    parameters: dict.new(),
-    returns: dict.new(),
+fn operation() {
+  schema.Operation(
+    inputs: dict.new(),
+    outputs: dict.new(),
     resolver: resolver(),
   )
 }
 
-fn document() {
-  document.Document(
-    operators: dict.from_list([#("GetUser", operator())]),
-    typenames: [],
+fn operations() {
+  schema.Schema(
+    operations: dict.from_list([#("GetUser", operation())]),
+    ports: [],
   )
 }

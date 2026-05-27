@@ -8,15 +8,14 @@ pub fn lower_return_test() {
   let return =
     hir.Return(
       name: "out",
-      typename: hir.Typename(
+      port: hir.Port(
         name: "Int",
-        reference: reference.Typename(0),
+        reference: reference.Port(0),
         span: source.Span(start: 8, end: 11),
       ),
       reference: reference.Return(0),
       span: source.Span(start: 3, end: 11),
     )
 
-  assert lower_return.lower(return)
-    == graph.Return(name: "out", typename: "Int")
+  assert lower_return.lower(return) == graph.Return(name: "out", port: "Int")
 }

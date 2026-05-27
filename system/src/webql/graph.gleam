@@ -1,12 +1,7 @@
-/// The root container for a single lowered top-level operation.
-pub type Module {
-  Module(operation: Operation)
-}
-
 /// A lowered executable graph with declared interfaces, node instances, and
 /// edges between concrete ports.
-pub type Operation {
-  Operation(
+pub type Graph {
+  Graph(
     parameters: List(Parameter),
     returns: List(Return),
     nodes: List(Node),
@@ -14,42 +9,41 @@ pub type Operation {
   )
 }
 
-/// A declared incoming interface on an operation.
+/// A declared incoming interface on a graph.
 pub type Parameter {
-  Parameter(name: String, typename: String)
+  Parameter(name: String, port: String)
 }
 
-/// A declared outgoing interface on an operation.
-///
+/// A declared outgoing interface on a graph.
 pub type Return {
-  Return(name: String, typename: String)
+  Return(name: String, port: String)
 }
 
-/// A node inside an operation.
+/// A node inside a graph.
 pub type Node {
-  ExternalNode(name: String, node: String)
-  InlineNode(name: String, operation: Operation)
+  Supernode(name: String, graph: Graph)
+  Node(name: String, node: String)
 }
 
 /// A directed connection from a producing value to a receiving location.
 pub type Edge {
-  Edge(from: Output, to: Input)
-}
-
-/// A location that can receive data from an edge.
-pub type Input {
-  Input(path: List(String))
+  Edge(source: Source, target: Target)
 }
 
 /// A value that can produce data into an edge.
-pub type Output {
+pub type Source {
   Output(path: List(String))
-  PrimitiveOutput(value: Primitive)
+  Literal(value: Value)
+}
+
+/// A location that can receive data from an edge.
+pub type Target {
+  Input(path: List(String))
 }
 
 /// A literal value embedded in the graph.
-pub type Primitive {
-  IntPrimitive(value: Int)
-  FloatPrimitive(value: Float)
-  StringPrimitive(value: String)
+pub type Value {
+  Int(value: Int)
+  Float(value: Float)
+  String(value: String)
 }

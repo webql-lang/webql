@@ -8,5 +8,5 @@ pub fn register(
 ) -> context.Context {
   context
   |> context.add_parameter(parameter.name)
-  |> context.add_output([parameter.name], parameter.typename.reference)
+  |> context.add_output([parameter.name], parameter.port.reference)
 }

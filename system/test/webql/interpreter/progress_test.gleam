@@ -25,14 +25,20 @@ pub fn progress_reports_missing_step_input_test() {
     message: _,
   ))) =
     progress.get_inputs(kv.new(), "op", [
-      plan.Route(from: ["missing"], to: ["op", "value"]),
+      plan.Edge(
+        source: plan.Output(path: ["missing"]),
+        target: plan.Input(path: ["op", "value"]),
+      ),
     ])
 }
 
 pub fn progress_gets_constant_returns_test() {
   let assert Ok(raw) =
     progress.get_returns(kv.new(), [
-      plan.Constant(value: dynamic.int(99), to: ["output"]),
+      plan.Edge(
+        source: plan.Literal(value: dynamic.int(99)),
+        target: plan.Input(path: ["output"]),
+      ),
     ])
   let assert Ok(returns) =
     decode.run(raw, decode.dict(decode.string, decode.dynamic))
@@ -43,7 +49,10 @@ pub fn progress_gets_constant_returns_test() {
 
 pub fn progress_reports_missing_route_return_test() {
   assert progress.get_returns(kv.new(), [
-      plan.Route(from: ["missing"], to: ["output"]),
+      plan.Edge(
+        source: plan.Output(path: ["missing"]),
+        target: plan.Input(path: ["output"]),
+      ),
     ])
     == Error(dynamic.nil())
 }

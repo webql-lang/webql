@@ -5,22 +5,22 @@ import webql/compiler/reference
 
 pub type Context {
   Context(
-    bindings: dict.Dict(String, reference.Binding),
-    definitions: dict.Dict(String, reference.Definition),
+    nodes: dict.Dict(String, reference.Node),
+    supernodes: dict.Dict(String, reference.Supernode),
     edges: dict.Dict(reference.Input, reference.Edge),
-    inputs: dict.Dict(List(String), #(reference.Input, reference.Typename)),
-    outputs: dict.Dict(List(String), #(reference.Output, reference.Typename)),
+    inputs: dict.Dict(List(String), #(reference.Input, reference.Port)),
+    outputs: dict.Dict(List(String), #(reference.Output, reference.Port)),
     parameters: dict.Dict(String, reference.Parameter),
     returns: dict.Dict(String, reference.Return),
-    contexts: dict.Dict(reference.Definition, Context),
+    contexts: dict.Dict(reference.Supernode, Context),
   )
 }
 
 /// Creates a new context.
 pub fn new() -> Context {
   Context(
-    bindings: dict.new(),
-    definitions: dict.new(),
+    nodes: dict.new(),
+    supernodes: dict.new(),
     edges: dict.new(),
     inputs: dict.new(),
     outputs: dict.new(),
@@ -30,44 +30,44 @@ pub fn new() -> Context {
   )
 }
 
-/// Adds a binding to the current context instance.
-pub fn add_binding(context: Context, binding: String) -> Context {
-  let Context(bindings:, ..) = context
+/// Adds a node to the current context instance.
+pub fn add_node(context: Context, node: String) -> Context {
+  let Context(nodes:, ..) = context
 
   Context(
     ..context,
-    bindings: dict.upsert(bindings, binding, fn(binding) {
-      case binding {
-        option.Some(binding) -> binding
-        option.None -> next_binding(context)
+    nodes: dict.upsert(nodes, node, fn(node) {
+      case node {
+        option.Some(node) -> node
+        option.None -> next_node(context)
       }
     }),
   )
 }
 
-/// Adds bindings to the current context instance.
-pub fn add_bindings(context: Context, bindings: List(String)) -> Context {
-  list.fold(bindings, context, add_binding)
+/// Adds nodes to the current context instance.
+pub fn add_nodes(context: Context, nodes: List(String)) -> Context {
+  list.fold(nodes, context, add_node)
 }
 
-/// Adds a definition to the current context instance.
-pub fn add_definition(context: Context, definition: String) -> Context {
-  let Context(definitions:, ..) = context
+/// Adds a supernode to the current context instance.
+pub fn add_supernode(context: Context, supernode: String) -> Context {
+  let Context(supernodes:, ..) = context
 
   Context(
     ..context,
-    definitions: dict.upsert(definitions, definition, fn(definition) {
-      case definition {
-        option.Some(definition) -> definition
-        option.None -> next_definition(context)
+    supernodes: dict.upsert(supernodes, supernode, fn(supernode) {
+      case supernode {
+        option.Some(supernode) -> supernode
+        option.None -> next_supernode(context)
       }
     }),
   )
 }
 
-/// Adds definitions to the current context instance.
-pub fn add_definitions(context: Context, definitions: List(String)) -> Context {
-  list.fold(definitions, context, add_definition)
+/// Adds supernodes to the current context instance.
+pub fn add_supernodes(context: Context, supernodes: List(String)) -> Context {
+  list.fold(supernodes, context, add_supernode)
 }
 
 /// Adds an edge to the current context instance.
@@ -94,7 +94,7 @@ pub fn add_edges(context: Context, edges: List(reference.Input)) -> Context {
 pub fn add_input(
   context: Context,
   input: List(String),
-  typename: reference.Typename,
+  port: reference.Port,
 ) -> Context {
   let Context(inputs:, ..) = context
 
@@ -103,7 +103,7 @@ pub fn add_input(
     inputs: dict.upsert(inputs, input, fn(input) {
       case input {
         option.Some(input) -> input
-        option.None -> #(next_input(context), typename)
+        option.None -> #(next_input(context), port)
       }
     }),
   )
@@ -112,11 +112,11 @@ pub fn add_input(
 /// Adds typed inputs to the current context instance.
 pub fn add_inputs(
   context: Context,
-  inputs: List(#(List(String), reference.Typename)),
+  inputs: List(#(List(String), reference.Port)),
 ) -> Context {
   list.fold(inputs, context, fn(context, input) {
-    let #(path, typename) = input
-    add_input(context, path, typename)
+    let #(path, port) = input
+    add_input(context, path, port)
   })
 }
 
@@ -124,7 +124,7 @@ pub fn add_inputs(
 pub fn add_output(
   context: Context,
   output: List(String),
-  typename: reference.Typename,
+  port: reference.Port,
 ) -> Context {
   let Context(outputs:, ..) = context
 
@@ -133,7 +133,7 @@ pub fn add_output(
     outputs: dict.upsert(outputs, output, fn(output) {
       case output {
         option.Some(output) -> output
-        option.None -> #(next_output(context), typename)
+        option.None -> #(next_output(context), port)
       }
     }),
   )
@@ -142,11 +142,11 @@ pub fn add_output(
 /// Adds typed outputs to the current context instance.
 pub fn add_outputs(
   context: Context,
-  outputs: List(#(List(String), reference.Typename)),
+  outputs: List(#(List(String), reference.Port)),
 ) -> Context {
   list.fold(outputs, context, fn(context, output) {
-    let #(path, typename) = output
-    add_output(context, path, typename)
+    let #(path, port) = output
+    add_output(context, path, port)
   })
 }
 
@@ -193,14 +193,14 @@ pub fn add_returns(context: Context, returns: List(String)) -> Context {
 /// Adds a nested context to the current context instance.
 pub fn add_context(
   context: Context,
-  definition: reference.Definition,
+  supernode: reference.Supernode,
   nested_context: Context,
 ) -> Context {
   let Context(contexts:, ..) = context
 
   Context(
     ..context,
-    contexts: dict.upsert(contexts, definition, fn(existing_context) {
+    contexts: dict.upsert(contexts, supernode, fn(existing_context) {
       case existing_context {
         option.Some(existing_context) -> existing_context
         option.None -> nested_context
@@ -212,22 +212,22 @@ pub fn add_context(
 /// Adds nested contexts to the current context instance.
 pub fn add_contexts(
   context: Context,
-  contexts: List(#(reference.Definition, Context)),
+  contexts: List(#(reference.Supernode, Context)),
 ) -> Context {
   list.fold(contexts, context, fn(context, entry) {
-    let #(definition, nested_context) = entry
-    add_context(context, definition, nested_context)
+    let #(supernode, nested_context) = entry
+    add_context(context, supernode, nested_context)
   })
 }
 
-/// Gets the next stable binding reference.
-pub fn next_binding(context: Context) -> reference.Binding {
-  reference.Binding(dict.size(context.bindings))
+/// Gets the next stable node reference.
+pub fn next_node(context: Context) -> reference.Node {
+  reference.Node(dict.size(context.nodes))
 }
 
-/// Gets the next stable definition reference.
-pub fn next_definition(context: Context) -> reference.Definition {
-  reference.Definition(dict.size(context.definitions))
+/// Gets the next stable supernode reference.
+pub fn next_supernode(context: Context) -> reference.Supernode {
+  reference.Supernode(dict.size(context.supernodes))
 }
 
 /// Gets the next stable edge reference.
@@ -249,7 +249,7 @@ pub fn next_output(context: Context) -> reference.Output {
 pub fn get_input(
   context: Context,
   path: List(String),
-) -> Result(#(reference.Input, reference.Typename), Nil) {
+) -> Result(#(reference.Input, reference.Port), Nil) {
   dict.get(context.inputs, path)
 }
 
@@ -257,7 +257,7 @@ pub fn get_input(
 pub fn get_output(
   context: Context,
   path: List(String),
-) -> Result(#(reference.Output, reference.Typename), Nil) {
+) -> Result(#(reference.Output, reference.Port), Nil) {
   dict.get(context.outputs, path)
 }
 
@@ -271,20 +271,17 @@ pub fn next_return(context: Context) -> reference.Return {
   reference.Return(dict.size(context.returns))
 }
 
-/// Looks up a binding reference by name.
-pub fn get_binding(
-  context: Context,
-  binding: String,
-) -> Result(reference.Binding, Nil) {
-  dict.get(context.bindings, binding)
+/// Looks up a node reference by name.
+pub fn get_node(context: Context, node: String) -> Result(reference.Node, Nil) {
+  dict.get(context.nodes, node)
 }
 
-/// Looks up a definition reference by name.
-pub fn get_definition(
+/// Looks up a supernode reference by name.
+pub fn get_supernode(
   context: Context,
-  definition: String,
-) -> Result(reference.Definition, Nil) {
-  dict.get(context.definitions, definition)
+  supernode: String,
+) -> Result(reference.Supernode, Nil) {
+  dict.get(context.supernodes, supernode)
 }
 
 /// Looks up an edge reference by input reference.
@@ -311,10 +308,10 @@ pub fn get_return(
   dict.get(context.returns, return)
 }
 
-/// Looks up a nested context by definition reference.
+/// Looks up a nested context by supernode reference.
 pub fn get_context(
   context: Context,
-  definition: reference.Definition,
+  supernode: reference.Supernode,
 ) -> Result(Context, Nil) {
-  dict.get(context.contexts, definition)
+  dict.get(context.contexts, supernode)
 }

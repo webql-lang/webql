@@ -12,7 +12,12 @@ pub fn interpreter_routes_parameter_to_output_test() {
     interpreter.interpret(
       interpreter.new(
         plan.Plan(
-          routes: [plan.Route(from: ["input"], to: ["output"])],
+          edges: [
+            plan.Edge(
+              source: plan.Output(path: ["input"]),
+              target: plan.Input(path: ["output"]),
+            ),
+          ],
           batches: [],
         ),
       ),
@@ -21,9 +26,9 @@ pub fn interpreter_routes_parameter_to_output_test() {
       dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
 
-  engine.run(fn() {
+  engine.handle_run(fn() {
     Ok(
-      engine.finish_step(task, fn(result) {
+      engine.handle_finish_step(task, fn(result) {
         let assert Ok(outputs) = result
         let assert Ok(outputs) =
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))

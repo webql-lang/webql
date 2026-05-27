@@ -5,40 +5,70 @@ import webql/assembler/linker/program as linker_program
 import webql/assembler/plan
 import webql/assembler/scheduler/diagnostic
 import webql/assembler/scheduler/schedule_plan
-import webql/document
+import webql/schema
 
 pub fn schedule_plan_builds_executable_plan_test() {
   let linker_program =
     linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_program.FunctionResolver(resolver())),
-        #("user", linker_program.FunctionResolver(resolver())),
-        #("posts", linker_program.FunctionResolver(resolver())),
+        #("normalize", linker_program.Node(resolver())),
+        #("user", linker_program.Node(resolver())),
+        #("posts", linker_program.Node(resolver())),
       ]),
-      routes: [
-        linker_program.Constant(value: dynamic.int(0), to: ["normalize", "zero"]),
-        linker_program.Route(from: ["user_id"], to: ["normalize", "value"]),
-        linker_program.Route(from: ["normalize", "value"], to: ["user", "id"]),
-        linker_program.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-        linker_program.Route(from: ["posts", "items"], to: ["summary"]),
+      edges: [
+        linker_program.Edge(
+          source: linker_program.Literal(value: dynamic.int(0)),
+          target: linker_program.Input(path: ["normalize", "zero"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["user_id"]),
+          target: linker_program.Input(path: ["normalize", "value"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["normalize", "value"]),
+          target: linker_program.Input(path: ["user", "id"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["user", "id"]),
+          target: linker_program.Input(path: ["posts", "user_id"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["posts", "items"]),
+          target: linker_program.Input(path: ["summary"]),
+        ),
       ],
     )
 
-  let assert Ok(plan.Plan(routes:, batches:)) =
+  let assert Ok(plan.Plan(edges:, batches:)) =
     schedule_plan.schedule(linker_program)
 
-  assert routes
+  assert edges
     == [
-      plan.Constant(value: dynamic.int(0), to: ["normalize", "zero"]),
-      plan.Route(from: ["user_id"], to: ["normalize", "value"]),
-      plan.Route(from: ["normalize", "value"], to: ["user", "id"]),
-      plan.Route(from: ["user", "id"], to: ["posts", "user_id"]),
-      plan.Route(from: ["posts", "items"], to: ["summary"]),
+      plan.Edge(
+        source: plan.Literal(value: dynamic.int(0)),
+        target: plan.Input(path: ["normalize", "zero"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user_id"]),
+        target: plan.Input(path: ["normalize", "value"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["normalize", "value"]),
+        target: plan.Input(path: ["user", "id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user", "id"]),
+        target: plan.Input(path: ["posts", "user_id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["posts", "items"]),
+        target: plan.Input(path: ["summary"]),
+      ),
     ]
 
   let batch_step_names =
-    list.map(batches, fn(batch) {
-      let plan.Batch(batch: steps) = batch
+    list.map(batches, fn(steps) {
+      let plan.Batch(steps: steps) = steps
       list.map(steps, fn(step) {
         let plan.Step(name:, ..) = step
         name
@@ -52,17 +82,17 @@ pub fn schedule_plan_batches_independent_nodes_test() {
   let linker_program =
     linker_program.Program(
       nodes: dict.from_list([
-        #("left", linker_program.FunctionResolver(resolver())),
-        #("right", linker_program.FunctionResolver(resolver())),
+        #("left", linker_program.Node(resolver())),
+        #("right", linker_program.Node(resolver())),
       ]),
-      routes: [],
+      edges: [],
     )
 
-  let assert Ok(plan.Plan(batches: [plan.Batch(batch:)], ..)) =
+  let assert Ok(plan.Plan(batches: [plan.Batch(steps:)], ..)) =
     schedule_plan.schedule(linker_program)
 
   let names =
-    list.map(batch, fn(step) {
+    list.map(steps, fn(step) {
       let plan.Step(name:, ..) = step
       name
     })
@@ -75,35 +105,35 @@ pub fn schedule_plan_schedules_inline_resolvers_test() {
   let inline_plan =
     linker_program.Program(
       nodes: dict.from_list([
-        #("add", linker_program.FunctionResolver(resolver())),
+        #("add", linker_program.Node(resolver())),
       ]),
-      routes: [],
+      edges: [],
     )
 
   let linker_program =
     linker_program.Program(
       nodes: dict.from_list([
-        #("normalize", linker_program.InlineResolver(program: inline_plan)),
+        #("normalize", linker_program.Supernode(program: inline_plan)),
       ]),
-      routes: [],
+      edges: [],
     )
 
   let assert Ok(result) = schedule_plan.schedule(linker_program)
-  let assert [plan.Batch(batch: [step])] = result.batches
+  let assert [plan.Batch(steps: [step])] = result.batches
 
-  let plan.Step(name: step_name, resolver: step_resolver) = step
+  let plan.Step(name: step_name, node: step_resolver) = step
   assert step_name == "normalize"
 
   let inner_names = case step_resolver {
-    plan.InlineResolver(plan: inner) ->
+    plan.Supernode(plan: inner) ->
       list.map(inner.batches, fn(b) {
-        let plan.Batch(batch: inner_steps) = b
+        let plan.Batch(steps: inner_steps) = b
         list.map(inner_steps, fn(s) {
           let plan.Step(name: s_name, ..) = s
           s_name
         })
       })
-    plan.FunctionResolver(_) -> []
+    plan.Node(_) -> []
   }
 
   assert inner_names == [["add"]]
@@ -113,12 +143,18 @@ pub fn schedule_plan_reports_cycles_test() {
   let linker_program =
     linker_program.Program(
       nodes: dict.from_list([
-        #("left", linker_program.FunctionResolver(resolver())),
-        #("right", linker_program.FunctionResolver(resolver())),
+        #("left", linker_program.Node(resolver())),
+        #("right", linker_program.Node(resolver())),
       ]),
-      routes: [
-        linker_program.Route(from: ["left", "value"], to: ["right", "value"]),
-        linker_program.Route(from: ["right", "value"], to: ["left", "value"]),
+      edges: [
+        linker_program.Edge(
+          source: linker_program.Output(path: ["left", "value"]),
+          target: linker_program.Input(path: ["right", "value"]),
+        ),
+        linker_program.Edge(
+          source: linker_program.Output(path: ["right", "value"]),
+          target: linker_program.Input(path: ["left", "value"]),
+        ),
       ],
     )
 
@@ -131,5 +167,5 @@ pub fn schedule_plan_reports_cycles_test() {
 }
 
 fn resolver() {
-  document.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
+  schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
 }

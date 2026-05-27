@@ -6,7 +6,7 @@ import webql/compiler/parser/ast
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
-import webql/compiler/resolver/resolve_typename
+import webql/compiler/resolver/resolve_port
 
 /// Resolves an output field.
 pub fn resolve(
@@ -15,7 +15,7 @@ pub fn resolve(
   field: ast.Return,
   reference: reference.Return,
 ) -> Result(hir.Return, diagnostic.Diagnostic) {
-  let ast.Return(name:, typename:, span:) = field
+  let ast.Return(name:, port:, span:) = field
 
   use <- bool.guard(
     when: result.is_ok(context.get_return(context, name)),
@@ -25,7 +25,7 @@ pub fn resolve(
     )),
   )
 
-  use typename <- result.try(resolve_typename.resolve(environment, typename))
+  use port <- result.try(resolve_port.resolve(environment, port))
 
-  Ok(hir.Return(name:, typename:, reference:, span:))
+  Ok(hir.Return(name:, port:, reference:, span:))
 }

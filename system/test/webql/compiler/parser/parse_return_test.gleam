@@ -19,10 +19,7 @@ pub fn parse_returns_return_test() {
     == ast.Return(
       span: source.Span(start: 2, end: 16),
       name: "name",
-      typename: ast.Typename(
-        span: source.Span(start: 10, end: 16),
-        name: "String",
-      ),
+      port: ast.Port(span: source.Span(start: 10, end: 16), name: "String"),
     )
 
   assert rest
@@ -43,10 +40,7 @@ pub fn parse_preserves_remaining_tokens_after_return_test() {
     == ast.Return(
       span: source.Span(start: 0, end: 12),
       name: "name",
-      typename: ast.Typename(
-        span: source.Span(start: 6, end: 12),
-        name: "String",
-      ),
+      port: ast.Port(span: source.Span(start: 6, end: 12), name: "String"),
     )
 
   assert rest

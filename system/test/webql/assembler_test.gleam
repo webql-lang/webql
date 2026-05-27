@@ -5,83 +5,80 @@ import webql/assembler
 import webql/assembler/diagnostic as assembler_diagnostic
 import webql/assembler/linker/diagnostic as linker_diagnostic
 import webql/assembler/plan
-import webql/document
 import webql/graph
+import webql/schema
 
 pub fn assembler_assembles_empty_graph_test() {
-  let doc = document.Document(operators: dict.new(), typenames: [])
-  let a = assembler.new(doc)
+  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let a = assembler.new(schema)
 
   let empty_graph =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [],
-        edges: [],
-      ),
-    )
+    graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
   let assert Ok(result) = assembler.assemble(a, empty_graph)
-  let plan.Plan(routes:, batches:) = result
+  let plan.Plan(edges:, batches:) = result
 
-  assert routes == []
+  assert edges == []
   assert batches == []
 }
 
 pub fn assembler_assembles_graph_with_external_node_test() {
-  let doc =
-    document.Document(
-      operators: dict.from_list([
+  let schema =
+    schema.Schema(
+      operations: dict.from_list([
         #(
           "GetUser",
-          document.Operator(
-            parameters: dict.from_list([
-              #("id", document.Parameter(name: "id", typename: "Int")),
+          schema.Operation(
+            inputs: dict.from_list([
+              #("id", schema.Input(name: "id", port: "Int")),
             ]),
-            returns: dict.from_list([
-              #("name", document.Return(name: "name", typename: "String")),
+            outputs: dict.from_list([
+              #("name", schema.Output(name: "name", port: "String")),
             ]),
-            resolver: document.Resolver(fn(_) { dynamic.properties([]) }),
+            resolver: schema.Resolver(fn(_) { dynamic.properties([]) }),
           ),
         ),
       ]),
-      typenames: [document.Typename("Int"), document.Typename("String")],
+      ports: [schema.Port("Int"), schema.Port("String")],
     )
 
-  let a = assembler.new(doc)
+  let a = assembler.new(schema)
 
-  let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [graph.Return(name: "out", typename: "String")],
-        nodes: [graph.ExternalNode(name: "user", node: "GetUser")],
-        edges: [
-          graph.Edge(
-            from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-            to: graph.Input(path: ["user", "id"]),
-          ),
-          graph.Edge(
-            from: graph.Output(path: ["user", "name"]),
-            to: graph.Input(path: ["out"]),
-          ),
-        ],
-      ),
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [graph.Return(name: "out", port: "String")],
+      nodes: [graph.Node(name: "user", node: "GetUser")],
+      edges: [
+        graph.Edge(
+          source: graph.Literal(value: graph.Int(1)),
+          target: graph.Input(path: ["user", "id"]),
+        ),
+        graph.Edge(
+          source: graph.Output(path: ["user", "name"]),
+          target: graph.Input(path: ["out"]),
+        ),
+      ],
     )
 
-  let assert Ok(result) = assembler.assemble(a, module)
-  let plan.Plan(routes:, batches:) = result
+  let assert Ok(result) = assembler.assemble(a, document)
+  let plan.Plan(edges:, batches:) = result
 
-  assert routes
+  assert edges
     == [
-      plan.Constant(value: dynamic.int(1), to: ["user", "id"]),
-      plan.Route(from: ["user", "name"], to: ["out"]),
+      plan.Edge(
+        source: plan.Literal(value: dynamic.int(1)),
+        target: plan.Input(path: ["user", "id"]),
+      ),
+      plan.Edge(
+        source: plan.Output(path: ["user", "name"]),
+        target: plan.Input(path: ["out"]),
+      ),
     ]
 
   let batch_step_names =
-    list.map(batches, fn(batch) {
-      let plan.Batch(batch: steps) = batch
+    list.map(batches, fn(steps) {
+      let plan.Batch(steps: steps) = steps
       list.map(steps, fn(step) {
         let plan.Step(name:, ..) = step
         name
@@ -91,24 +88,22 @@ pub fn assembler_assembles_graph_with_external_node_test() {
   assert batch_step_names == [["user"]]
 }
 
-pub fn assembler_reports_unknown_operator_test() {
-  let doc = document.Document(operators: dict.new(), typenames: [])
-  let a = assembler.new(doc)
+pub fn assembler_reports_unknown_operation_test() {
+  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let a = assembler.new(schema)
 
-  let module =
-    graph.Module(
-      operation: graph.Operation(
-        parameters: [],
-        returns: [],
-        nodes: [graph.ExternalNode(name: "node1", node: "UnknownOp")],
-        edges: [],
-      ),
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "node1", node: "UnknownOp")],
+      edges: [],
     )
 
-  let assert Error(d) = assembler.assemble(a, module)
+  let assert Error(d) = assembler.assemble(a, document)
 
   assert d.kind
-    == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperator(
+    == assembler_diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperation(
       "UnknownOp",
     ))
 }

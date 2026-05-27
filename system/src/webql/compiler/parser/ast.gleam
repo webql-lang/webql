@@ -1,74 +1,66 @@
 import webql/compiler/source
 
-/// The root container for a single top-level operation.
+/// The root container for a single top-level graph.
 ///
 /// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
-pub type Module {
-  Module(operation: Operation, span: source.Span)
+pub type Document {
+  Document(graph: Graph, span: source.Span)
 }
 
-/// An executable graph with declared interfaces and a body of nested
-/// definitions, local bindings, and edges.
+/// An executable graph with declared interfaces, nested supernodes, local
+/// nodes, and edges.
 ///
 /// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
-pub type Operation {
-  Operation(
+pub type Graph {
+  Graph(
     parameters: List(Parameter),
     returns: List(Return),
-    definitions: List(Definition),
-    bindings: List(Binding),
+    nodes: List(Node),
     edges: List(Edge),
     span: source.Span,
   )
 }
 
-/// A declared incoming interface on an operation.
+/// A declared incoming interface on a graph.
 ///
 /// ## Examples
 ///
 ///     in: Int
 pub type Parameter {
-  Parameter(name: String, typename: Typename, span: source.Span)
+  Parameter(name: String, port: Port, span: source.Span)
 }
 
-/// A declared outgoing interface on an operation.
+/// A declared outgoing interface on a graph.
 ///
 /// ## Examples
 ///
 ///     out: Int
 pub type Return {
-  Return(name: String, typename: Typename, span: source.Span)
+  Return(name: String, port: Port, span: source.Span)
 }
 
-/// A type annotation describing a value.
+/// A port annotation describing a value.
 ///
 /// ## Examples
 ///
 ///     Int
-pub type Typename {
-  Typename(name: String, span: source.Span)
+pub type Port {
+  Port(name: String, span: source.Span)
 }
 
-/// A named nested operation defined inside another operation.
-///
-/// ## Examples
-///
-///     Inner = in: Int -> out: Int { .in -> .out }
-pub type Definition {
-  Definition(name: String, operation: Operation, span: source.Span)
-}
-
-/// A named binding that assigns a value to a local name.
+/// A named nested graph defined inside another graph.
 ///
 /// ## Examples
 ///
 ///     m = Math
-pub type Binding {
-  Binding(name: String, value: Value, span: source.Span)
+///     Inner = in: Int -> out: Int { .in -> .out }
+pub type Node {
+  Supernode(name: String, graph: Graph, span: source.Span)
+  Node(name: String, node: String, span: source.Span)
 }
 
 /// A directed connection from a producing value to a receiving location.
@@ -77,16 +69,7 @@ pub type Binding {
 ///
 ///     m.out -> .out
 pub type Edge {
-  Edge(from: Output, to: Input, span: source.Span)
-}
-
-/// A value used in a binding.
-///
-/// ## Examples
-///
-///     Math
-pub type Value {
-  NodeValue(name: String, span: source.Span)
+  Edge(source: Source, target: Target, span: source.Span)
 }
 
 /// A location that can receive data from an edge.
@@ -95,8 +78,8 @@ pub type Value {
 ///
 ///     .in
 ///     m.l
-pub type Input {
-  PortInput(path: List(String), span: source.Span)
+pub type Target {
+  Input(path: List(String), span: source.Span)
 }
 
 /// A value that can produce data into an edge.
@@ -106,9 +89,9 @@ pub type Input {
 ///     .out
 ///     m.out
 ///     1
-pub type Output {
-  PortOutput(path: List(String), span: source.Span)
-  PrimitiveOutput(value: Primitive, span: source.Span)
+pub type Source {
+  Output(path: List(String), span: source.Span)
+  Literal(value: Value, span: source.Span)
 }
 
 /// A literal value embedded in the graph.
@@ -118,7 +101,7 @@ pub type Output {
 ///     123
 ///     1.23
 ///     "hello"
-pub type Primitive {
+pub type Value {
   Int(name: String, value: Int, span: source.Span)
   Float(name: String, value: Float, span: source.Span)
   String(name: String, value: String, span: source.Span)

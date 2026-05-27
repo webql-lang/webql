@@ -17,7 +17,7 @@ fn lex_whitespace(bytes: BitArray, start: Int, size: Int) {
     | <<"\r", rest:bytes>> -> lex_whitespace(rest, start, size + 1)
 
     // ========== STOP ==========
-    _ -> #(
+    _bytes -> #(
       token.Token(
         kind: token.Space,
         span: source.Span(start: start, end: start + size),

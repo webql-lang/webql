@@ -17,96 +17,96 @@ pub opaque type Compiler {
 
 /// Creates a compiler instance with resolver context.
 pub fn new(schema: introspection.Schema) -> Compiler {
-  let introspection.Schema(operators:, typenames:) = schema
+  let introspection.Schema(operations:, ports:) = schema
 
   let environment =
     list.fold(
-      operators,
-      environment.add_typenames(environment.new(), typenames),
-      load_operator,
+      operations,
+      environment.add_ports(environment.new(), ports),
+      load_operation,
     )
 
   Compiler(environment:)
 }
 
-/// Compiles a text source into a finalized module.
+/// Compiles a text source into a finalized document.
 pub fn compile(
   compiler: Compiler,
   source: String,
-) -> Result(graph.Module, diagnostic.Diagnostic) {
+) -> Result(graph.Graph, diagnostic.Diagnostic) {
   let context = context.new()
 
   let lexer = lexer.new(source)
   use tokens <- result.try(compile_lex(lexer))
 
   let parser = parser.new(source, tokens)
-  use module <- result.try(compile_parse(parser))
+  use document <- result.try(compile_parse(parser))
 
-  let resolver = resolver.new(module)
-  use #(module, context) <- result.try(compile_resolve(
+  let resolver = resolver.new(document)
+  use #(document, context) <- result.try(compile_resolve(
     compiler,
     context,
     resolver,
   ))
 
-  let typechecker = typechecker.new(module)
-  use module <- result.try(compile_typecheck(typechecker, context))
+  let typechecker = typechecker.new(document)
+  use document <- result.try(compile_typecheck(typechecker, context))
 
-  let lowerer = lowerer.new(module)
+  let lowerer = lowerer.new(document)
   Ok(lowerer.lower(lowerer))
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn load_operator(
+fn load_operation(
   environment: environment.Environment,
-  operator: introspection.Operator,
+  operation: introspection.Operation,
 ) -> environment.Environment {
-  let introspection.Operator(name:, parameters:, returns:) = operator
+  let introspection.Operation(name:, inputs:, outputs:) = operation
 
   environment
-  |> environment.add_node(name)
-  |> load_parameters(name, parameters)
-  |> load_returns(name, returns)
+  |> environment.add_operation(name)
+  |> load_parameters(name, inputs)
+  |> load_returns(name, outputs)
 }
 
 fn load_parameters(
   environment: environment.Environment,
-  operator: String,
-  parameters: List(introspection.Parameter),
+  operation: String,
+  inputs: List(introspection.Input),
 ) -> environment.Environment {
-  use environment, input <- list.fold(parameters, environment)
-  let introspection.Parameter(name:, typename:) = input
+  use environment, input <- list.fold(inputs, environment)
+  let introspection.Input(name:, port:) = input
 
-  let environment = environment.add_typename(environment, typename)
-  let node = environment.get_node(environment, operator)
-  let typename = environment.get_typename(environment, typename)
+  let environment = environment.add_port(environment, port)
+  let operation = environment.get_operation(environment, operation)
+  let port = environment.get_port(environment, port)
 
-  case node, typename {
-    Ok(node), Ok(typename) ->
-      environment.add_input(environment, node, #(name, typename))
+  case operation, port {
+    Ok(operation), Ok(port) ->
+      environment.add_input(environment, operation, #(name, port))
 
-    _node, _typename -> environment
+    _operation, _port -> environment
   }
 }
 
 fn load_returns(
   environment: environment.Environment,
-  operator: String,
-  returns: List(introspection.Return),
+  operation: String,
+  outputs: List(introspection.Output),
 ) -> environment.Environment {
-  use environment, output <- list.fold(returns, environment)
-  let introspection.Return(name:, typename:) = output
+  use environment, output <- list.fold(outputs, environment)
+  let introspection.Output(name:, port:) = output
 
-  let environment = environment.add_typename(environment, typename)
-  let node = environment.get_node(environment, operator)
-  let typename = environment.get_typename(environment, typename)
+  let environment = environment.add_port(environment, port)
+  let operation = environment.get_operation(environment, operation)
+  let port = environment.get_port(environment, port)
 
-  case node, typename {
-    Ok(node), Ok(typename) ->
-      environment.add_output(environment, node, #(name, typename))
+  case operation, port {
+    Ok(operation), Ok(port) ->
+      environment.add_output(environment, operation, #(name, port))
 
-    _node, _typename -> environment
+    _operation, _port -> environment
   }
 }
 
@@ -124,7 +124,7 @@ fn compile_lex(lexer: lexer.Lexer) {
 
 fn compile_parse(parser: parser.Parser) {
   case parser.parse(parser) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(
@@ -140,7 +140,7 @@ fn compile_resolve(
   resolver: resolver.Resolver,
 ) {
   case resolver.resolve(resolver, compiler.environment, context) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(
@@ -155,7 +155,7 @@ fn compile_typecheck(
   context: context.Context,
 ) {
   case typechecker.resolve(typechecker, context) {
-    Ok(module) -> Ok(module)
+    Ok(document) -> Ok(document)
 
     Error(error) ->
       Error(diagnostic.Diagnostic(

@@ -4,42 +4,40 @@ import webql/assembler/linker/diagnostic
 import webql/assembler/linker/link_node
 import webql/assembler/linker/link_route
 import webql/assembler/linker/program
-import webql/document
 import webql/graph
+import webql/schema
 
-/// Links a graph module into a scheduler program.
+/// Links a graph into a scheduler program.
 pub fn link(
-  module: graph.Module,
-  document: document.Document(task),
+  graph: graph.Graph,
+  schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
-  link_program(module.operation, document)
+  link_program(graph, schema)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-pub fn link_program(
-  operation: graph.Operation,
-  document: document.Document(task),
+fn link_program(
+  graph: graph.Graph,
+  schema: schema.Schema(task),
 ) -> Result(program.Program(task), diagnostic.Diagnostic) {
-  let graph.Operation(nodes:, edges:, ..) = operation
+  let graph.Graph(nodes:, edges:, ..) = graph
 
-  use nodes <- result.try(link_nodes(nodes, document, dict.new()))
-  let routes = link_route.link(edges)
+  use nodes <- result.try(link_nodes(nodes, schema, dict.new()))
+  let edges = link_route.link(edges)
 
-  Ok(program.Program(nodes:, routes:))
+  Ok(program.Program(nodes:, edges:))
 }
 
-// PRIVATE FUNCTIONS
-// =================
 fn link_nodes(
   nodes: List(graph.Node),
-  document: document.Document(task),
-  linked: dict.Dict(String, program.Resolver(task)),
-) -> Result(dict.Dict(String, program.Resolver(task)), diagnostic.Diagnostic) {
+  schema: schema.Schema(task),
+  linked: dict.Dict(String, program.Node(task)),
+) -> Result(dict.Dict(String, program.Node(task)), diagnostic.Diagnostic) {
   case nodes {
     [node, ..nodes] -> {
-      use #(name, resolver) <- result.try(link_node(node, document))
-      link_nodes(nodes, document, dict.insert(linked, name, resolver))
+      use #(name, resolver) <- result.try(link_node(node, schema))
+      link_nodes(nodes, schema, dict.insert(linked, name, resolver))
     }
 
     [] -> Ok(linked)
@@ -48,14 +46,14 @@ fn link_nodes(
 
 fn link_node(
   node: graph.Node,
-  document: document.Document(task),
-) -> Result(#(String, program.Resolver(task)), diagnostic.Diagnostic) {
+  schema: schema.Schema(task),
+) -> Result(#(String, program.Node(task)), diagnostic.Diagnostic) {
   case node {
-    graph.ExternalNode(name:, node:) -> link_node.link(name, node, document)
+    graph.Node(name:, node:) -> link_node.link(name, node, schema)
 
-    graph.InlineNode(name:, operation:) -> {
-      use program <- result.try(link_program(operation, document))
-      Ok(#(name, program.InlineResolver(program:)))
+    graph.Supernode(name:, graph:) -> {
+      use program <- result.try(link_program(graph, schema))
+      Ok(#(name, program.Supernode(program:)))
     }
   }
 }

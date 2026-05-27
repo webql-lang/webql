@@ -4,17 +4,20 @@ import gleam/option
 import gleam/set
 import webql/assembler/linker/program
 
-/// Adds a scheduled dependency for a route.
+/// Adds a scheduled dependency for an edge.
 pub fn schedule(
   dependencies: dict.Dict(String, set.Set(String)),
-  route: program.Route,
+  edge: program.Edge,
 ) -> dict.Dict(String, set.Set(String)) {
-  let scheduled = case route {
-    program.Route(from: [producer, ..], to: [consumer, ..]) -> {
+  let scheduled = case edge {
+    program.Edge(
+      source: program.Output(path: [producer, ..]),
+      target: program.Input(path: [consumer, ..]),
+    ) -> {
       schedule_dependencies(dependencies, consumer, producer)
     }
 
-    _route -> option.None
+    _edge -> option.None
   }
 
   scheduled_dependencies(scheduled, dependencies)

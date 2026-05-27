@@ -12,7 +12,7 @@ import webql/assembler/scheduler/topology
 pub fn schedule(
   program: program.Program(task),
 ) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
-  let program.Program(nodes:, routes:) = program
+  let program.Program(nodes:, edges:) = program
 
   let dependencies =
     nodes
@@ -22,38 +22,53 @@ pub fn schedule(
     })
 
   let dependencies =
-    list.fold(routes, dependencies, fn(dependencies, route) {
-      schedule_route.schedule(dependencies, route)
+    list.fold(edges, dependencies, fn(dependencies, edge) {
+      schedule_route.schedule(dependencies, edge)
     })
 
   use batches <- result.try(topology.topology(topology.Graph(dependencies:)))
   use batches <- result.try(schedule_batches(batches, nodes))
 
-  let routes = schedule_routes(routes)
-  Ok(plan.Plan(routes:, batches:))
+  let edges = schedule_edges(edges)
+  Ok(plan.Plan(edges:, batches:))
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn schedule_routes(routes: List(program.Route)) {
-  list.map(routes, fn(route) {
-    case route {
-      program.Route(from:, to:) -> plan.Route(from:, to:)
-      program.Constant(value:, to:) -> plan.Constant(value:, to:)
+fn schedule_edges(edges: List(program.Edge)) {
+  list.map(edges, fn(edge) {
+    case edge {
+      program.Edge(
+        source: program.Output(path: source),
+        target: program.Input(path: target),
+      ) ->
+        plan.Edge(
+          source: plan.Output(path: source),
+          target: plan.Input(path: target),
+        )
+
+      program.Edge(
+        source: program.Literal(value:),
+        target: program.Input(path: target),
+      ) ->
+        plan.Edge(
+          source: plan.Literal(value:),
+          target: plan.Input(path: target),
+        )
     }
   })
 }
 
 fn schedule_batches(
   batches: List(List(String)),
-  nodes: dict.Dict(String, program.Resolver(task)),
+  nodes: dict.Dict(String, program.Node(task)),
 ) -> Result(List(plan.Batch(task)), diagnostic.Diagnostic) {
   case batches {
     [batch, ..batches] -> {
-      use batch <- result.try(schedule_batch(batch, nodes, []))
+      use steps <- result.try(schedule_batch(batch, nodes, []))
       use batches <- result.try(schedule_batches(batches, nodes))
 
-      Ok([plan.Batch(batch:), ..batches])
+      Ok([plan.Batch(steps:), ..batches])
     }
 
     [] -> Ok([])
@@ -62,13 +77,13 @@ fn schedule_batches(
 
 fn schedule_batch(
   batch: List(String),
-  nodes: dict.Dict(String, program.Resolver(task)),
+  nodes: dict.Dict(String, program.Node(task)),
   steps: List(plan.Step(task)),
 ) -> Result(List(plan.Step(task)), diagnostic.Diagnostic) {
   case batch {
-    [node, ..batch] -> {
-      use resolver <- result.try(schedule_step(nodes, node))
-      schedule_batch(batch, nodes, [plan.Step(name: node, resolver:), ..steps])
+    [name, ..batch] -> {
+      use node <- result.try(schedule_step(nodes, name))
+      schedule_batch(batch, nodes, [plan.Step(name:, node:), ..steps])
     }
 
     [] -> Ok(list.reverse(steps))
@@ -76,24 +91,24 @@ fn schedule_batch(
 }
 
 fn schedule_step(
-  nodes: dict.Dict(String, program.Resolver(task)),
+  nodes: dict.Dict(String, program.Node(task)),
   node: String,
-) -> Result(plan.Resolver(task), diagnostic.Diagnostic) {
+) -> Result(plan.Node(task), diagnostic.Diagnostic) {
   case dict.get(nodes, node) {
-    Ok(resolver) -> schedule_resolver(resolver)
+    Ok(node) -> schedule_node(node)
     Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.InvalidPlan))
   }
 }
 
-fn schedule_resolver(
-  resolver: program.Resolver(task),
-) -> Result(plan.Resolver(task), diagnostic.Diagnostic) {
-  case resolver {
-    program.FunctionResolver(function) -> Ok(plan.FunctionResolver(function:))
+fn schedule_node(
+  node: program.Node(task),
+) -> Result(plan.Node(task), diagnostic.Diagnostic) {
+  case node {
+    program.Node(resolver:) -> Ok(plan.Node(resolver:))
 
-    program.InlineResolver(program: program) -> {
+    program.Supernode(program: program) -> {
       use plan <- result.try(schedule(program))
-      Ok(plan.InlineResolver(plan:))
+      Ok(plan.Supernode(plan:))
     }
   }
 }

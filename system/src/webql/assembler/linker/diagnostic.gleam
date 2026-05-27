@@ -1,5 +1,5 @@
 pub type DiagnosticKind {
-  UnknownOperator(name: String)
+  UnknownOperation(name: String)
 }
 
 pub type Diagnostic {

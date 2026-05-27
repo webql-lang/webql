@@ -8,15 +8,15 @@ defmodule Webql.Dsl do
     name: :webql,
     top_level?: true,
     schema: [
-      typenames: [
+      ports: [
         type: {:list, :atom},
         required: true,
-        doc: "Global WebQL typenames"
+        doc: "Global WebQL ports"
       ],
       operations: [
         type: {:list, :module},
         required: true,
-        doc: "Operation modules for this WebQL document"
+        doc: "Operation modules for this WebQL schema"
       ]
     ]
   }

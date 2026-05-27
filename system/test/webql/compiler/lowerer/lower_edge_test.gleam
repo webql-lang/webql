@@ -7,12 +7,12 @@ import webql/graph
 pub fn lower_port_edge_test() {
   let edge =
     hir.Edge(
-      from: hir.PortOutput(
+      source: hir.Output(
         path: ["m", "value"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 7),
       ),
-      to: hir.PortInput(
+      target: hir.Input(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 11, end: 15),
@@ -23,24 +23,24 @@ pub fn lower_port_edge_test() {
 
   assert lower_edge.lower(edge)
     == graph.Edge(
-      from: graph.Output(path: ["m", "value"]),
-      to: graph.Input(path: ["out"]),
+      source: graph.Output(path: ["m", "value"]),
+      target: graph.Input(path: ["out"]),
     )
 }
 
-pub fn lower_primitive_edge_output_test() {
+pub fn lower_value_edge_output_test() {
   let edge =
     hir.Edge(
-      from: hir.PrimitiveOutput(
+      source: hir.Literal(
         value: hir.Int(
           name: "Int",
           value: 1,
           span: source.Span(start: 0, end: 1),
         ),
-        typename: reference.Typename(0),
+        port: reference.Port(0),
         span: source.Span(start: 0, end: 1),
       ),
-      to: hir.PortInput(
+      target: hir.Input(
         path: ["m", "left"],
         reference: reference.Input(0),
         span: source.Span(start: 5, end: 11),
@@ -51,7 +51,7 @@ pub fn lower_primitive_edge_output_test() {
 
   assert lower_edge.lower(edge)
     == graph.Edge(
-      from: graph.PrimitiveOutput(value: graph.IntPrimitive(1)),
-      to: graph.Input(path: ["m", "left"]),
+      source: graph.Literal(value: graph.Int(1)),
+      target: graph.Input(path: ["m", "left"]),
     )
 }

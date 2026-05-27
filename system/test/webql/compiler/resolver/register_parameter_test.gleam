@@ -9,9 +9,9 @@ pub fn register_registers_parameter_and_output_test() {
   let parameter =
     hir.Parameter(
       name: "in",
-      typename: hir.Typename(
+      port: hir.Port(
         name: "Int",
-        reference: reference.Typename(0),
+        reference: reference.Port(0),
         span: source.Span(start: 4, end: 7),
       ),
       reference: reference.Parameter(0),
@@ -24,6 +24,6 @@ pub fn register_registers_parameter_and_output_test() {
   assert parameters == dict.from_list([#("in", reference.Parameter(0))])
   assert outputs
     == dict.from_list([
-      #(["in"], #(reference.Output(0), reference.Typename(0))),
+      #(["in"], #(reference.Output(0), reference.Port(0))),
     ])
 }

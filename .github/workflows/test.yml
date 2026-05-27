@@ -43,10 +43,10 @@ jobs:
           rebar3-version: "3"
           elixir-version: "1"
 
-      - run: just -f ../Justfile system deps download
-      - run: just -f ../Justfile system test --target erlang
-      - run: just -f ../Justfile system test --target javascript
-      - run: just -f ../Justfile system format --check src test
+      - run: just system deps download
+      - run: just system test --target erlang
+      - run: just system test --target javascript
+      - run: just system format --check src test
 
   platform-elixir:
     name: platform / elixir (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})

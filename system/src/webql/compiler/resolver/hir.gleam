@@ -1,33 +1,32 @@
 import webql/compiler/reference
 import webql/compiler/source
 
-/// The root container for a single top-level operation.
+/// The root container for a single top-level graph.
 ///
 /// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
-pub type Module {
-  Module(operation: Operation, reference: reference.Module, span: source.Span)
+pub type Document {
+  Document(graph: Graph, reference: reference.Document, span: source.Span)
 }
 
-/// An executable graph with declared interfaces and a body of nested
-/// definitions, local bindings, and edges.
+/// An executable graph with declared interfaces, nested supernodes, local
+/// nodes, and edges.
 ///
 /// ## Examples
 ///
 ///     in: Int -> out: Int { m = Math 1 -> m.l m.out -> .out }
-pub type Operation {
-  Operation(
+pub type Graph {
+  Graph(
     parameters: List(Parameter),
     returns: List(Return),
-    definitions: List(Definition),
-    bindings: List(Binding),
+    nodes: List(Node),
     edges: List(Edge),
     span: source.Span,
   )
 }
 
-/// A declared incoming interface on an operation.
+/// A declared incoming interface on a graph.
 ///
 /// ## Examples
 ///
@@ -35,13 +34,13 @@ pub type Operation {
 pub type Parameter {
   Parameter(
     name: String,
-    typename: Typename,
+    port: Port,
     reference: reference.Parameter,
     span: source.Span,
   )
 }
 
-/// A declared outgoing interface on an operation.
+/// A declared outgoing interface on a graph.
 ///
 /// ## Examples
 ///
@@ -49,45 +48,38 @@ pub type Parameter {
 pub type Return {
   Return(
     name: String,
-    typename: Typename,
+    port: Port,
     reference: reference.Return,
     span: source.Span,
   )
 }
 
-/// A type annotation describing a value.
+/// A port annotation describing a value.
 ///
 /// ## Examples
 ///
 ///     Int
-pub type Typename {
-  Typename(name: String, reference: reference.Typename, span: source.Span)
+pub type Port {
+  Port(name: String, reference: reference.Port, span: source.Span)
 }
 
-/// A named nested operation defined inside another operation.
+/// A named nested graph defined inside another graph.
 ///
 /// ## Examples
 ///
 ///     Inner = in: Int -> out: Int { .in -> .out }
-pub type Definition {
-  Definition(
+pub type Node {
+  Supernode(
     name: String,
-    operation: Operation,
-    reference: reference.Definition,
+    graph: Graph,
+    reference: reference.Supernode,
     span: source.Span,
   )
-}
-
-/// A named binding that assigns a value to a local name.
-///
-/// ## Examples
-///
-///     m = Math
-pub type Binding {
-  Binding(
+  Node(
     name: String,
-    value: Value,
-    reference: reference.Binding,
+    node: String,
+    operation: reference.Operation,
+    reference: reference.Node,
     span: source.Span,
   )
 }
@@ -98,16 +90,12 @@ pub type Binding {
 ///
 ///     m.out -> .out
 pub type Edge {
-  Edge(from: Output, to: Input, reference: reference.Edge, span: source.Span)
-}
-
-/// A value used in a binding.
-///
-/// ## Examples
-///
-///     Math
-pub type Value {
-  NodeValue(name: String, reference: reference.Node, span: source.Span)
+  Edge(
+    source: Source,
+    target: Target,
+    reference: reference.Edge,
+    span: source.Span,
+  )
 }
 
 /// A location that can receive data from an edge.
@@ -116,8 +104,8 @@ pub type Value {
 ///
 ///     .in
 ///     m.l
-pub type Input {
-  PortInput(path: List(String), reference: reference.Input, span: source.Span)
+pub type Target {
+  Input(path: List(String), reference: reference.Input, span: source.Span)
 }
 
 /// A value that can produce data into an edge.
@@ -128,13 +116,9 @@ pub type Input {
 ///     m.out
 ///     "hello"
 ///     1
-pub type Output {
-  PortOutput(path: List(String), reference: reference.Output, span: source.Span)
-  PrimitiveOutput(
-    value: Primitive,
-    typename: reference.Typename,
-    span: source.Span,
-  )
+pub type Source {
+  Output(path: List(String), reference: reference.Output, span: source.Span)
+  Literal(value: Value, port: reference.Port, span: source.Span)
 }
 
 /// A literal value embedded in the graph.
@@ -142,7 +126,7 @@ pub type Output {
 /// ## Examples
 ///
 ///     123
-pub type Primitive {
+pub type Value {
   Int(name: String, value: Int, span: source.Span)
   Float(name: String, value: Float, span: source.Span)
   String(name: String, value: String, span: source.Span)

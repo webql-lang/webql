@@ -8,12 +8,12 @@ import webql/compiler/source
 pub fn register_registers_edge_destination_input_test() {
   let edge =
     hir.Edge(
-      from: hir.PortOutput(
+      source: hir.Output(
         path: ["math", "out"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 8),
       ),
-      to: hir.PortInput(
+      target: hir.Input(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 12, end: 16),

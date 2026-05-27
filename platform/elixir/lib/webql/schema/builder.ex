@@ -1,34 +1,41 @@
 defmodule Webql.Schema.Builder do
   @moduledoc """
-  Builds a WebQL operation into a valid document.
+  Builds a WebQL operation into a valid schema operation.
   """
   @moduledoc version: "0.1.0"
 
   alias Webql.Schema.Dsl.{Input, Output, Resolve}
 
   @doc """
-  Builds from a DSL schema source and converts the value into a valid WebQL document.
+  Builds from a DSL schema source and converts the value into a valid WebQL operation.
   """
   @doc version: "0.1.0"
   @spec build(schema :: module()) ::
-          {String.t(), {:operator, map(), map(), {:resolver, function()}}}
+          {String.t(), {:operation, map(), {:resolver, function()}, map()}}
   def build(schema) do
     name =
-      Module.split(schema)
+      schema
+      |> Module.split()
       |> List.last()
 
     entities = Spark.Dsl.Extension.get_entities(schema, [:operation])
 
     operation =
-      Enum.reduce(entities, %{parameters: %{}, returns: %{}, resolver: nil}, fn
+      Enum.reduce(entities, %{inputs: %{}, outputs: %{}, resolver: nil}, fn
         %Input{} = input, acc ->
           %{
             acc
-            | parameters:
+            | inputs:
                 Map.put(
-                  acc.parameters,
+                  acc.inputs,
                   to_string(input.name),
-                  {:parameter, to_string(input.name), typename(input.type)}
+                  {
+                    :input,
+                    to_string(input.name),
+                    input.type
+                    |> to_string()
+                    |> Macro.camelize()
+                  }
                 )
           }
 
@@ -38,32 +45,30 @@ defmodule Webql.Schema.Builder do
         %Output{} = output, acc ->
           %{
             acc
-            | returns:
+            | outputs:
                 Map.put(
-                  acc.returns,
+                  acc.outputs,
                   to_string(output.name),
-                  {:return, to_string(output.name), typename(output.type)}
+                  {
+                    :output,
+                    to_string(output.name),
+                    output.type
+                    |> to_string()
+                    |> Macro.camelize()
+                  }
                 )
           }
 
-        _other_dsl, parameters ->
-          parameters
+        _other_dsl, operation ->
+          operation
       end)
 
     {name,
      {
-       :operator,
-       operation.parameters,
-       operation.returns,
-       {:resolver, operation.resolver}
+       :operation,
+       operation.inputs,
+       {:resolver, operation.resolver},
+       operation.outputs
      }}
-  end
-
-  # PRIVATE FUNCTIONS
-  # =================
-  defp typename(type) do
-    type
-    |> to_string()
-    |> Macro.camelize()
   end
 end
