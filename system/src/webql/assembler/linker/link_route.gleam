@@ -17,11 +17,11 @@ pub fn link(edges: List(graph.Edge)) -> List(program.Edge) {
         )
 
       graph.Edge(
-        source: graph.Static(value: value),
+        source: graph.Literal(value: value),
         target: graph.Input(path: to),
       ) ->
         program.Edge(
-          source: program.Static(value: link_constant(value)),
+          source: program.Literal(value: link_constant(value)),
           target: program.Input(path: to),
         )
     }

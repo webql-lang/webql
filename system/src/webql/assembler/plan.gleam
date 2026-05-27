@@ -24,7 +24,7 @@ pub type Edge {
 
 pub type Source {
   Output(path: List(String))
-  Static(value: dynamic.Dynamic)
+  Literal(value: dynamic.Dynamic)
 }
 
 pub type Target {

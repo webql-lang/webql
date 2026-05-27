@@ -15,7 +15,7 @@ pub fn resolve(
   case source {
     ast.Output(path:, span:) -> resolve_output(context, path, span)
 
-    ast.Static(value:, span:) -> resolve_static(environment, value, span)
+    ast.Literal(value:, span:) -> resolve_literal(environment, value, span)
   }
 }
 
@@ -34,7 +34,7 @@ fn resolve_output(
   }
 }
 
-fn resolve_static(
+fn resolve_literal(
   environment: environment.Environment,
   value: ast.Value,
   span: source.Span,
@@ -42,7 +42,7 @@ fn resolve_static(
   case environment.get_port(environment, value.name) {
     Ok(port) -> {
       let value = resolve_value.resolve(value)
-      Ok(hir.Static(value:, port:, span:))
+      Ok(hir.Literal(value:, port:, span:))
     }
 
     Error(_nil) ->

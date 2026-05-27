@@ -32,7 +32,7 @@ fn get_port_source(context: context.Context, source: hir.Source) {
       Ok(port)
     }
 
-    hir.Static(port:, ..) -> Ok(port)
+    hir.Literal(port:, ..) -> Ok(port)
   }
 }
 

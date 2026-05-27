@@ -33,7 +33,7 @@ pub type Edge {
 /// A value that can produce data into an edge.
 pub type Source {
   Output(path: List(String))
-  Static(value: Value)
+  Literal(value: Value)
 }
 
 /// A location that can receive data from an edge.

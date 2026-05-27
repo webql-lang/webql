@@ -118,7 +118,7 @@ pub type Target {
 ///     1
 pub type Source {
   Output(path: List(String), reference: reference.Output, span: source.Span)
-  Static(value: Value, port: reference.Port, span: source.Span)
+  Literal(value: Value, port: reference.Port, span: source.Span)
 }
 
 /// A literal value embedded in the graph.

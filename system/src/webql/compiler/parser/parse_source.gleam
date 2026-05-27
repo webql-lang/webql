@@ -28,7 +28,7 @@ pub fn parse(
 
     [token.Token(kind: token.Int, ..), ..]
     | [token.Token(kind: token.Float, ..), ..]
-    | [token.Token(kind: token.String, ..), ..] -> parse_static(source, tokens)
+    | [token.Token(kind: token.String, ..), ..] -> parse_literal(source, tokens)
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
@@ -128,8 +128,8 @@ fn parse_graph_output(
   }
 }
 
-fn parse_static(source: String, tokens: List(token.Token)) {
+fn parse_literal(source: String, tokens: List(token.Token)) {
   use #(value, span, rest) <- result.try(parse_value.parse(source, tokens))
 
-  Ok(#(ast.Static(value:, span:), span, rest))
+  Ok(#(ast.Literal(value:, span:), span, rest))
 }

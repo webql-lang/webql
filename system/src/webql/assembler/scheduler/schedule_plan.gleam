@@ -48,10 +48,13 @@ fn schedule_edges(edges: List(program.Edge)) {
         )
 
       program.Edge(
-        source: program.Static(value:),
+        source: program.Literal(value:),
         target: program.Input(path: target),
       ) ->
-        plan.Edge(source: plan.Static(value:), target: plan.Input(path: target))
+        plan.Edge(
+          source: plan.Literal(value:),
+          target: plan.Input(path: target),
+        )
     }
   })
 }

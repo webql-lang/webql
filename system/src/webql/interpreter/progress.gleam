@@ -71,7 +71,7 @@ pub fn get_inputs(
         }
 
         plan.Edge(
-          source: plan.Static(value:),
+          source: plan.Literal(value:),
           target: plan.Input(path: [target, input]),
         )
           if target == step
@@ -107,7 +107,7 @@ pub fn get_returns(
         }
 
         plan.Edge(
-          source: plan.Static(value:),
+          source: plan.Literal(value:),
           target: plan.Input(path: [output]),
         ) -> Ok(dict.insert(returns, output, value))
 

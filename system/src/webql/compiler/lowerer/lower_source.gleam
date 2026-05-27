@@ -6,6 +6,6 @@ import webql/graph
 pub fn lower(source: hir.Source) -> graph.Source {
   case source {
     hir.Output(path:, ..) -> graph.Output(path:)
-    hir.Static(value:, ..) -> graph.Static(value: lower_value.lower(value))
+    hir.Literal(value:, ..) -> graph.Literal(value: lower_value.lower(value))
   }
 }

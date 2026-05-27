@@ -1,7 +1,7 @@
 import webql/compiler/resolver/hir
 import webql/graph
 
-/// Lowers a resolved value into an IR static value.
+/// Lowers a resolved value into an IR literal value.
 pub fn lower(value: hir.Value) -> graph.Value {
   case value {
     hir.Int(value:, ..) -> graph.Int(value:)
