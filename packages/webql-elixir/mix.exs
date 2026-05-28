@@ -11,16 +11,17 @@ defmodule Webql.MixProject do
       erlc_paths: [
         "deps/gleam_stdlib/src",
         "src",
-        "../../system/build/dev/erlang/webql/_gleam_artefacts"
+        "../webql/build/dev/erlang/webql/_gleam_artefacts"
       ],
       elixirc_paths: [
         "lib",
         "src",
-        "../../system/build/dev/erlang/webql/_gleam_artefacts"
+        "../webql/build/dev/erlang/webql/_gleam_artefacts"
       ],
       prune_code_paths: false,
       dialyzer: [
         paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
+        exclude_files: ["_test\\.beam"],
         ignore_warnings: ".dialyzer_ignore.exs"
       ],
       deps: [

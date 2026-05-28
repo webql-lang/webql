@@ -32,32 +32,31 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            platform/elixir/deps
-            platform/elixir/_build
-          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+            packages/webql-elixir/deps
+            packages/webql-elixir/_build
+          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('packages/webql-elixir/mix.lock', 'packages/webql/manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-release-1.17-27-
 
       - name: Build system artifact
         run: |
-          just system clean
-          just system deps download
-          just system build --target erlang
+          just webql deps
+          just webql compile
 
       - name: Install dependencies
-        run: just platform-elixir deps.get
+        run: just webql-elixir deps
 
       - name: Check formatting
-        run: just platform-elixir format --check-formatted
+        run: just webql-elixir format-check
 
       - name: Compile
-        run: just platform-elixir compile --warnings-as-errors
+        run: just webql-elixir compile
 
       - name: Run tests
-        run: MIX_ENV=test just platform-elixir test
+        run: MIX_ENV=test just webql-elixir test
 
       - name: Run dialyzer
-        run: just platform-elixir dialyzer
+        run: just webql-elixir dialyzer
 
       - name: Stage release source
         run: |
@@ -65,7 +64,7 @@ jobs:
           stage="${RUNNER_TEMP}/${package}"
 
           mkdir -p "${stage}"
-          rsync -a --exclude-from=platform/elixir/.gitignore platform/elixir/ "${stage}/"
+          rsync -a --exclude-from=packages/webql-elixir/.gitignore packages/webql-elixir/ "${stage}/"
           cp LICENSE README.md "${stage}/"
 
           mkdir -p "${stage}/src"
@@ -74,7 +73,7 @@ jobs:
             --include="*/" \
             --include="*.erl" \
             --exclude="*" \
-            system/build/dev/erlang/webql/_gleam_artefacts/ \
+            packages/webql/build/dev/erlang/webql/_gleam_artefacts/ \
             "${stage}/src/"
 
           tar -czf "${GITHUB_WORKSPACE}/${package}.tar.gz" -C "${RUNNER_TEMP}" "${package}"

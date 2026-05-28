@@ -18,12 +18,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  system:
-    name: system (gleam ${{ matrix.gleam }})
+  webql:
+    name: webql (gleam ${{ matrix.gleam }})
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: system
 
     strategy:
       fail-fast: false
@@ -43,13 +40,12 @@ jobs:
           rebar3-version: "3"
           elixir-version: "1"
 
-      - run: just system deps download
-      - run: just system test --target erlang
-      - run: just system test --target javascript
-      - run: just system format --check src test
+      - run: just webql deps
+      - run: just webql test
+      - run: just webql format-check
 
-  platform-elixir:
-    name: platform / elixir (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
+  webql-elixir:
+    name: webql-elixir (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
     runs-on: ubuntu-24.04
 
     env:
@@ -79,31 +75,30 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            platform/elixir/deps
-            platform/elixir/_build
-          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+            packages/webql-elixir/deps
+            packages/webql-elixir/_build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('packages/webql-elixir/mix.lock', 'packages/webql/manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
 
       - name: Build system artifact
         run: |
-          just system clean
-          just system deps download
-          just system build --target erlang
+          just webql deps
+          just webql compile
 
       - name: Install dependencies
-        run: just platform-elixir deps.get
+        run: just webql-elixir deps
 
       - name: Check formatting
         if: ${{ matrix.lint }}
-        run: just platform-elixir format --check-formatted
+        run: just webql-elixir format-check
 
       - name: Compile
-        run: just platform-elixir compile ${{ matrix.lint && '--warnings-as-errors' || '' }}
+        run: just webql-elixir compile
 
       - name: Run tests
-        run: just platform-elixir test
+        run: just webql-elixir test
 
       - name: Run dialyzer
         if: ${{ matrix.lint }}
-        run: just platform-elixir dialyzer
+        run: just webql-elixir dialyzer

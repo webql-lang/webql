@@ -1,0 +1,23 @@
+default:
+    @just --list --unsorted
+
+deps:
+    mix deps.get
+
+test:
+    mix test
+
+clean:
+    mix clean
+
+compile:
+    mix compile --warnings-as-errors
+
+dialyzer:
+    mix dialyzer
+
+format:
+    mix format
+
+format-check:
+    mix format --check-formatted

@@ -1,10 +1,24 @@
+mod webql 'packages/webql'
+mod webql-elixir 'packages/webql-elixir'
+
 default:
     @just --list --unsorted
 
-[working-directory("system")]
-system +args:
-    gleam {{ args }}
+test:
+    just webql test
+    just webql compile
+    just webql-elixir test
 
-[working-directory("platform/elixir")]
-platform-elixir +args:
-    mix {{ args }}
+check: format-check compile test
+
+compile:
+    just webql compile
+    just webql-elixir compile
+
+format:
+    just webql format
+    just webql-elixir format
+
+format-check:
+    just webql format-check
+    just webql-elixir format-check
