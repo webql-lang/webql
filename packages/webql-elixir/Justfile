@@ -1,0 +1,14 @@
+default:
+    @just --list --unsorted
+
+test:
+    mix test
+
+compile:
+    mix compile --warnings-as-errors
+
+format:
+    mix format
+
+format-check:
+    mix format --check-formatted

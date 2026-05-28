@@ -1,0 +1,15 @@
+default:
+    @just --list --unsorted
+
+test *args:
+    gleam test --target erlang {{ args }}
+    gleam test --target javascript {{ args }}
+
+compile *args:
+    gleam build --target erlang {{ args }}
+
+format:
+    gleam format src test
+
+format-check:
+    gleam format --check src test
