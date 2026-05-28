@@ -6,7 +6,7 @@ defmodule Webql.MixProject do
   def project do
     [
       app: @app,
-      version: "1.0.0",
+      version: "0.1.0",
       elixir: "~> 1.17",
       erlc_paths: [
         "deps/gleam_stdlib/src",

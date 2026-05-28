@@ -22,3 +22,7 @@ format:
 format-check:
     just webql format-check
     just webql-elixir format-check
+
+clean:
+    just webql clean
+    just webql-elixir clean
