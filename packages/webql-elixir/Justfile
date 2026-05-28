@@ -1,11 +1,17 @@
 default:
     @just --list --unsorted
 
+deps:
+    mix deps.get
+
 test:
     mix test
 
 compile:
     mix compile --warnings-as-errors
+
+dialyzer:
+    mix dialyzer
 
 format:
     mix format

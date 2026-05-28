@@ -1,12 +1,17 @@
 default:
     @just --list --unsorted
 
+deps:
+    gleam deps download
+
+clean:
+    gleam clean
+
 test *args:
-    gleam test --target erlang {{ args }}
-    gleam test --target javascript {{ args }}
+    @if [ -z "{{ args }}" ]; then gleam test --target erlang && gleam test --target javascript; else gleam test {{ args }}; fi
 
 compile *args:
-    gleam build --target erlang {{ args }}
+    @if [ -z "{{ args }}" ]; then gleam build --target erlang; else gleam build {{ args }}; fi
 
 format:
     gleam format src test
