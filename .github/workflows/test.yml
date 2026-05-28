@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: system
+        working-directory: packages/webql
 
     strategy:
       fail-fast: false
@@ -79,9 +79,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            platform/elixir/deps
-            platform/elixir/_build
-          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+            packages/webql_elixir/deps
+            packages/webql_elixir/_build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('packages/webql_elixir/mix.lock', 'packages/webql/manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
 

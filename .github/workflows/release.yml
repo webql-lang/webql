@@ -32,9 +32,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            platform/elixir/deps
-            platform/elixir/_build
-          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('platform/elixir/mix.lock', 'system/manifest.toml') }}
+            packages/webql_elixir/deps
+            packages/webql_elixir/_build
+          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('packages/webql_elixir/mix.lock', 'packages/webql/manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-release-1.17-27-
 
@@ -65,7 +65,7 @@ jobs:
           stage="${RUNNER_TEMP}/${package}"
 
           mkdir -p "${stage}"
-          rsync -a --exclude-from=platform/elixir/.gitignore platform/elixir/ "${stage}/"
+          rsync -a --exclude-from=packages/webql_elixir/.gitignore packages/webql_elixir/ "${stage}/"
           cp LICENSE README.md "${stage}/"
 
           mkdir -p "${stage}/src"
@@ -74,7 +74,7 @@ jobs:
             --include="*/" \
             --include="*.erl" \
             --exclude="*" \
-            system/build/dev/erlang/webql/_gleam_artefacts/ \
+            packages/webql/build/dev/erlang/webql/_gleam_artefacts/ \
             "${stage}/src/"
 
           tar -czf "${GITHUB_WORKSPACE}/${package}.tar.gz" -C "${RUNNER_TEMP}" "${package}"

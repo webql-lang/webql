@@ -1,10 +1,10 @@
 default:
     @just --list --unsorted
 
-[working-directory("system")]
+[working-directory("packages/webql")]
 system +args:
     gleam {{ args }}
 
-[working-directory("platform/elixir")]
+[working-directory("packages/webql_elixir")]
 platform-elixir +args:
     mix {{ args }}
