@@ -21,6 +21,7 @@ defmodule Webql.MixProject do
       prune_code_paths: false,
       dialyzer: [
         paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
+        exclude_files: ["_test\\.beam"],
         ignore_warnings: ".dialyzer_ignore.exs"
       ],
       deps: [

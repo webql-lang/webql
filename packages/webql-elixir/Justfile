@@ -7,6 +7,9 @@ deps:
 test:
     mix test
 
+clean:
+    mix clean
+
 compile:
     mix compile --warnings-as-errors
 

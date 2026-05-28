@@ -83,7 +83,6 @@ jobs:
 
       - name: Build system artifact
         run: |
-          just webql clean
           just webql deps
           just webql compile
 

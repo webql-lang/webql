@@ -4,9 +4,6 @@ default:
 deps:
     gleam deps download
 
-clean:
-    gleam clean
-
 test *args:
     @if [ -z "{{ args }}" ]; then gleam test --target erlang && gleam test --target javascript; else gleam test {{ args }}; fi
 
