@@ -7,9 +7,6 @@ deps:
 test:
     mix test
 
-clean:
-    mix clean
-
 compile:
     mix compile --warnings-as-errors
 
@@ -21,3 +18,6 @@ format:
 
 format-check:
     mix format --check-formatted
+
+clean:
+    mix clean

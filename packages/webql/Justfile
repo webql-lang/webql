@@ -5,13 +5,16 @@ deps:
     gleam deps download
 
 test *args:
-    @if [ -z "{{ args }}" ]; then gleam test --target erlang && gleam test --target javascript; else gleam test {{ args }}; fi
+    gleam test {{ args }}
 
 compile *args:
-    @if [ -z "{{ args }}" ]; then gleam build --target erlang; else gleam build {{ args }}; fi
+    gleam build {{ args }}
 
 format:
     gleam format src test
 
 format-check:
     gleam format --check src test
+
+clean:
+    gleam clean
