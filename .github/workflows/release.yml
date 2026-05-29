@@ -71,7 +71,7 @@ jobs:
 
           for artefacts in packages/webql/build/prod/erlang/*/_gleam_artefacts
           do
-            rsync -a --include="*/" --include="*.erl" --exclude="*" "${artefacts}/" packages/webql-elixir/src/
+            rsync -a --include="*/" --exclude="gleam@@compile.erl" --include="*.erl" --exclude="*" "${artefacts}/" packages/webql-elixir/src/
           done
 
       - name: Install dependencies
