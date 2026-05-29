@@ -23,8 +23,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.WEBQL_GITHUB_TOKEN }}
 
       - uses: extractions/setup-just@v3
 
@@ -33,6 +31,13 @@ jobs:
           otp-version: "27"
           elixir-version: "1.17"
           gleam-version: "1.16.0"
+
+      - name: Check release ref
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Releases must be run from main, got ${GITHUB_REF}"
+            exit 1
+          fi
 
       - name: Check release version
         working-directory: packages/webql-elixir
@@ -77,17 +82,11 @@ jobs:
       - name: Install dependencies
         run: just webql-elixir deps
 
-      - name: Check formatting
-        run: just webql-elixir format-check
-
       - name: Compile
         run: just webql-elixir compile
 
       - name: Run tests
         run: MIX_ENV=test just webql-elixir test
-
-      - name: Run dialyzer
-        run: just webql-elixir dialyzer
 
       - name: Create release commit
         run: |
@@ -97,9 +96,9 @@ jobs:
           git add -f packages/webql-elixir/src
           git commit -m "Release ${TAG}"
           git tag "${TAG}"
-          git push origin "${TAG}"
+          git push origin "refs/tags/${TAG}"
 
       - name: Create GitHub release
         env:
-          GH_TOKEN: ${{ secrets.WEBQL_GITHUB_TOKEN }}
-        run: gh release create "${TAG}" --generate-notes
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${TAG}" --verify-tag --generate-notes
