@@ -61,7 +61,7 @@ jobs:
       - name: Build system artifact
         run: |
           just webql deps
-          just webql compile
+          just webql compile --target erlang
 
       - name: Install dependencies
         run: just webql-elixir deps
@@ -80,15 +80,13 @@ jobs:
 
       - name: Create release commit
         run: |
+          rm -rf packages/webql-elixir/src
           mkdir -p packages/webql-elixir/src
-          rsync -a \
-            --delete \
-            --include="*/" \
-            --include="*.erl" \
-            --exclude="*_test.erl" \
-            --exclude="*" \
-            packages/webql/build/dev/erlang/webql/_gleam_artefacts/ \
-            packages/webql-elixir/src/
+
+          for artefacts in packages/webql/build/prod/erlang/*/_gleam_artefacts
+          do
+            rsync -a --include="*/" --include="*.erl" --exclude="*" "${artefacts}/" packages/webql-elixir/src/
+          done
 
           git config user.name "webql-release-bot"
           git config user.email "webql-release-bot@users.noreply.github.com"
