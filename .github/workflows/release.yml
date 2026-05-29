@@ -17,6 +17,8 @@ jobs:
 
     env:
       MIX_ENV: prod
+      RELEASE_PACKAGE: webql_ex-${{ github.ref_name }}
+      RELEASE_STAGE: ${{ runner.temp }}/webql_ex-${{ github.ref_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -58,28 +60,44 @@ jobs:
       - name: Run dialyzer
         run: just webql-elixir dialyzer
 
+      - name: Check package version
+        working-directory: packages/webql-elixir
+        run: |
+          version="$(mix run -e 'Mix.Project.config()[:version] |> IO.write()')"
+
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match Mix package version v${version}"
+            exit 1
+          fi
+
       - name: Stage release source
         run: |
-          package="webql-${GITHUB_REF_NAME}"
-          stage="${RUNNER_TEMP}/${package}"
+          mkdir -p "${RELEASE_STAGE}"
+          rsync -a --exclude-from=packages/webql-elixir/.gitignore packages/webql-elixir/ "${RELEASE_STAGE}/"
+          cp LICENSE README.md "${RELEASE_STAGE}/"
 
-          mkdir -p "${stage}"
-          rsync -a --exclude-from=packages/webql-elixir/.gitignore packages/webql-elixir/ "${stage}/"
-          cp LICENSE README.md "${stage}/"
-
-          mkdir -p "${stage}/src"
+          mkdir -p "${RELEASE_STAGE}/src"
           rsync -a \
             --exclude="*_test.erl" \
             --include="*/" \
             --include="*.erl" \
             --exclude="*" \
             packages/webql/build/dev/erlang/webql/_gleam_artefacts/ \
-            "${stage}/src/"
+            "${RELEASE_STAGE}/src/"
 
-          tar -czf "${GITHUB_WORKSPACE}/${package}.tar.gz" -C "${RUNNER_TEMP}" "${package}"
+          tar -czf "${GITHUB_WORKSPACE}/${RELEASE_PACKAGE}.tar.gz" -C "${RUNNER_TEMP}" "${RELEASE_PACKAGE}"
+
+      - name: Publish Hex package
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+          MIX_ENV: dev
+        run: |
+          cd "${RELEASE_STAGE}"
+          mix deps.get
+          mix hex.publish --yes
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: webql-${{ github.ref_name }}.tar.gz
+          files: ${{ env.RELEASE_PACKAGE }}.tar.gz
