@@ -61,7 +61,8 @@ jobs:
       - name: Build system artifact
         run: |
           just webql deps
-          just webql compile --target erlang
+          cd packages/webql
+          gleam export erlang-shipment
 
       - name: Copy generated source
         run: |
