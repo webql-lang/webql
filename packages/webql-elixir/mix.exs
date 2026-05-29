@@ -6,7 +6,7 @@ defmodule Webql.MixProject do
   def project do
     [
       app: @app,
-      version: "0.1.0",
+      version: "0.1.0-alpha.1",
       elixir: "~> 1.17",
       description: "A typed query language and runtime for building executable data graphs.",
       docs: [
