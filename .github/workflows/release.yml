@@ -1,15 +1,17 @@
 name: release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without v, e.g. 0.1.0-alpha.1"
+        required: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.version }}
 
 jobs:
   github-release:
@@ -17,11 +19,12 @@ jobs:
 
     env:
       MIX_ENV: prod
-      RELEASE_PACKAGE: webql_ex-${{ github.ref_name }}
-      RELEASE_STAGE: ${{ runner.temp }}/webql_ex-${{ github.ref_name }}
+      TAG: v${{ inputs.version }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WEBQL_GITHUB_TOKEN }}
 
       - uses: extractions/setup-just@v3
 
@@ -30,6 +33,21 @@ jobs:
           otp-version: "27"
           elixir-version: "1.17"
           gleam-version: "1.16.0"
+
+      - name: Check release version
+        working-directory: packages/webql-elixir
+        run: |
+          version="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+
+          if [ "${version}" != "${{ inputs.version }}" ]; then
+            echo "Input version ${{ inputs.version }} does not match Mix package version ${version}"
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists"
+            exit 1
+          fi
 
       - uses: actions/cache@v4
         with:
@@ -60,44 +78,27 @@ jobs:
       - name: Run dialyzer
         run: just webql-elixir dialyzer
 
-      - name: Check package version
-        working-directory: packages/webql-elixir
+      - name: Create release commit
         run: |
-          version="$(mix run -e 'Mix.Project.config()[:version] |> IO.write()')"
-
-          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match Mix package version v${version}"
-            exit 1
-          fi
-
-      - name: Stage release source
-        run: |
-          mkdir -p "${RELEASE_STAGE}"
-          rsync -a --exclude-from=packages/webql-elixir/.gitignore packages/webql-elixir/ "${RELEASE_STAGE}/"
-          cp LICENSE README.md "${RELEASE_STAGE}/"
-
-          mkdir -p "${RELEASE_STAGE}/src"
+          mkdir -p packages/webql-elixir/src
           rsync -a \
-            --exclude="*_test.erl" \
+            --delete \
             --include="*/" \
             --include="*.erl" \
+            --exclude="*_test.erl" \
             --exclude="*" \
             packages/webql/build/dev/erlang/webql/_gleam_artefacts/ \
-            "${RELEASE_STAGE}/src/"
+            packages/webql-elixir/src/
 
-          tar -czf "${GITHUB_WORKSPACE}/${RELEASE_PACKAGE}.tar.gz" -C "${RUNNER_TEMP}" "${RELEASE_PACKAGE}"
+          git config user.name "webql-release-bot"
+          git config user.email "webql-release-bot@users.noreply.github.com"
 
-      - name: Publish Hex package
-        env:
-          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
-          MIX_ENV: dev
-        run: |
-          cd "${RELEASE_STAGE}"
-          mix deps.get
-          mix hex.publish --yes
+          git add -f packages/webql-elixir/src
+          git commit -m "Release ${TAG}"
+          git tag "${TAG}"
+          git push origin "${TAG}"
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: ${{ env.RELEASE_PACKAGE }}.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.WEBQL_GITHUB_TOKEN }}
+        run: gh release create "${TAG}" --generate-notes
