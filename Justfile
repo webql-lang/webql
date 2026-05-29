@@ -11,6 +11,10 @@ test:
 
 check: format-check compile test
 
+deps:
+    just webql deps
+    just webql-elixir deps
+
 compile:
     just webql compile
     just webql-elixir compile

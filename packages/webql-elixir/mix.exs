@@ -8,6 +8,16 @@ defmodule Webql.MixProject do
       app: @app,
       version: "0.1.0",
       elixir: "~> 1.17",
+      description: "A typed query language and runtime for building executable data graphs.",
+      docs: [
+        main: "readme",
+        extras: ["README.md"]
+      ],
+      package: [
+        name: "webql_ex",
+        licenses: ["Apache-2.0"],
+        links: %{"GitHub" => "https://github.com/webql-lang/webql"}
+      ],
       erlc_paths: [
         "deps/gleam_stdlib/src",
         "src",
@@ -26,7 +36,7 @@ defmodule Webql.MixProject do
       ],
       deps: [
         {:dialyxir, "~> 1.4", runtime: false},
-        {:gleam_stdlib, ">= 0.44.0 and < 2.0.0", compile: false, app: false},
+        {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
         {:spark, "~> 2.7.0"}
       ]
     ]
