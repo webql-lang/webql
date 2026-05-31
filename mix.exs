@@ -88,8 +88,8 @@ defmodule Webql.MixProject do
     [
       paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
       exclude_files: [
-        ~r"/gleam.*\.beam$",
-        ~r"/webql(@.*)?\.beam$"
+        "gleam.*\\.beam$",
+        "webql(@.*)?\\.beam$"
       ],
       ignore_warnings: ".dialyzer_ignore.exs"
     ]
