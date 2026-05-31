@@ -12,34 +12,14 @@ defmodule Webql.MixProject do
       elixir: "~> 1.17",
       description: @description,
       docs: docs(),
-      package: [
-        name: "webql",
-        description: @description,
-        licenses: ["Apache-2.0"],
-        links: %{"GitHub" => "https://github.com/webql-lang/webql"},
-        build_tools: ["mix", "gleam"],
-        files: [
-          "gleam.toml",
-          "manifest.toml",
-          "lib",
-          "src",
-          "build/prod/erlang",
-          "mix.exs",
-          "README.md",
-          "LICENSE"
-        ]
-      ],
+      package: package(),
       erlc_paths: [
         "build/prod/erlang/webql/_gleam_artefacts",
         "build/prod/erlang/gleam_stdlib/_gleam_artefacts"
       ],
       elixirc_paths: ["lib"],
       test_paths: ["test"],
-      dialyzer: [
-        paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
-        exclude_files: ["_test\\.beam"],
-        ignore_warnings: ".dialyzer_ignore.exs"
-      ],
+      dialyzer: dialyzer(),
       deps: deps()
     ]
   end
@@ -54,11 +34,35 @@ defmodule Webql.MixProject do
     [
       main: "readme",
       extras: ["README.md"],
-      filter_modules: fn module, _metadata ->
-        module
-        |> Atom.to_string()
-        |> String.starts_with?("Elixir.Webql")
-      end
+      filter_modules: ~r/^Elixir\.Webql(\.|$)/
+    ]
+  end
+
+  defp package do
+    [
+      name: "webql",
+      description: @description,
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/webql-lang/webql"},
+      build_tools: ["mix", "gleam"],
+      files: [
+        "gleam.toml",
+        "manifest.toml",
+        "lib",
+        "src",
+        "build/prod/erlang",
+        "mix.exs",
+        "README.md",
+        "LICENSE"
+      ]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
+      exclude_files: ["_test\\.beam"],
+      ignore_warnings: ".dialyzer_ignore.exs"
     ]
   end
 

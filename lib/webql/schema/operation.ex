@@ -15,7 +15,7 @@ defmodule Webql.Schema.Operation do
         end
       end
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
 
   use Spark.Dsl,
     default_extensions: [extensions: [Webql.Schema.Operation.Dsl]]

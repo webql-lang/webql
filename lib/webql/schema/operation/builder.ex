@@ -2,14 +2,14 @@ defmodule Webql.Schema.Operation.Builder do
   @moduledoc """
   Builds a WebQL operation into a valid schema operation.
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
 
   alias Webql.Schema.Operation.Dsl.{Input, Output, Resolve}
 
   @doc """
   Builds from a DSL schema source and converts the value into a valid WebQL operation.
   """
-  @doc version: "0.1.0-alpha.1"
+  @doc version: "0.1.0"
   @spec build(schema :: module()) ::
           {String.t(), {:operation, map(), {:resolver, function()}, map()}}
   def build(schema) do

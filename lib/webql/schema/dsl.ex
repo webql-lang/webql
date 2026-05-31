@@ -2,7 +2,7 @@ defmodule Webql.Schema.Dsl do
   @moduledoc """
   DSL for defining a WebQL instance.
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
 
   @webql %Spark.Dsl.Section{
     name: :webql,

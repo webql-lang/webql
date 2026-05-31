@@ -10,7 +10,7 @@ defmodule Webql.Schema.Operation.Dsl do
         output :field, :type
       end
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
 
   defmodule Input do
     @moduledoc false

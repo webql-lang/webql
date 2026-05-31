@@ -2,12 +2,12 @@ defmodule Webql.Schema.Builder do
   @moduledoc """
   Builds a WebQL runner into a valid schema value.
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
 
   @doc """
   Builds from a DSL source and converts the value into a valid WebQL schema value.
   """
-  @doc version: "0.1.0-alpha.1"
+  @doc version: "0.1.0"
   @spec build(schema :: module()) :: {:schema, map(), list(tuple())}
   def build(schema) do
     ports =
