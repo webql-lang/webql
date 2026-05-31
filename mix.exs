@@ -86,8 +86,7 @@ defmodule Webql.MixProject do
 
   defp dialyzer do
     [
-      paths: ["_build/#{Mix.env()}/lib/#{@app}/ebin"],
-      exclude_files: ["_test\\.beam"],
+      paths: Path.wildcard("_build/#{Mix.env()}/lib/#{@app}/ebin/Elixir.Webql*.beam"),
       ignore_warnings: ".dialyzer_ignore.exs"
     ]
   end
