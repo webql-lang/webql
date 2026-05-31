@@ -11,7 +11,7 @@ defmodule Webql.Schema do
         operations [MyApp.Schema.MathOperation]
       end
   """
-  @moduledoc version: "0.1.0"
+  @moduledoc version: "0.1.0-alpha.1"
 
   use Spark.Dsl,
     default_extensions: [extensions: [Webql.Schema.Dsl]]

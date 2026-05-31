@@ -18,13 +18,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      MIX_ENV: prod
       TAG: v${{ inputs.version }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: extractions/setup-just@v3
 
       - uses: erlef/setup-beam@v1
         with:
@@ -40,12 +37,17 @@ jobs:
           fi
 
       - name: Check release version
-        working-directory: packages/webql-elixir
         run: |
-          version="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+          mix_version="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+          gleam_version="$(awk -F '"' '/^version = / { print $2; found = 1; exit } END { if (!found) exit 1 }' gleam.toml)"
 
-          if [ "${version}" != "${{ inputs.version }}" ]; then
-            echo "Input version ${{ inputs.version }} does not match Mix package version ${version}"
+          if [ "${mix_version}" != "${{ inputs.version }}" ]; then
+            echo "Input version ${{ inputs.version }} does not match Mix package version ${mix_version}"
+            exit 1
+          fi
+
+          if [ "${gleam_version}" != "${{ inputs.version }}" ]; then
+            echo "Input version ${{ inputs.version }} does not match Gleam package version ${gleam_version}"
             exit 1
           fi
 
@@ -57,43 +59,45 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            packages/webql-elixir/deps
-            packages/webql-elixir/_build
-          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('packages/webql-elixir/mix.lock', 'packages/webql/manifest.toml') }}
+            deps
+            _build
+            build
+          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('mix.lock', 'manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-release-1.17-27-
 
-      - name: Build system artifact
-        run: |
-          just webql deps
-          cd packages/webql
-          gleam export erlang-shipment
-
-      - name: Copy generated source
-        run: |
-          rm -rf packages/webql-elixir/src
-          mkdir -p packages/webql-elixir/src
-
-          for artefacts in packages/webql/build/prod/erlang/*/_gleam_artefacts
-          do
-            rsync -a --include="*/" --exclude="gleam@@compile.erl" --include="*.erl" --exclude="*" "${artefacts}/" packages/webql-elixir/src/
-          done
-
       - name: Install dependencies
-        run: just webql-elixir deps
+        run: |
+          gleam deps download
+          mix deps.get
 
-      - name: Compile
-        run: just webql-elixir compile
+      - name: Run Gleam tests
+        run: gleam test
 
-      - name: Run tests
-        run: MIX_ENV=test just webql-elixir test
+      - name: Build Gleam artifacts
+        run: |
+          rm -rf build/prod/erlang
+          gleam export erlang-shipment
+          rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
+
+      - name: Compile Mix package
+        run: MIX_ENV=prod mix compile --warnings-as-errors
+
+      - name: Run Elixir tests
+        run: MIX_ENV=test mix test
 
       - name: Create release commit
         run: |
           git config user.name "webql-release-bot"
           git config user.email "webql-release-bot@users.noreply.github.com"
 
-          git add -f packages/webql-elixir/src
+          git add -f build/prod/erlang
+
+          if git diff --cached --quiet -- build/prod/erlang; then
+            echo "No Gleam build artifacts were staged"
+            exit 1
+          fi
+
           git commit -m "Release ${TAG}"
           git tag "${TAG}"
           git push origin "refs/tags/${TAG}"
@@ -102,3 +106,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${TAG}" --verify-tag --generate-notes
+
+      - name: Publish Hex package
+        if: ${{ vars.PUBLISH_HEX == 'true' }}
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: MIX_ENV=prod mix hex.publish --yes
