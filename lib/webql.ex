@@ -2,7 +2,7 @@ defmodule Webql do
   @moduledoc """
   Defines and runs WebQL instances.
   """
-  @moduledoc version: "0.1.0"
+  @moduledoc version: "0.1.0-alpha.1"
 
   @doc """
   Runs an operation with the given parameters.

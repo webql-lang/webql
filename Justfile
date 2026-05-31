@@ -1,32 +1,34 @@
-mod webql 'packages/webql'
-mod webql-elixir 'packages/webql-elixir'
-
 default:
     @just --list --unsorted
 
+deps:
+    gleam deps download
+    mix deps.get
+
 test:
-    just webql test
-    just webql compile
-    just webql-elixir test
+    gleam test
+    just artifacts
+    mix test
 
 check: format-check compile test
 
-deps:
-    just webql deps
-    just webql-elixir deps
-
 compile:
-    just webql compile
-    just webql-elixir compile
+    just artifacts
+    mix compile --warnings-as-errors
 
 format:
-    just webql format
-    just webql-elixir format
+    gleam format src test
+    mix format
 
 format-check:
-    just webql format-check
-    just webql-elixir format-check
+    gleam format --check src test
+    mix format --check-formatted
+
+artifacts:
+    rm -rf build/prod/erlang
+    gleam export erlang-shipment
+    rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
 
 clean:
-    just webql clean
-    just webql-elixir clean
+    gleam clean
+    mix clean

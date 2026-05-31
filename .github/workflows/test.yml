@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  webql:
-    name: webql (gleam ${{ matrix.gleam }})
+  gleam:
+    name: gleam ${{ matrix.gleam }}
     runs-on: ubuntu-24.04
 
     strategy:
@@ -31,21 +31,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: extractions/setup-just@v3
-
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "28"
-          gleam-version: "1.16.0"
+          gleam-version: ${{ matrix.gleam }}
           rebar3-version: "3"
-          elixir-version: "1"
 
-      - run: just webql deps
-      - run: just webql test
-      - run: just webql format-check
+      - run: gleam deps download
+      - run: gleam test
+      - run: gleam format --check src test
 
-  webql-elixir:
-    name: webql-elixir (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
+  mix:
+    name: elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }}
     runs-on: ubuntu-24.04
 
     env:
@@ -64,8 +61,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: extractions/setup-just@v3
-
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
@@ -75,30 +70,35 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            packages/webql-elixir/deps
-            packages/webql-elixir/_build
-          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('packages/webql-elixir/mix.lock', 'packages/webql/manifest.toml') }}
+            deps
+            _build
+            build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock', 'manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
 
-      - name: Build system artifact
-        run: |
-          just webql deps
-          just webql compile
+      - name: Install Gleam dependencies
+        run: gleam deps download
 
-      - name: Install dependencies
-        run: just webql-elixir deps
+      - name: Build Gleam artifacts
+        run: |
+          rm -rf build/prod/erlang
+          gleam export erlang-shipment
+          rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
+
+      - name: Install Mix dependencies
+        run: mix deps.get
 
       - name: Check formatting
         if: ${{ matrix.lint }}
-        run: just webql-elixir format-check
+        run: mix format --check-formatted
 
       - name: Compile
-        run: just webql-elixir compile
+        run: mix compile --warnings-as-errors
 
       - name: Run tests
-        run: just webql-elixir test
+        run: mix test
 
       - name: Run dialyzer
         if: ${{ matrix.lint }}
-        run: just webql-elixir dialyzer
+        run: mix dialyzer

@@ -2,29 +2,20 @@ name: release
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version without v, e.g. 0.1.0-alpha.1"
-        required: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.version }}
+  group: release
+  cancel-in-progress: false
 
 jobs:
   github-release:
     runs-on: ubuntu-24.04
 
-    env:
-      MIX_ENV: prod
-      TAG: v${{ inputs.version }}
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: extractions/setup-just@v3
 
       - uses: erlef/setup-beam@v1
         with:
@@ -32,73 +23,35 @@ jobs:
           elixir-version: "1.17"
           gleam-version: "1.16.0"
 
-      - name: Check release ref
+      - name: Build, tag, and release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
-            echo "Releases must be run from main, got ${GITHUB_REF}"
-            exit 1
-          fi
+          set -euo pipefail
 
-      - name: Check release version
-        working-directory: packages/webql-elixir
-        run: |
-          version="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+          VERSION="$(mix run -e 'IO.write Mix.Project.config()[:version]')"
+          TAG="v${VERSION}"
 
-          if [ "${version}" != "${{ inputs.version }}" ]; then
-            echo "Input version ${{ inputs.version }} does not match Mix package version ${version}"
-            exit 1
-          fi
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "$(grep '^version =' gleam.toml | cut -d '"' -f2)" = "${VERSION}"
 
-          if git ls-remote --exit-code --tags origin "${TAG}" >/dev/null; then
-            echo "Tag ${TAG} already exists"
-            exit 1
-          fi
+          gleam deps download
+          mix deps.get
+          gleam test
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            packages/webql-elixir/deps
-            packages/webql-elixir/_build
-          key: ${{ runner.os }}-release-1.17-27-${{ hashFiles('packages/webql-elixir/mix.lock', 'packages/webql/manifest.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-release-1.17-27-
-
-      - name: Build system artifact
-        run: |
-          just webql deps
-          cd packages/webql
+          rm -rf build/prod/erlang
           gleam export erlang-shipment
+          rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
 
-      - name: Copy generated source
-        run: |
-          rm -rf packages/webql-elixir/src
-          mkdir -p packages/webql-elixir/src
+          MIX_ENV=prod mix compile --warnings-as-errors
+          MIX_ENV=test mix test
 
-          for artefacts in packages/webql/build/prod/erlang/*/_gleam_artefacts
-          do
-            rsync -a --include="*/" --exclude="gleam@@compile.erl" --include="*.erl" --exclude="*" "${artefacts}/" packages/webql-elixir/src/
-          done
-
-      - name: Install dependencies
-        run: just webql-elixir deps
-
-      - name: Compile
-        run: just webql-elixir compile
-
-      - name: Run tests
-        run: MIX_ENV=test just webql-elixir test
-
-      - name: Create release commit
-        run: |
           git config user.name "webql-release-bot"
           git config user.email "webql-release-bot@users.noreply.github.com"
 
-          git add -f packages/webql-elixir/src
+          git add -f build/prod/erlang
           git commit -m "Release ${TAG}"
           git tag "${TAG}"
-          git push origin "refs/tags/${TAG}"
+          git push origin "${TAG}"
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "${TAG}" --verify-tag --generate-notes
+          gh release create "${TAG}" --verify-tag --generate-notes
