@@ -70,7 +70,6 @@ defmodule Webql.MixProject do
       description: @description,
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => "https://github.com/webql-lang/webql"},
-      build_tools: ["mix", "gleam"],
       files: [
         "gleam.toml",
         "manifest.toml",
