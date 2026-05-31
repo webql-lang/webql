@@ -14,8 +14,8 @@ defmodule Webql.MixProject do
       docs: docs(),
       package: package(),
       erlc_paths: [
-        "build/#{Mix.env()}/erlang/webql/_gleam_artefacts",
-        "build/#{Mix.env()}/erlang/gleam_stdlib/_gleam_artefacts"
+        "build/prod/erlang/webql/_gleam_artefacts",
+        "build/prod/erlang/gleam_stdlib/_gleam_artefacts"
       ],
       elixirc_paths: ["lib"],
       test_paths: ["test"],
