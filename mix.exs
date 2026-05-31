@@ -12,8 +12,27 @@ defmodule Webql.MixProject do
       elixir: "~> 1.17",
       description: @description,
       docs: docs(),
-      package: package(),
-      erlc_paths: erlc_paths(),
+      package: [
+        name: "webql",
+        description: @description,
+        licenses: ["Apache-2.0"],
+        links: %{"GitHub" => "https://github.com/webql-lang/webql"},
+        build_tools: ["mix", "gleam"],
+        files: [
+          "gleam.toml",
+          "manifest.toml",
+          "lib",
+          "src",
+          "build/prod/erlang",
+          "mix.exs",
+          "README.md",
+          "LICENSE"
+        ]
+      ],
+      erlc_paths: [
+        "build/prod/erlang/webql/_gleam_artefacts",
+        "build/prod/erlang/gleam_stdlib/_gleam_artefacts"
+      ],
       elixirc_paths: ["lib"],
       test_paths: ["test"],
       dialyzer: [
@@ -34,26 +53,12 @@ defmodule Webql.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"]
-    ]
-  end
-
-  defp package do
-    [
-      name: "webql",
-      description: @description,
-      licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/webql-lang/webql"},
-      files: [
-        "gleam.toml",
-        "manifest.toml",
-        "lib",
-        "src",
-        "build/prod/erlang",
-        "mix.exs",
-        "README.md",
-        "LICENSE"
-      ]
+      extras: ["README.md"],
+      filter_modules: fn module, _metadata ->
+        module
+        |> Atom.to_string()
+        |> String.starts_with?("Elixir.Webql")
+      end
     ]
   end
 
@@ -63,9 +68,5 @@ defmodule Webql.MixProject do
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
       {:spark, "~> 2.7.0"}
     ]
-  end
-
-  defp erlc_paths do
-    Path.wildcard("build/prod/erlang/*/_gleam_artefacts")
   end
 end
