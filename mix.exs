@@ -13,7 +13,10 @@ defmodule Webql.MixProject do
       description: @description,
       docs: docs(),
       package: package(),
-      erlc_paths: erlc_paths(),
+      erlc_paths: [
+        "build/#{Mix.env()}/erlang/webql/_gleam_artefacts",
+        "build/#{Mix.env()}/erlang/gleam_stdlib/_gleam_artefacts"
+      ],
       elixirc_paths: ["lib"],
       test_paths: ["test"],
       aliases: aliases(),
@@ -78,13 +81,6 @@ defmodule Webql.MixProject do
         "README.md",
         "LICENSE"
       ]
-    ]
-  end
-
-  defp erlc_paths do
-    [
-      "build/#{Mix.env()}/erlang/webql/_gleam_artefacts",
-      "build/#{Mix.env()}/erlang/gleam_stdlib/_gleam_artefacts"
     ]
   end
 
