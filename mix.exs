@@ -91,7 +91,8 @@ defmodule Webql.MixProject do
         "gleam.*\\.beam$",
         "webql(@.*)?\\.beam$"
       ],
-      ignore_warnings: ".dialyzer_ignore.exs"
+      ignore_warnings: ".dialyzer_ignore.exs",
+      list_unused_filters: false
     ]
   end
 
