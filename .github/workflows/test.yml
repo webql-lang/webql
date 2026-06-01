@@ -82,9 +82,8 @@ jobs:
 
       - name: Build Gleam artifacts
         run: |
-          rm -rf build/prod/erlang
-          gleam export erlang-shipment
-          rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
+          gleam build --target erlang
+          rm -f build/dev/erlang/*/_gleam_artefacts/gleam@@compile.erl
 
       - name: Install Mix dependencies
         run: mix deps.get
