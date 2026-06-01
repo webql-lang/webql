@@ -16,4 +16,4 @@ A dataflow language designed for building queries and representing directed grap
 }
 ```
 
-WebQL was built in Gleam but targets Elixir and (hopefully) will target JS soon.
+WebQL was built in Gleam but can target Elixir and (hopefully) JS soon.
