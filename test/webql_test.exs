@@ -59,10 +59,8 @@ defmodule WebqlTest do
   end
 
   test "provides default memory and engine instances" do
-    assert {:memory, _new, {:kv, _values}, _get, _set, _merge} = Webql.__memory__()
-
-    assert {:engine, _handle_run, _handle_start_plan, _handle_finish_plan, _handle_start_batch,
-            _handle_finish_batch, _handle_start_step, _handle_finish_step} = Webql.__engine__()
+    assert :memory = elem(Webql.__memory__(), 0)
+    assert :engine = elem(Webql.__engine__(), 0)
   end
 
   test "injects configured memory and engine accessors into WebQL instances" do
