@@ -12,7 +12,6 @@ import webql/schema
 
 pub type Webql(task, storage) {
   Webql(
-    schema: schema.Schema(task),
     memory: memory.Memory(storage),
     engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
   )
@@ -20,29 +19,29 @@ pub type Webql(task, storage) {
 
 /// Creates a new WebQL instance.
 pub fn new(
-  schema: schema.Schema(task),
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
 ) -> Webql(task, storage) {
-  Webql(schema: schema, memory:, engine:)
+  Webql(memory:, engine:)
 }
 
 /// Runs a WebQL source against a schema.
 pub fn run(
   webql: Webql(task, storage),
   source: String,
-  inputs: dynamic.Dynamic,
+  schema: schema.Schema(task),
+  params: dynamic.Dynamic,
 ) -> task {
-  let Webql(engine:, memory:, schema:) = webql
+  let Webql(memory:, engine:) = webql
 
   engine.handle_run(fn() {
     use graph <- result.try(compile(source, schema))
 
-    let assembler = assembler.new(webql.schema)
+    let assembler = assembler.new(schema)
     use plan <- result.try(run_assembler(assembler, graph))
 
     let interpreter = interpreter.new(plan)
-    Ok(run_interpreter(interpreter, memory, engine, inputs))
+    Ok(run_interpreter(interpreter, memory, engine, params))
   })
 }
 
