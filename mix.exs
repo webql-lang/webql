@@ -74,7 +74,7 @@ defmodule Webql.MixProject do
     [
       name: "webql",
       description: @description,
-      licenses: ["Apache-2.0"],
+      licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/webql-lang/webql"},
       files: [
         "gleam.toml",
