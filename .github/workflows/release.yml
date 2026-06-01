@@ -59,9 +59,11 @@ jobs:
 
           git add -f build/prod/erlang
           git commit -m "Release ${TAG}"
+
+          mix hex.publish package --yes
+          mix hex.publish docs --yes
+
           git tag "${TAG}"
           git push origin "${TAG}"
-
-          mix hex.publish --yes
 
           gh release create "${TAG}" --verify-tag --generate-notes
