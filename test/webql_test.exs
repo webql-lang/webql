@@ -23,8 +23,8 @@ defmodule WebqlTest do
     use Webql
   end
 
-  defmodule ConfiguredInstance do
-    use Webql, memory: :configured_memory, engine: :configured_engine
+  defmodule MockedInstance do
+    use Webql, memory: {:configured_memory}, engine: {:configured_engine}
   end
 
   test "runs an operation through the WebQL API" do
@@ -45,6 +45,19 @@ defmodule WebqlTest do
              {:ok, %{"sum" => 2}}
   end
 
+  test "introspects a schema through the WebQL API" do
+    assert Webql.introspect(AddSchema) ==
+             {:schema,
+              [
+                {:operation, "AddOperation", [{:input, "lhs", "Int"}, {:input, "rhs", "Int"}],
+                 [{:output, "sum", "Int"}]}
+              ], ["Int"]}
+  end
+
+  test "injects introspect/1 into WebQL instances" do
+    assert Instance.introspect(AddSchema) == Webql.introspect(AddSchema)
+  end
+
   test "provides default memory and engine instances" do
     assert {:memory, _new, {:kv, _values}, _get, _set, _merge} = Webql.__memory__()
 
@@ -53,15 +66,15 @@ defmodule WebqlTest do
   end
 
   test "injects configured memory and engine accessors into WebQL instances" do
-    assert ConfiguredInstance.__memory__() == :configured_memory
-    assert ConfiguredInstance.__engine__() == :configured_engine
+    assert MockedInstance.__memory__() == {:configured_memory}
+    assert MockedInstance.__engine__() == {:configured_engine}
   end
 
   test "injects new/0 using configured memory and engine" do
-    assert ConfiguredInstance.new() == {:webql, :configured_memory, :configured_engine}
+    assert MockedInstance.new() == {:webql, {:configured_memory}, {:configured_engine}}
   end
 
   test "injects new/2 for explicit memory and engine" do
-    assert ConfiguredInstance.new(:memory, :engine) == {:webql, :memory, :engine}
+    assert MockedInstance.new({:memory}, {:engine}) == {:webql, {:memory}, {:engine}}
   end
 end

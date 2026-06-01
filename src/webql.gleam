@@ -35,7 +35,7 @@ pub fn run(
   let Webql(memory:, engine:) = webql
 
   engine.handle_run(fn() {
-    use graph <- result.try(compile(source, schema))
+    use graph <- result.try(run_compiler(source, schema))
 
     let assembler = assembler.new(schema)
     use plan <- result.try(run_assembler(assembler, graph))
@@ -45,8 +45,14 @@ pub fn run(
   })
 }
 
-/// Compiles a WebQL source into a executable graph.
-pub fn compile(
+/// Returns introspection results for a WebQL schema.
+pub fn introspect(schema: schema.Schema(task)) -> introspection.Schema {
+  introspection.introspect(schema)
+}
+
+// PRIVATE FUNCTIONS
+// =================
+fn run_compiler(
   source: String,
   schema: schema.Schema(task),
 ) -> Result(graph.Graph, diagnostic.Diagnostic) {
@@ -64,8 +70,6 @@ pub fn compile(
   }
 }
 
-// PRIVATE FUNCTIONS
-// =================
 fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
   case assembler.assemble(assembler, graph) {
     Ok(plan) -> Ok(plan)

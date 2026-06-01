@@ -23,6 +23,11 @@ defmodule Webql do
   @callback run(webql :: term(), source :: binary(), dsl :: module(), params :: map()) :: map()
 
   @doc """
+  Returns introspection results for a WebQL schema.
+  """
+  @callback introspect(dsl :: module()) :: map()
+
+  @doc """
   Returns the configured memory instance.
   """
   @callback __memory__() :: term()
@@ -47,25 +52,36 @@ defmodule Webql do
       end
 
       @impl Webql
+      def introspect(dsl) do
+        Webql.introspect(dsl)
+      end
+
+      @impl Webql
       def __memory__, do: Keyword.get(unquote(opts), :memory, Webql.__memory__())
 
       @impl Webql
       def __engine__, do: Keyword.get(unquote(opts), :engine, Webql.__engine__())
 
-      defoverridable new: 2, run: 3
+      defoverridable new: 2, run: 3, introspect: 1
     end
   end
 
   @doc false
-  def new(memory, engine) do
+  def new(memory, engine) when is_tuple(memory) and is_tuple(engine) do
     :webql.new(memory, engine)
   end
 
   @doc false
   def run(webql, source, dsl, params)
-      when is_binary(source) and is_atom(dsl) and is_map(params) do
+      when is_tuple(webql) and is_binary(source) and is_atom(dsl) and is_map(params) do
     schema = Webql.Schema.Builder.build(dsl)
     :webql.run(webql, source, schema, params)
+  end
+
+  @doc false
+  def introspect(dsl) when is_atom(dsl) do
+    schema = Webql.Schema.Builder.build(dsl)
+    :webql.introspect(schema)
   end
 
   @doc false
