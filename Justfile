@@ -13,7 +13,8 @@ test:
 check: format-check compile test
 
 compile:
-    just artifacts
+    gleam build --target erlang
+    rm -f build/dev/erlang/*/_gleam_artefacts/gleam@@compile.erl
     mix compile --warnings-as-errors
 
 format:
@@ -26,9 +27,14 @@ format-check:
 
 artifacts:
     rm -rf build/prod/erlang
+    rm -rf build/erlang-shipment
     gleam export erlang-shipment
     rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
 
 clean:
     gleam clean
     mix clean
+
+docs:
+    just artifacts
+    mix docs

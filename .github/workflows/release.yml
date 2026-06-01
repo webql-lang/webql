@@ -13,6 +13,7 @@ concurrency:
 jobs:
   github-release:
     runs-on: ubuntu-24.04
+    environment: release
 
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +27,7 @@ jobs:
       - name: Build, tag, and release
         env:
           GH_TOKEN: ${{ github.token }}
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: |
           set -euo pipefail
 
@@ -46,6 +48,8 @@ jobs:
 
           MIX_ENV=test mix test
           MIX_ENV=prod mix compile --warnings-as-errors
+          mix docs
+          mix hex.build
 
           git config user.name "webql-release-bot"
           git config user.email "webql-release-bot@users.noreply.github.com"
@@ -54,4 +58,7 @@ jobs:
           git commit -m "Release ${TAG}"
           git tag "${TAG}"
           git push origin "${TAG}"
+
+          mix hex.publish --yes
+
           gh release create "${TAG}" --verify-tag --generate-notes

@@ -3,6 +3,10 @@
 [![Package Version](https://img.shields.io/hexpm/v/webql)](https://hex.pm/packages/webql)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/webql/)
 
+A dataflow language designed for building queries and representing directed graphs.
+
+**WebQL is currently extremely experimental, and is subject to much change. Stay tuned!**
+
 ```webql
 -> out: Int {
   m = Math
@@ -12,7 +16,4 @@
 }
 ```
 
-WebQL is a dataflow language designed for building queries and representing directed graphs.
-
-> [!WARNING]
-> WebQL is experimental and APIs may change.
+WebQL was built in Gleam but targets Elixir and (hopefully) will target JS soon.

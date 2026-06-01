@@ -13,10 +13,7 @@ defmodule Webql.MixProject do
       description: @description,
       docs: docs(),
       package: package(),
-      erlc_paths: [
-        "build/prod/erlang/webql/_gleam_artefacts",
-        "build/prod/erlang/gleam_stdlib/_gleam_artefacts"
-      ],
+      erlc_paths: erlc_paths(),
       elixirc_paths: ["lib"],
       test_paths: ["test"],
       aliases: aliases(),
@@ -51,6 +48,15 @@ defmodule Webql.MixProject do
         &generate_gleam_extras/1,
         "docs"
       ]
+    ]
+  end
+
+  defp erlc_paths do
+    env = if Mix.env() == :prod, do: :prod, else: :dev
+
+    [
+      "build/#{env}/erlang/webql/_gleam_artefacts",
+      "build/#{env}/erlang/gleam_stdlib/_gleam_artefacts"
     ]
   end
 
