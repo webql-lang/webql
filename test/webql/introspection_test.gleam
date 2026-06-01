@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/dynamic
+import webql
 import webql/introspection
 import webql/schema
 
@@ -7,6 +8,11 @@ pub fn introspect_empty_operations_test() {
   assert introspection.introspect(
       schema.Schema(operations: dict.new(), ports: []),
     )
+    == introspection.Schema(operations: [], ports: [])
+}
+
+pub fn introspect_schema_through_public_api_test() {
+  assert webql.introspect(schema.Schema(operations: dict.new(), ports: []))
     == introspection.Schema(operations: [], ports: [])
 }
 

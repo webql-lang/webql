@@ -1,56 +1,92 @@
 defmodule Webql do
   @moduledoc """
   Defines and runs WebQL instances.
+
+  ## Examples
+
+      defmodule MyApp.Webql do
+        use Webql,
+          memory: MyApp.Webql.Memory.new/0,
+          engine: MyApp.Webql.Engine.new/0
+      end
   """
-  @moduledoc version: "0.1.0-alpha.1"
+  @moduledoc version: "0.1.0"
+
+  @doc """
+  Creates a new WebQL instance.
+  """
+  @callback new(memory :: term(), engine :: term()) :: term()
 
   @doc """
   Runs an operation with the given parameters.
   """
-  @callback run(source :: binary(), dsl :: module(), params :: map()) :: map()
+  @callback run(webql :: term(), source :: binary(), dsl :: module(), params :: map()) :: map()
 
   @doc """
-  Compile-time options for a WebQL instance.
+  Returns introspection results for a WebQL schema.
   """
-  @callback __opts__() :: Keyword.t()
+  @callback introspect(dsl :: module()) :: map()
+
+  @doc """
+  Returns the configured memory instance.
+  """
+  @callback __memory__() :: term()
+
+  @doc """
+  Returns the configured engine instance.
+  """
+  @callback __engine__() :: term()
 
   defmacro __using__(opts) do
     quote location: :keep do
       @behaviour Webql
 
       @impl Webql
-      def __opts__ do
-        Keyword.merge(Webql.__opts__(), unquote(opts))
+      def new(memory \\ __memory__(), engine \\ __engine__()) do
+        Webql.new(memory, engine)
       end
 
       @impl Webql
-      def run(source, dsl, params) do
-        Webql.run(__MODULE__, source, dsl, params)
+      def run(webql \\ new(), source, dsl, params) do
+        Webql.run(webql, source, dsl, params)
       end
 
-      defoverridable Webql
+      @impl Webql
+      def introspect(dsl) do
+        Webql.introspect(dsl)
+      end
+
+      @impl Webql
+      def __memory__, do: Keyword.get(unquote(opts), :memory, Webql.__memory__())
+
+      @impl Webql
+      def __engine__, do: Keyword.get(unquote(opts), :engine, Webql.__engine__())
+
+      defoverridable new: 2, run: 3, introspect: 1
     end
   end
 
   @doc false
-  def run(webql, source, dsl, params)
-      when is_binary(source) and is_atom(dsl) and is_map(params) do
-    opts = webql.__opts__()
-
-    engine = Keyword.fetch!(opts, :engine)
-    memory = Keyword.fetch!(opts, :memory)
-
-    schema = Webql.Schema.Builder.build(dsl)
-
-    schema
-    |> :webql.new(memory, engine)
-    |> :webql.run(source, params)
+  def new(memory, engine) when is_tuple(memory) and is_tuple(engine) do
+    :webql.new(memory, engine)
   end
 
   @doc false
-  def __opts__ do
-    Keyword.new()
-    |> Keyword.put_new(:engine, :webql@engine@basic.new())
-    |> Keyword.put_new(:memory, :webql@memory@kv.new())
+  def run(webql, source, dsl, params)
+      when is_tuple(webql) and is_binary(source) and is_atom(dsl) and is_map(params) do
+    schema = Webql.Schema.Builder.build(dsl)
+    :webql.run(webql, source, schema, params)
   end
+
+  @doc false
+  def introspect(dsl) when is_atom(dsl) do
+    schema = Webql.Schema.Builder.build(dsl)
+    :webql.introspect(schema)
+  end
+
+  @doc false
+  def __memory__(), do: :webql@memory@kv.new()
+
+  @doc false
+  def __engine__(), do: :webql@engine@basic.new()
 end
