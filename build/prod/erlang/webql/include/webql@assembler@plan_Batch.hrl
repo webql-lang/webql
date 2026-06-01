@@ -1,0 +1,1 @@
+-record(batch, {steps :: list(webql@assembler@plan:step(any()))}).

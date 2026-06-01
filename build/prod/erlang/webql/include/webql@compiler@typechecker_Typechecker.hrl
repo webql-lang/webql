@@ -1,0 +1,1 @@
+-record(typechecker, {document :: webql@compiler@resolver@hir:document()}).

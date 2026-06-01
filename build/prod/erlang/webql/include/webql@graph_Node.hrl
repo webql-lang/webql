@@ -1,0 +1,1 @@
+-record(node, {name :: binary(), node :: binary()}).

@@ -1,0 +1,1 @@
+-record(duplicate_supernode, {name :: binary()}).

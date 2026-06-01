@@ -1,0 +1,1 @@
+-record(interpreter, {plan :: webql@assembler@plan:plan(any())}).

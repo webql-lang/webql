@@ -1,0 +1,1 @@
+-record(supernode, {plan :: webql@assembler@plan:plan(any())}).

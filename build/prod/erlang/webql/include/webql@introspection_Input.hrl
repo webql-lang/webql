@@ -1,0 +1,1 @@
+-record(input, {name :: binary(), port :: binary()}).

@@ -1,0 +1,1 @@
+-record(literal, {value :: webql@graph:value()}).

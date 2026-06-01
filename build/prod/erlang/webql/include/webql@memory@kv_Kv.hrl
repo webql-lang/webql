@@ -1,0 +1,1 @@
+-record(kv, {values :: gleam@dict:dict(list(binary()), gleam@dynamic:dynamic_())}).

@@ -1,0 +1,1 @@
+-record(linker, {graph :: webql@graph:graph()}).
