@@ -41,7 +41,7 @@ pub fn run(
     use plan <- result.try(run_assembler(assembler, graph))
 
     let runner = runner.new(plan)
-    Ok(run_runner(runner, memory, engine, params))
+    Ok(runner.run(runner, memory, engine, params))
   })
 }
 
@@ -81,13 +81,4 @@ fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
         )),
       )
   }
-}
-
-fn run_runner(
-  runner: runner.Runner(task),
-  memory: memory.Memory(storage),
-  engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-  inputs: dynamic.Dynamic,
-) {
-  runner.run(runner, memory, engine, inputs)
 }
