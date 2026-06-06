@@ -3,7 +3,7 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/memory/kv
+import webql/memory
 import webql/runner/run
 import webql/runner/run_plan
 import webql/runner/run_step
@@ -11,7 +11,7 @@ import webql/schema
 
 pub fn run_step_runs_function_resolver_test() {
   let engine = basic.new()
-  let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
+  let memory = memory.set(memory.new(), ["input"], dynamic.int(4))
   let task =
     run_step.run(
       plan.Step(
@@ -24,7 +24,7 @@ pub fn run_step_runs_function_resolver_test() {
             let assert Ok(number) = decode.run(raw_number, decode.int)
 
             engine.handle_finish_plan(
-              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+              engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
               fn(_memory) {
                 Ok(
                   dynamic.properties([
@@ -50,7 +50,7 @@ pub fn run_step_runs_function_resolver_test() {
   engine.handle_run(fn() {
     Ok(
       engine.handle_finish_plan(task, fn(memory) {
-        let assert Ok(output) = kv.get(memory, ["inc", "value"])
+        let assert Ok(output) = memory.get(memory, ["inc", "value"])
         assert decode.run(output, decode.int) == Ok(5)
         Ok(dynamic.nil())
       }),
@@ -67,7 +67,7 @@ pub fn run_step_reports_missing_input_test() {
         node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
             engine.handle_finish_plan(
-              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+              engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
             )
           }),
@@ -80,7 +80,7 @@ pub fn run_step_reports_missing_input_test() {
         ),
       ],
       engine,
-      kv.new(),
+      memory.new(),
       run_plan.run,
     )
 
@@ -88,7 +88,7 @@ pub fn run_step_reports_missing_input_test() {
     Ok(
       engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })
@@ -103,7 +103,7 @@ pub fn run_step_reports_invalid_output_test() {
         node: plan.Node(
           schema.Resolver(resolver: fn(_inputs) {
             engine.handle_finish_plan(
-              engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+              engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
               fn(_memory) { Ok(dynamic.nil()) },
             )
           }),
@@ -111,7 +111,7 @@ pub fn run_step_reports_invalid_output_test() {
       ),
       [],
       engine,
-      kv.new(),
+      memory.new(),
       run_plan.run,
     )
 
@@ -119,7 +119,7 @@ pub fn run_step_reports_invalid_output_test() {
     Ok(
       engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })
@@ -127,7 +127,7 @@ pub fn run_step_reports_invalid_output_test() {
 
 pub fn run_step_runs_inline_resolver_test() {
   let engine = basic.new()
-  let memory = kv.set(kv.new(), ["input"], dynamic.int(9))
+  let memory = memory.set(memory.new(), ["input"], dynamic.int(9))
   let task =
     run_step.run(
       plan.Step(
@@ -163,7 +163,7 @@ pub fn run_step_runs_inline_resolver_test() {
   engine.handle_run(fn() {
     Ok(
       engine.handle_finish_plan(task, fn(memory) {
-        let assert Ok(output) = kv.get(memory, ["inline", "output"])
+        let assert Ok(output) = memory.get(memory, ["inline", "output"])
         assert decode.run(output, decode.int) == Ok(9)
         Ok(dynamic.nil())
       }),

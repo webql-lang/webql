@@ -3,7 +3,7 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/memory/kv
+import webql/memory
 import webql/runner/run_plan
 import webql/schema
 
@@ -20,7 +20,7 @@ pub fn run_plan_routes_parameter_to_output_test() {
         ],
         batches: [],
       ),
-      kv.new(),
+      memory.new(),
       engine,
       dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
@@ -33,7 +33,7 @@ pub fn run_plan_routes_parameter_to_output_test() {
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
         let assert Ok(output) = dict.get(outputs, "output")
         assert decode.run(output, decode.int) == Ok(7)
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })
@@ -69,7 +69,7 @@ pub fn run_plan_runs_function_resolver_test() {
                   let assert Ok(number) = decode.run(raw_number, decode.int)
 
                   engine.handle_finish_plan(
-                    engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+                    engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
                     fn(_memory) {
                       Ok(
                         dynamic.properties([
@@ -84,7 +84,7 @@ pub fn run_plan_runs_function_resolver_test() {
           ]),
         ],
       ),
-      kv.new(),
+      memory.new(),
       engine,
       dynamic.properties([#(dynamic.string("input"), dynamic.int(4))]),
     )
@@ -97,7 +97,7 @@ pub fn run_plan_runs_function_resolver_test() {
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
         let assert Ok(output) = dict.get(outputs, "output")
         assert decode.run(output, decode.int) == Ok(5)
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })
@@ -116,7 +116,7 @@ pub fn run_plan_reports_missing_return_test() {
         ],
         batches: [],
       ),
-      kv.new(),
+      memory.new(),
       engine,
       dynamic.properties([]),
     )
@@ -125,7 +125,7 @@ pub fn run_plan_reports_missing_return_test() {
     Ok(
       engine.handle_finish_step(task, fn(result) {
         let assert Error(_) = result
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })

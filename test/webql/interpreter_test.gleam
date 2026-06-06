@@ -3,7 +3,7 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/memory/kv
+import webql/memory
 import webql/runner
 
 pub fn runner_routes_parameter_to_output_test() {
@@ -21,7 +21,7 @@ pub fn runner_routes_parameter_to_output_test() {
           batches: [],
         ),
       ),
-      kv.new(),
+      memory.new(),
       engine,
       dynamic.properties([#(dynamic.string("input"), dynamic.int(7))]),
     )
@@ -34,7 +34,7 @@ pub fn runner_routes_parameter_to_output_test() {
           decode.run(outputs, decode.dict(decode.string, decode.dynamic))
         let assert Ok(output) = dict.get(outputs, "output")
         assert decode.run(output, decode.int) == Ok(7)
-        Ok(kv.new())
+        Ok(memory.new())
       }),
     )
   })
