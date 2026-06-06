@@ -2,29 +2,29 @@ import gleam/dict
 import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
-import webql/interpreter/diagnostic
-import webql/interpreter/progress
 import webql/memory/kv
+import webql/runner/diagnostic
+import webql/runner/run
 
-pub fn progress_reports_invalid_parameters_test() {
+pub fn run_reports_invalid_parameters_test() {
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.InvalidParameters(
     errors: _,
-  ))) = progress.add_parameters(kv.new(), dynamic.int(1))
+  ))) = run.add_parameters(kv.new(), dynamic.int(1))
 }
 
-pub fn progress_reports_invalid_step_output_test() {
+pub fn run_reports_invalid_step_output_test() {
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.InvalidStepOutput(
     step: "op",
     errors: _,
-  ))) = progress.add_outputs(kv.new(), "op", dynamic.int(1))
+  ))) = run.add_outputs(kv.new(), "op", dynamic.int(1))
 }
 
-pub fn progress_reports_missing_step_input_test() {
+pub fn run_reports_missing_step_input_test() {
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.MissingStepInput(
     step: "op",
     message: _,
   ))) =
-    progress.get_inputs(kv.new(), "op", [
+    run.get_inputs(kv.new(), "op", [
       plan.Edge(
         source: plan.Output(path: ["missing"]),
         target: plan.Input(path: ["op", "value"]),
@@ -32,9 +32,9 @@ pub fn progress_reports_missing_step_input_test() {
     ])
 }
 
-pub fn progress_gets_constant_returns_test() {
+pub fn run_gets_constant_returns_test() {
   let assert Ok(raw) =
-    progress.get_returns(kv.new(), [
+    run.get_returns(kv.new(), [
       plan.Edge(
         source: plan.Literal(value: dynamic.int(99)),
         target: plan.Input(path: ["output"]),
@@ -47,8 +47,8 @@ pub fn progress_gets_constant_returns_test() {
   assert decode.run(value, decode.int) == Ok(99)
 }
 
-pub fn progress_reports_missing_route_return_test() {
-  assert progress.get_returns(kv.new(), [
+pub fn run_reports_missing_route_return_test() {
+  assert run.get_returns(kv.new(), [
       plan.Edge(
         source: plan.Output(path: ["missing"]),
         target: plan.Input(path: ["output"]),

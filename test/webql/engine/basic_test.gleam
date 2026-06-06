@@ -6,8 +6,8 @@ import gleam/javascript/promise
 @target(javascript)
 import gleam/list
 import webql/engine/basic
-import webql/interpreter/diagnostic
 import webql/memory/kv
+import webql/runner/diagnostic
 
 pub fn basic_new_runs_empty_plan_test() {
   let engine = basic.new()

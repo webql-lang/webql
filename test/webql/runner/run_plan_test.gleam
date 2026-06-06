@@ -3,14 +3,14 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/interpreter/interpret_plan
 import webql/memory/kv
+import webql/runner/run_plan
 import webql/schema
 
-pub fn interpret_plan_routes_parameter_to_output_test() {
+pub fn run_plan_routes_parameter_to_output_test() {
   let engine = basic.new()
   let task =
-    interpret_plan.interpret(
+    run_plan.run(
       plan.Plan(
         edges: [
           plan.Edge(
@@ -39,10 +39,10 @@ pub fn interpret_plan_routes_parameter_to_output_test() {
   })
 }
 
-pub fn interpret_plan_runs_function_resolver_test() {
+pub fn run_plan_runs_function_resolver_test() {
   let engine = basic.new()
   let task =
-    interpret_plan.interpret(
+    run_plan.run(
       plan.Plan(
         edges: [
           plan.Edge(
@@ -103,10 +103,10 @@ pub fn interpret_plan_runs_function_resolver_test() {
   })
 }
 
-pub fn interpret_plan_reports_missing_return_test() {
+pub fn run_plan_reports_missing_return_test() {
   let engine = basic.new()
   let task =
-    interpret_plan.interpret(
+    run_plan.run(
       plan.Plan(
         edges: [
           plan.Edge(

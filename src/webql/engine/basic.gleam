@@ -1,7 +1,7 @@
 import gleam/dynamic
 import webql/engine
-import webql/interpreter/diagnostic
 import webql/memory
+import webql/runner/diagnostic
 
 pub type Basic(storage)
 

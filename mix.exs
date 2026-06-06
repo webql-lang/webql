@@ -115,9 +115,9 @@ defmodule Webql.MixProject do
       Compiler: ~r{^build/dev/exdoc_gleam/webql-compiler(?:-|\.md$)},
       Assembler: ~r{^build/dev/exdoc_gleam/webql-assembler(?:-|\.md$)},
       Engine: ~r{^build/dev/exdoc_gleam/webql-engine(?:-|\.md$)},
-      Interpreter: [
+      Runner: [
         ~r{^build/dev/exdoc_gleam/webql\.md$},
-        ~r{^build/dev/exdoc_gleam/webql-interpreter(?:-|\.md$)}
+        ~r{^build/dev/exdoc_gleam/webql-runner(?:-|\.md$)}
       ],
       Memory: ~r{^build/dev/exdoc_gleam/webql-memory(?:-|\.md$)},
       Diagnostic: ~r{^build/dev/exdoc_gleam/webql-diagnostic\.md$}

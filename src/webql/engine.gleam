@@ -1,5 +1,5 @@
 import gleam/dynamic
-import webql/interpreter/diagnostic
+import webql/runner/diagnostic
 
 pub type HandleRun(task, error) =
   fn(fn() -> Result(task, error)) -> task
