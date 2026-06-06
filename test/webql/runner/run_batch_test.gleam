@@ -3,16 +3,16 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/interpreter/interpret_batch
-import webql/interpreter/interpret_plan
 import webql/memory/kv
+import webql/runner/run_batch
+import webql/runner/run_plan
 import webql/schema
 
-pub fn interpret_batch_runs_step_test() {
+pub fn run_batch_runs_step_test() {
   let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
   let task =
-    interpret_batch.interpret(
+    run_batch.run(
       [
         plan.Step(
           name: "inc",
@@ -45,7 +45,7 @@ pub fn interpret_batch_runs_step_test() {
       ],
       engine,
       memory,
-      interpret_plan.interpret,
+      run_plan.run,
     )
 
   engine.handle_run(fn() {
@@ -59,11 +59,10 @@ pub fn interpret_batch_runs_step_test() {
   })
 }
 
-pub fn interpret_batch_runs_empty_batch_test() {
+pub fn run_batch_runs_empty_batch_test() {
   let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(42))
-  let task =
-    interpret_batch.interpret([], [], engine, memory, interpret_plan.interpret)
+  let task = run_batch.run([], [], engine, memory, run_plan.run)
 
   engine.handle_run(fn() {
     Ok(
@@ -76,11 +75,11 @@ pub fn interpret_batch_runs_empty_batch_test() {
   })
 }
 
-pub fn interpret_batch_runs_multiple_steps_test() {
+pub fn run_batch_runs_multiple_steps_test() {
   let engine = basic.new()
   let memory = kv.set(kv.new(), ["n"], dynamic.int(3))
   let task =
-    interpret_batch.interpret(
+    run_batch.run(
       [
         plan.Step(
           name: "double",
@@ -139,7 +138,7 @@ pub fn interpret_batch_runs_multiple_steps_test() {
       ],
       engine,
       memory,
-      interpret_plan.interpret,
+      run_plan.run,
     )
 
   engine.handle_run(fn() {

@@ -3,17 +3,17 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/interpreter/interpret_plan
-import webql/interpreter/interpret_step
-import webql/interpreter/progress
 import webql/memory/kv
+import webql/runner/run
+import webql/runner/run_plan
+import webql/runner/run_step
 import webql/schema
 
-pub fn interpret_step_runs_function_resolver_test() {
+pub fn run_step_runs_function_resolver_test() {
   let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
   let task =
-    interpret_step.interpret(
+    run_step.run(
       plan.Step(
         name: "inc",
         node: plan.Node(
@@ -44,7 +44,7 @@ pub fn interpret_step_runs_function_resolver_test() {
       ],
       engine,
       memory,
-      interpret_plan.interpret,
+      run_plan.run,
     )
 
   engine.handle_run(fn() {
@@ -58,10 +58,10 @@ pub fn interpret_step_runs_function_resolver_test() {
   })
 }
 
-pub fn interpret_step_reports_missing_input_test() {
+pub fn run_step_reports_missing_input_test() {
   let engine = basic.new()
   let task =
-    interpret_step.interpret(
+    run_step.run(
       plan.Step(
         name: "op",
         node: plan.Node(
@@ -81,7 +81,7 @@ pub fn interpret_step_reports_missing_input_test() {
       ],
       engine,
       kv.new(),
-      interpret_plan.interpret,
+      run_plan.run,
     )
 
   engine.handle_run(fn() {
@@ -94,10 +94,10 @@ pub fn interpret_step_reports_missing_input_test() {
   })
 }
 
-pub fn interpret_step_reports_invalid_output_test() {
+pub fn run_step_reports_invalid_output_test() {
   let engine = basic.new()
   let task =
-    interpret_step.interpret(
+    run_step.run(
       plan.Step(
         name: "invalid",
         node: plan.Node(
@@ -112,7 +112,7 @@ pub fn interpret_step_reports_invalid_output_test() {
       [],
       engine,
       kv.new(),
-      interpret_plan.interpret,
+      run_plan.run,
     )
 
   engine.handle_run(fn() {
@@ -125,11 +125,11 @@ pub fn interpret_step_reports_invalid_output_test() {
   })
 }
 
-pub fn interpret_step_runs_inline_resolver_test() {
+pub fn run_step_runs_inline_resolver_test() {
   let engine = basic.new()
   let memory = kv.set(kv.new(), ["input"], dynamic.int(9))
   let task =
-    interpret_step.interpret(
+    run_step.run(
       plan.Step(
         name: "inline",
         node: plan.Supernode(
@@ -154,7 +154,7 @@ pub fn interpret_step_runs_inline_resolver_test() {
       memory,
       fn(_plan, memory, engine, inputs) {
         engine.handle_start_plan(fn() {
-          let assert Ok(memory) = progress.add_parameters(memory, inputs)
+          let assert Ok(memory) = run.add_parameters(memory, inputs)
           Ok(#(memory, []))
         })
       },

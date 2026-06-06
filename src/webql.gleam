@@ -5,9 +5,9 @@ import webql/compiler
 import webql/diagnostic
 import webql/engine
 import webql/graph
-import webql/interpreter
 import webql/introspection
 import webql/memory
+import webql/runner
 import webql/schema
 
 pub type Webql(task, storage) {
@@ -40,8 +40,8 @@ pub fn run(
     let assembler = assembler.new(schema)
     use plan <- result.try(run_assembler(assembler, graph))
 
-    let interpreter = interpreter.new(plan)
-    Ok(run_interpreter(interpreter, memory, engine, params))
+    let runner = runner.new(plan)
+    Ok(runner.run(runner, memory, engine, params))
   })
 }
 
@@ -81,13 +81,4 @@ fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
         )),
       )
   }
-}
-
-fn run_interpreter(
-  interpreter: interpreter.Interpreter(task),
-  memory: memory.Memory(storage),
-  engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-  inputs: dynamic.Dynamic,
-) {
-  interpreter.interpret(interpreter, memory, engine, inputs)
 }

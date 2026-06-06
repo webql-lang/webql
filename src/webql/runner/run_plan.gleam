@@ -3,22 +3,22 @@ import gleam/list
 import gleam/result
 import webql/assembler/plan
 import webql/engine
-import webql/interpreter/diagnostic
-import webql/interpreter/interpret_batch
-import webql/interpreter/progress
 import webql/memory
+import webql/runner/diagnostic
+import webql/runner/run
+import webql/runner/run_batch
 
 /// Runs an executable plan.
-pub fn interpret(
+pub fn run(
   plan: plan.Plan(task),
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), error),
   parameters: dynamic.Dynamic,
 ) -> task {
-  let result = interpret_plan(plan, memory, engine, parameters)
+  let result = run_plan(plan, memory, engine, parameters)
 
   engine.handle_finish_plan(result, fn(memory) {
-    case progress.get_returns(memory, plan.edges) {
+    case run.get_returns(memory, plan.edges) {
       Ok(returns) -> Ok(returns)
 
       Error(message) ->
@@ -29,7 +29,7 @@ pub fn interpret(
 
 // PRIVATE FUNCTIONS
 // =================
-fn interpret_plan(
+fn run_plan(
   plan: plan.Plan(task),
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), error),
@@ -38,20 +38,14 @@ fn interpret_plan(
   let plan.Plan(edges:, batches:) = plan
 
   engine.handle_start_plan(fn() {
-    use memory <- result.try(progress.add_parameters(memory, parameters))
+    use memory <- result.try(run.add_parameters(memory, parameters))
 
     Ok(#(
       memory,
       list.map(batches, fn(batch) {
         fn(memory) {
           let plan.Batch(steps:) = batch
-          interpret_batch.interpret(
-            steps,
-            edges,
-            engine,
-            memory,
-            interpret_plan,
-          )
+          run_batch.run(steps, edges, engine, memory, run_plan)
         }
       }),
     ))
