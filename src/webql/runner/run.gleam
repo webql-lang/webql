@@ -135,8 +135,5 @@ fn decode(
   unknown: dynamic.Dynamic,
 ) -> Result(dict.Dict(String, dynamic.Dynamic), List(decode.DecodeError)) {
   let schema = decode.dict(decode.string, decode.dynamic)
-  case decode.run(unknown, schema) {
-    Ok(result) -> Ok(result)
-    Error(errors) -> Error(errors)
-  }
+  decode.run(unknown, schema)
 }
