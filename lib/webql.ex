@@ -85,7 +85,7 @@ defmodule Webql do
   end
 
   @doc false
-  def __memory__(), do: :webql@memory@kv.new()
+  def __memory__(), do: :webql@memory.new()
 
   @doc false
   def __engine__(), do: :webql@engine@basic.new()

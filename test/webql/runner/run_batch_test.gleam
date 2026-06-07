@@ -3,14 +3,14 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import webql/assembler/plan
 import webql/engine/basic
-import webql/memory/kv
+import webql/memory
 import webql/runner/run_batch
 import webql/runner/run_plan
 import webql/schema
 
 pub fn run_batch_runs_step_test() {
   let engine = basic.new()
-  let memory = kv.set(kv.new(), ["input"], dynamic.int(4))
+  let memory = memory.set(memory.new(), ["input"], dynamic.int(4))
   let task =
     run_batch.run(
       [
@@ -24,7 +24,7 @@ pub fn run_batch_runs_step_test() {
               let assert Ok(number) = decode.run(raw_number, decode.int)
 
               engine.handle_finish_plan(
-                engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+                engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
@@ -51,7 +51,7 @@ pub fn run_batch_runs_step_test() {
   engine.handle_run(fn() {
     Ok(
       engine.handle_finish_plan(task, fn(memory) {
-        let assert Ok(output) = kv.get(memory, ["inc", "value"])
+        let assert Ok(output) = memory.get(memory, ["inc", "value"])
         assert decode.run(output, decode.int) == Ok(5)
         Ok(dynamic.nil())
       }),
@@ -61,13 +61,13 @@ pub fn run_batch_runs_step_test() {
 
 pub fn run_batch_runs_empty_batch_test() {
   let engine = basic.new()
-  let memory = kv.set(kv.new(), ["input"], dynamic.int(42))
+  let memory = memory.set(memory.new(), ["input"], dynamic.int(42))
   let task = run_batch.run([], [], engine, memory, run_plan.run)
 
   engine.handle_run(fn() {
     Ok(
       engine.handle_finish_plan(task, fn(memory) {
-        let assert Ok(value) = kv.get(memory, ["input"])
+        let assert Ok(value) = memory.get(memory, ["input"])
         assert decode.run(value, decode.int) == Ok(42)
         Ok(dynamic.nil())
       }),
@@ -77,7 +77,7 @@ pub fn run_batch_runs_empty_batch_test() {
 
 pub fn run_batch_runs_multiple_steps_test() {
   let engine = basic.new()
-  let memory = kv.set(kv.new(), ["n"], dynamic.int(3))
+  let memory = memory.set(memory.new(), ["n"], dynamic.int(3))
   let task =
     run_batch.run(
       [
@@ -91,7 +91,7 @@ pub fn run_batch_runs_multiple_steps_test() {
               let assert Ok(value) = decode.run(raw_value, decode.int)
 
               engine.handle_finish_plan(
-                engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+                engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
@@ -113,7 +113,7 @@ pub fn run_batch_runs_multiple_steps_test() {
               let assert Ok(value) = decode.run(raw_value, decode.int)
 
               engine.handle_finish_plan(
-                engine.handle_start_plan(fn() { Ok(#(kv.new(), [])) }),
+                engine.handle_start_plan(fn() { Ok(#(memory.new(), [])) }),
                 fn(_memory) {
                   Ok(
                     dynamic.properties([
@@ -144,8 +144,8 @@ pub fn run_batch_runs_multiple_steps_test() {
   engine.handle_run(fn() {
     Ok(
       engine.handle_finish_plan(task, fn(memory) {
-        let assert Ok(doubled) = kv.get(memory, ["double", "result"])
-        let assert Ok(incremented) = kv.get(memory, ["inc", "result"])
+        let assert Ok(doubled) = memory.get(memory, ["double", "result"])
+        let assert Ok(incremented) = memory.get(memory, ["inc", "result"])
         assert decode.run(doubled, decode.int) == Ok(6)
         assert decode.run(incremented, decode.int) == Ok(4)
         Ok(dynamic.nil())

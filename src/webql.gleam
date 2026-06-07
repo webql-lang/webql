@@ -10,7 +10,7 @@ import webql/memory
 import webql/runner
 import webql/schema
 
-pub type Webql(task, storage) {
+pub type Webql(storage, task) {
   Webql(
     memory: memory.Memory(storage),
     engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
@@ -21,13 +21,13 @@ pub type Webql(task, storage) {
 pub fn new(
   memory: memory.Memory(storage),
   engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-) -> Webql(task, storage) {
+) -> Webql(storage, task) {
   Webql(memory:, engine:)
 }
 
 /// Runs a WebQL source against a schema.
 pub fn run(
-  webql: Webql(task, storage),
+  webql: Webql(storage, task),
   source: String,
   schema: schema.Schema(task),
   params: dynamic.Dynamic,
