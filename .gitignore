@@ -2,16 +2,16 @@
 .zed
 
 # Gleam build output.
-/build/
+build/
 
 # Mix build output and dependencies.
-/_build/
-/deps/
-/cover/
-/doc/
-/tmp/
-/.elixir_ls/
-/.fetch
+_build/
+deps/
+cover/
+doc/
+tmp/
+.elixir_ls/
+.fetch
 
 # Local artifacts.
 *.beam

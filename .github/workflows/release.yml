@@ -21,8 +21,12 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "27"
-          elixir-version: "1.17"
+          elixir-version: "1.18"
           gleam-version: "1.16.0"
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
 
       - name: Build, tag, and release
         env:
@@ -31,25 +35,18 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
-          TAG="v${VERSION}"
+          VERSION="$(cd webql && mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+          TAG="webql-v${VERSION}"
 
           test "${GITHUB_REF}" = "refs/heads/main"
-          test "$(grep '^version =' gleam.toml | cut -d '"' -f2)" = "${VERSION}"
+          test "$(grep '^version =' webql/gleam.toml | cut -d '"' -f2)" = "${VERSION}"
 
-          gleam deps download
-          mix deps.get
+          just webql deps
 
-          gleam test
-          rm -f build/dev/erlang/*/_gleam_artefacts/gleam@@compile.erl
+          MIX_ENV=test just webql test
+          just webql docs
 
-          MIX_ENV=test mix test
-          mix docs
-
-          rm -rf build/prod/erlang
-          rm -rf build/erlang-shipment
-          gleam export erlang-shipment
-          rm -f build/prod/erlang/*/_gleam_artefacts/gleam@@compile.erl
+          cd webql
 
           MIX_ENV=prod mix compile --warnings-as-errors
           mix hex.build
