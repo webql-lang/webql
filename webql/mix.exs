@@ -64,7 +64,7 @@ defmodule Webql.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"] ++ gleam_doc_links(),
+      extras: [{"../README.md", title: "README", filename: "readme"}] ++ gleam_doc_links(),
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules(),
       filter_modules: ~r/^Elixir\.Webql(\.|$)/
