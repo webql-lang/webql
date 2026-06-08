@@ -1,0 +1,1 @@
+-record(node, {resolver :: webql@schema:resolver(any())}).

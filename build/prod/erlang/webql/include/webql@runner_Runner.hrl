@@ -1,0 +1,1 @@
+-record(runner, {plan :: webql@assembler@plan:plan(any())}).

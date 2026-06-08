@@ -1,0 +1,1 @@
+-record(float, {value :: float()}).

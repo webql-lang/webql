@@ -1,0 +1,1 @@
+-record(edge, {source :: webql@graph:source(), target :: webql@graph:target()}).

@@ -1,0 +1,1 @@
+-record(resolver, {document :: webql@compiler@parser@ast:document()}).

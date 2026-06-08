@@ -1,0 +1,1 @@
+-record(scheduler, {plan :: webql@assembler@linker@program:program(any())}).

@@ -1,0 +1,1 @@
+-record(resolver, {resolver :: fun((gleam@dynamic:dynamic_()) -> any())}).

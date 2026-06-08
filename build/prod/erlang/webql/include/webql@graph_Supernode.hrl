@@ -1,0 +1,1 @@
+-record(supernode, {name :: binary(), graph :: webql@graph:graph()}).

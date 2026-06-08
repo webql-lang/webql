@@ -1,0 +1,1 @@
+-record(assembler, {schema :: webql@schema:schema(any())}).

@@ -1,0 +1,10 @@
+-module(webql@assembler@linker@diagnostic).
+-compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch, inline]).
+-define(FILEPATH, "src/webql/assembler/linker/diagnostic.gleam").
+-export_type([diagnostic_kind/0, diagnostic/0]).
+
+-type diagnostic_kind() :: {unknown_operation, binary()}.
+
+-type diagnostic() :: {diagnostic, diagnostic_kind()}.
+
+

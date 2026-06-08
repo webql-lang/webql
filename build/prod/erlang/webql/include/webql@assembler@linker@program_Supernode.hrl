@@ -1,0 +1,1 @@
+-record(supernode, {program :: webql@assembler@linker@program:program(any())}).

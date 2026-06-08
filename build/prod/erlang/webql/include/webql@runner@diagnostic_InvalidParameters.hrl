@@ -1,0 +1,1 @@
+-record(invalid_parameters, {errors :: list(gleam@dynamic@decode:decode_error())}).

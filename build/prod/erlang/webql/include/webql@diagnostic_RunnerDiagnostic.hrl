@@ -1,0 +1,1 @@
+-record(runner_diagnostic, {kind :: webql@runner@diagnostic:diagnostic_kind()}).

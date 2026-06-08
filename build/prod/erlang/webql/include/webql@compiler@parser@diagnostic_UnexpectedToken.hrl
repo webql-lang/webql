@@ -1,0 +1,1 @@
+-record(unexpected_token, {kind :: webql@compiler@lexer@token:token_kind()}).

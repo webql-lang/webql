@@ -1,0 +1,1 @@
+-record(output, {path :: list(binary())}).

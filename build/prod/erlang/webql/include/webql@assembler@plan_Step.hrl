@@ -1,0 +1,1 @@
+-record(step, {name :: binary(), node :: webql@assembler@plan:node_(any())}).
