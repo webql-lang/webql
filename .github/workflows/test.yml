@@ -19,8 +19,11 @@ concurrency:
 
 jobs:
   gleam:
-    name: gleam ${{ matrix.gleam }}
+    name: webql (gleam ${{ matrix.gleam }})
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webql
 
     strategy:
       fail-fast: false
@@ -42,7 +45,7 @@ jobs:
       - run: gleam format --check src test
 
   mix:
-    name: elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }}
+    name: webql (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
     runs-on: ubuntu-24.04
 
     env:
@@ -67,37 +70,30 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           gleam-version: "1.16.0"
 
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
       - uses: actions/cache@v4
         with:
           path: |
-            deps
-            _build
-            build
-          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock', 'manifest.toml') }}
+            webql/deps
+            webql/_build
+            webql/build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('webql/mix.lock', 'webql/manifest.toml', 'webql/gleam.toml') }}
           restore-keys: |
             ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
 
-      - name: Install Gleam dependencies
-        run: gleam deps download
-
-      - name: Build Gleam artifacts
-        run: |
-          gleam build --target erlang
-          rm -f build/dev/erlang/*/_gleam_artefacts/gleam@@compile.erl
-
-      - name: Install Mix dependencies
-        run: mix deps.get
+      - name: Install dependencies
+        run: just webql deps
 
       - name: Check formatting
         if: ${{ matrix.lint }}
-        run: mix format --check-formatted
-
-      - name: Compile
-        run: mix compile --warnings-as-errors
+        run: just webql format-check
 
       - name: Run tests
-        run: mix test
+        run: just webql test
 
       - name: Run dialyzer
         if: ${{ matrix.lint }}
-        run: mix dialyzer
+        run: cd webql && mix dialyzer
