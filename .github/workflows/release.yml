@@ -35,18 +35,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="$(cd webql && mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
-          TAG="webql-v${VERSION}"
+          VERSION="$(mix eval --no-compile --no-deps-check 'Mix.Project.config()[:version] |> IO.write()')"
+          TAG="v${VERSION}"
 
           test "${GITHUB_REF}" = "refs/heads/main"
-          test "$(grep '^version =' webql/gleam.toml | cut -d '"' -f2)" = "${VERSION}"
+          test "$(grep '^version =' gleam.toml | cut -d '"' -f2)" = "${VERSION}"
 
-          just webql deps
+          just deps
 
-          MIX_ENV=test just webql test
-          just webql docs
-
-          cd webql
+          MIX_ENV=test just test
+          just docs
 
           MIX_ENV=prod mix compile --warnings-as-errors
           mix hex.build

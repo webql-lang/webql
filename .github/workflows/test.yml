@@ -19,11 +19,8 @@ concurrency:
 
 jobs:
   gleam:
-    name: webql (gleam ${{ matrix.gleam }})
+    name: gleam ${{ matrix.gleam }}
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: webql
 
     strategy:
       fail-fast: false
@@ -45,7 +42,7 @@ jobs:
       - run: gleam format --check src test
 
   mix:
-    name: webql (elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }})
+    name: elixir ${{ matrix.elixir }} / otp ${{ matrix.otp }}
     runs-on: ubuntu-24.04
 
     env:
@@ -77,23 +74,23 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            webql/deps
-            webql/_build
-            webql/build
-          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('webql/mix.lock', 'webql/manifest.toml', 'webql/gleam.toml') }}
+            deps
+            _build
+            build
+          key: ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock', 'manifest.toml', 'gleam.toml') }}
           restore-keys: |
             ${{ runner.os }}-elixir-${{ matrix.elixir }}-${{ matrix.otp }}-
 
       - name: Install dependencies
-        run: just webql deps
+        run: just deps
 
       - name: Check formatting
         if: ${{ matrix.lint }}
-        run: just webql format-check
+        run: just format-check
 
       - name: Run tests
-        run: just webql test
+        run: just test
 
       - name: Run dialyzer
         if: ${{ matrix.lint }}
-        run: cd webql && mix dialyzer
+        run: mix dialyzer
