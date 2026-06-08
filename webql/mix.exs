@@ -2,7 +2,7 @@ defmodule Webql.MixProject do
   use Mix.Project
 
   @app :webql
-  @version "0.1.0-alpha.1"
+  @version "0.1.0-alpha.2"
   @description "A typed query language and runtime for building executable data graphs."
 
   def project do
