@@ -2,7 +2,7 @@ defmodule Webql.MixProject do
   use Mix.Project
 
   @app :webql
-  @version "0.1.0-alpha.1"
+  @version "0.1.0-alpha.2"
   @description "A typed query language and runtime for building executable data graphs."
 
   def project do
@@ -75,6 +75,7 @@ defmodule Webql.MixProject do
       name: "webql",
       description: @description,
       licenses: ["MIT"],
+      build_tools: ["gleam", "mix"],
       links: %{"GitHub" => "https://github.com/webql-lang/webql"},
       files: [
         "gleam.toml",
