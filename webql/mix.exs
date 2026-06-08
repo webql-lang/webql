@@ -11,6 +11,7 @@ defmodule Webql.MixProject do
       version: @version,
       elixir: "~> 1.17",
       description: @description,
+      build_tools: [:gleam, :mix],
       docs: docs(),
       package: package(),
       erlc_paths: erlc_paths(),
