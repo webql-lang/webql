@@ -1,21 +1,21 @@
 import gleam/dynamic
 import webql/schema
 
-pub type Plan(task) {
-  Plan(edges: List(Edge), batches: List(Batch(task)))
+pub type Plan {
+  Plan(edges: List(Edge), batches: List(Batch))
 }
 
-pub type Batch(task) {
-  Batch(steps: List(Step(task)))
+pub type Batch {
+  Batch(steps: List(Step))
 }
 
-pub type Step(task) {
-  Step(name: String, node: Node(task))
+pub type Step {
+  Step(name: String, node: Node)
 }
 
-pub type Node(task) {
-  Node(resolver: schema.Resolver(task))
-  Supernode(plan: Plan(task))
+pub type Node {
+  Node(resolver: schema.Resolver)
+  Supernode(plan: Plan)
 }
 
 pub type Edge {

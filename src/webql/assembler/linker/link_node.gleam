@@ -8,18 +8,15 @@ import webql/schema
 pub fn link(
   name: String,
   node: String,
-  schema: schema.Schema(task),
-) -> Result(#(String, program.Node(task)), diagnostic.Diagnostic) {
+  schema: schema.Schema,
+) -> Result(#(String, program.Node), diagnostic.Diagnostic) {
   use function <- result.try(link_resolver(node, schema))
   Ok(#(name, program.Node(resolver: function)))
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn link_resolver(
-  node: String,
-  schema: schema.Schema(task),
-) -> Result(schema.Resolver(task), diagnostic.Diagnostic) {
+fn link_resolver(node: String, schema: schema.Schema) {
   let schema.Schema(operations:, ..) = schema
 
   case dict.get(operations, node) {

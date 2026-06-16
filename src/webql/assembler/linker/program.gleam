@@ -2,13 +2,13 @@ import gleam/dict
 import gleam/dynamic
 import webql/schema
 
-pub type Program(task) {
-  Program(nodes: dict.Dict(String, Node(task)), edges: List(Edge))
+pub type Program {
+  Program(nodes: dict.Dict(String, Node), edges: List(Edge))
 }
 
-pub type Node(task) {
-  Node(resolver: schema.Resolver(task))
-  Supernode(program: Program(task))
+pub type Node {
+  Node(resolver: schema.Resolver)
+  Supernode(program: Program)
 }
 
 pub type Edge {

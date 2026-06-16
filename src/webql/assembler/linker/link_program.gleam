@@ -10,17 +10,14 @@ import webql/schema
 /// Links a graph into a scheduler program.
 pub fn link(
   graph: graph.Graph,
-  schema: schema.Schema(task),
-) -> Result(program.Program(task), diagnostic.Diagnostic) {
+  schema: schema.Schema,
+) -> Result(program.Program, diagnostic.Diagnostic) {
   link_program(graph, schema)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn link_program(
-  graph: graph.Graph,
-  schema: schema.Schema(task),
-) -> Result(program.Program(task), diagnostic.Diagnostic) {
+fn link_program(graph: graph.Graph, schema: schema.Schema) {
   let graph.Graph(nodes:, edges:, ..) = graph
 
   use nodes <- result.try(link_nodes(nodes, schema, dict.new()))
@@ -31,9 +28,9 @@ fn link_program(
 
 fn link_nodes(
   nodes: List(graph.Node),
-  schema: schema.Schema(task),
-  linked: dict.Dict(String, program.Node(task)),
-) -> Result(dict.Dict(String, program.Node(task)), diagnostic.Diagnostic) {
+  schema: schema.Schema,
+  linked: dict.Dict(String, program.Node),
+) {
   case nodes {
     [node, ..nodes] -> {
       use #(name, resolver) <- result.try(link_node(node, schema))
@@ -44,10 +41,7 @@ fn link_nodes(
   }
 }
 
-fn link_node(
-  node: graph.Node,
-  schema: schema.Schema(task),
-) -> Result(#(String, program.Node(task)), diagnostic.Diagnostic) {
+fn link_node(node: graph.Node, schema: schema.Schema) {
   case node {
     graph.Node(name:, node:) -> link_node.link(name, node, schema)
 

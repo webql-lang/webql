@@ -1,6 +1,4 @@
-import webql/assembler/linker/diagnostic
 import webql/assembler/linker/link_program
-import webql/assembler/linker/program
 import webql/graph
 import webql/schema
 
@@ -14,9 +12,6 @@ pub fn new(graph: graph.Graph) -> Linker {
 }
 
 /// Links a graph into a scheduler program.
-pub fn link(
-  linker: Linker,
-  schema: schema.Schema(task),
-) -> Result(program.Program(task), diagnostic.Diagnostic) {
+pub fn link(linker: Linker, schema: schema.Schema) {
   link_program.link(linker.graph, schema)
 }
