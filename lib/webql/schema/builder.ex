@@ -1,6 +1,6 @@
 defmodule Webql.Schema.Builder do
   @moduledoc """
-  Builds a WebQL runner into a valid schema value.
+  Builds a WebQL schema module into a valid schema value.
   """
   @moduledoc version: "0.1.0"
 

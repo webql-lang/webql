@@ -10,8 +10,8 @@ import webql/assembler/scheduler/topology
 
 /// Builds an executable plan from a linker program.
 pub fn schedule(
-  program: program.Program(task),
-) -> Result(plan.Plan(task), diagnostic.Diagnostic) {
+  program: program.Program,
+) -> Result(plan.Plan, diagnostic.Diagnostic) {
   let program.Program(nodes:, edges:) = program
 
   let dependencies =
@@ -61,8 +61,8 @@ fn schedule_edges(edges: List(program.Edge)) {
 
 fn schedule_batches(
   batches: List(List(String)),
-  nodes: dict.Dict(String, program.Node(task)),
-) -> Result(List(plan.Batch(task)), diagnostic.Diagnostic) {
+  nodes: dict.Dict(String, program.Node),
+) {
   case batches {
     [batch, ..batches] -> {
       use steps <- result.try(schedule_batch(batch, nodes, []))
@@ -77,9 +77,9 @@ fn schedule_batches(
 
 fn schedule_batch(
   batch: List(String),
-  nodes: dict.Dict(String, program.Node(task)),
-  steps: List(plan.Step(task)),
-) -> Result(List(plan.Step(task)), diagnostic.Diagnostic) {
+  nodes: dict.Dict(String, program.Node),
+  steps: List(plan.Step),
+) {
   case batch {
     [name, ..batch] -> {
       use node <- result.try(schedule_step(nodes, name))
@@ -90,19 +90,14 @@ fn schedule_batch(
   }
 }
 
-fn schedule_step(
-  nodes: dict.Dict(String, program.Node(task)),
-  node: String,
-) -> Result(plan.Node(task), diagnostic.Diagnostic) {
+fn schedule_step(nodes: dict.Dict(String, program.Node), node: String) {
   case dict.get(nodes, node) {
     Ok(node) -> schedule_node(node)
     Error(_nil) -> Error(diagnostic.Diagnostic(kind: diagnostic.InvalidPlan))
   }
 }
 
-fn schedule_node(
-  node: program.Node(task),
-) -> Result(plan.Node(task), diagnostic.Diagnostic) {
+fn schedule_node(node: program.Node) {
   case node {
     program.Node(resolver:) -> Ok(plan.Node(resolver:))
 

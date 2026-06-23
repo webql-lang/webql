@@ -1,14 +1,14 @@
 import gleam/dict
 import gleam/dynamic
 
-pub type Schema(task) {
-  Schema(operations: dict.Dict(String, Operation(task)), ports: List(Port))
+pub type Schema {
+  Schema(operations: dict.Dict(String, Operation), ports: List(Port))
 }
 
-pub type Operation(task) {
+pub type Operation {
   Operation(
     inputs: dict.Dict(String, Input),
-    resolver: Resolver(task),
+    resolver: Resolver,
     outputs: dict.Dict(String, Output),
   )
 }
@@ -17,8 +17,8 @@ pub type Port {
   Port(name: String)
 }
 
-pub type Resolver(task) {
-  Resolver(resolver: fn(dynamic.Dynamic) -> task)
+pub type Resolver {
+  Resolver(resolver: fn(dynamic.Dynamic) -> dynamic.Dynamic)
 }
 
 pub type Input {

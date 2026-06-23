@@ -19,7 +19,7 @@ pub type Output {
 }
 
 /// Builds the public schema exposed by a runtime schema.
-pub fn introspect(schema: schema.Schema(task)) -> Schema {
+pub fn introspect(schema: schema.Schema) -> Schema {
   let schema.Schema(operations:, ports:) = schema
 
   let operations = introspect_operations(operations)
@@ -34,9 +34,7 @@ fn introspect_ports(ports: List(schema.Port)) {
   list.map(ports, fn(port) { port.name })
 }
 
-fn introspect_operations(
-  operations: dict.Dict(String, schema.Operation(task)),
-) {
+fn introspect_operations(operations: dict.Dict(String, schema.Operation)) {
   operations
   |> dict.to_list()
   |> list.map(fn(entry) {
@@ -45,7 +43,7 @@ fn introspect_operations(
   })
 }
 
-fn introspect_operation(name: String, operation: schema.Operation(task)) {
+fn introspect_operation(name: String, operation: schema.Operation) {
   let schema.Operation(inputs:, outputs:, ..) = operation
 
   Operation(

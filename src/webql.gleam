@@ -1,63 +1,17 @@
-import gleam/dynamic
-import gleam/result
 import webql/assembler
+import webql/assembler/plan
 import webql/compiler
 import webql/diagnostic
-import webql/engine
 import webql/graph
 import webql/introspection
-import webql/memory
-import webql/runner
 import webql/schema
 
-pub type Webql(storage, task) {
-  Webql(
-    memory: memory.Memory(storage),
-    engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-  )
-}
-
-/// Creates a new WebQL instance.
-pub fn new(
-  memory: memory.Memory(storage),
-  engine: engine.Engine(task, memory.Memory(storage), diagnostic.Diagnostic),
-) -> Webql(storage, task) {
-  Webql(memory:, engine:)
-}
-
-/// Runs a WebQL source against a schema.
-pub fn run(
-  webql: Webql(storage, task),
+/// Compiles WebQL source into a graph.
+pub fn compile(
   source: String,
-  schema: schema.Schema(task),
-  params: dynamic.Dynamic,
-) -> task {
-  let Webql(memory:, engine:) = webql
-
-  engine.handle_run(fn() {
-    use graph <- result.try(run_compiler(source, schema))
-
-    let assembler = assembler.new(schema)
-    use plan <- result.try(run_assembler(assembler, graph))
-
-    let runner = runner.new(plan)
-    Ok(runner.run(runner, memory, engine, params))
-  })
-}
-
-/// Returns introspection results for a WebQL schema.
-pub fn introspect(schema: schema.Schema(task)) -> introspection.Schema {
-  introspection.introspect(schema)
-}
-
-// PRIVATE FUNCTIONS
-// =================
-fn run_compiler(
-  source: String,
-  schema: schema.Schema(task),
+  introspection: introspection.Schema,
 ) -> Result(graph.Graph, diagnostic.Diagnostic) {
-  let introspection_schema = introspection.introspect(schema)
-  let compiler = compiler.new(introspection_schema)
+  let compiler = compiler.new(introspection)
 
   case compiler.compile(compiler, source) {
     Ok(output) -> Ok(output)
@@ -70,7 +24,13 @@ fn run_compiler(
   }
 }
 
-fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
+/// Assembles a WebQL graph into a executable plan.
+pub fn assemble(
+  graph: graph.Graph,
+  schema: schema.Schema,
+) -> Result(plan.Plan, diagnostic.Diagnostic) {
+  let assembler = assembler.new(schema)
+
   case assembler.assemble(assembler, graph) {
     Ok(plan) -> Ok(plan)
 
@@ -81,4 +41,9 @@ fn run_assembler(assembler: assembler.Assembler(task), graph: graph.Graph) {
         )),
       )
   }
+}
+
+/// Returns introspection results for a WebQL schema.
+pub fn introspect(schema: schema.Schema) -> introspection.Schema {
+  introspection.introspect(schema)
 }
