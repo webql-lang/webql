@@ -4,15 +4,6 @@
 # Gleam build output.
 /build/
 
-# Mix build output and dependencies.
-/_build/
-/deps/
-/cover/
-/doc/
-/tmp/
-/.elixir_ls/
-/.fetch
-
 # Local artifacts.
 *.beam
 *.ez
