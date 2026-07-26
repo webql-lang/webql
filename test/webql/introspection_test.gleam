@@ -16,19 +16,16 @@ pub fn introspect_schema_through_public_api_test() {
 pub fn introspect_nodes_test() {
   let schema =
     schema.Schema(
-      nodes: dict.from_list([
-        #(
+      nodes: dict.new()
+        |> dict.insert(
           "Test",
           schema.Node(
-            inputs: dict.from_list([
-              #("in", schema.Input(name: "in", port: "Text")),
-            ]),
-            outputs: dict.from_list([
-              #("out", schema.Output(name: "out", port: "Text")),
-            ]),
+            inputs: dict.new()
+              |> dict.insert("in", schema.Input(name: "in", port: "Text")),
+            outputs: dict.new()
+              |> dict.insert("out", schema.Output(name: "out", port: "Text")),
           ),
         ),
-      ]),
       ports: [schema.Port(name: "Text")],
     )
 

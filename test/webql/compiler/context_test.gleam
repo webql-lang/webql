@@ -8,10 +8,9 @@ pub fn add_parameter_assigns_stable_reference_test() {
   let context.Context(parameters:, ..) = context
 
   assert parameters
-    == dict.from_list([
-      #("in", reference.Parameter(0)),
-      #("value", reference.Parameter(1)),
-    ])
+    == dict.new()
+    |> dict.insert("in", reference.Parameter(0))
+    |> dict.insert("value", reference.Parameter(1))
 }
 
 pub fn add_return_assigns_stable_reference_test() {
@@ -20,10 +19,9 @@ pub fn add_return_assigns_stable_reference_test() {
   let context.Context(returns:, ..) = context
 
   assert returns
-    == dict.from_list([
-      #("out", reference.Return(0)),
-      #("value", reference.Return(1)),
-    ])
+    == dict.new()
+    |> dict.insert("out", reference.Return(0))
+    |> dict.insert("value", reference.Return(1))
 }
 
 pub fn add_input_assigns_stable_reference_test() {
@@ -37,10 +35,9 @@ pub fn add_input_assigns_stable_reference_test() {
   let context.Context(inputs:, ..) = context
 
   assert inputs
-    == dict.from_list([
-      #(["in"], #(reference.Input(0), reference.Port(0))),
-      #(["math", "in"], #(reference.Input(1), reference.Port(1))),
-    ])
+    == dict.new()
+    |> dict.insert(["in"], #(reference.Input(0), reference.Port(0)))
+    |> dict.insert(["math", "in"], #(reference.Input(1), reference.Port(1)))
 }
 
 pub fn add_output_assigns_stable_reference_test() {
@@ -54,10 +51,9 @@ pub fn add_output_assigns_stable_reference_test() {
   let context.Context(outputs:, ..) = context
 
   assert outputs
-    == dict.from_list([
-      #(["out"], #(reference.Output(0), reference.Port(0))),
-      #(["math", "out"], #(reference.Output(1), reference.Port(1))),
-    ])
+    == dict.new()
+    |> dict.insert(["out"], #(reference.Output(0), reference.Port(0)))
+    |> dict.insert(["math", "out"], #(reference.Output(1), reference.Port(1)))
 }
 
 pub fn add_node_assigns_stable_reference_test() {
@@ -66,10 +62,9 @@ pub fn add_node_assigns_stable_reference_test() {
   let context.Context(nodes:, ..) = context
 
   assert nodes
-    == dict.from_list([
-      #("math", reference.Node(0)),
-      #("text", reference.Node(1)),
-    ])
+    == dict.new()
+    |> dict.insert("math", reference.Node(0))
+    |> dict.insert("text", reference.Node(1))
 }
 
 pub fn add_edge_assigns_stable_reference_test() {
@@ -92,10 +87,9 @@ pub fn add_edge_assigns_stable_reference_test() {
   let context.Context(edges:, ..) = context
 
   assert edges
-    == dict.from_list([
-      #(reference.Input(0), reference.Edge(0)),
-      #(reference.Input(1), reference.Edge(1)),
-    ])
+    == dict.new()
+    |> dict.insert(reference.Input(0), reference.Edge(0))
+    |> dict.insert(reference.Input(1), reference.Edge(1))
 }
 
 pub fn add_supernode_assigns_stable_reference_test() {
@@ -104,10 +98,9 @@ pub fn add_supernode_assigns_stable_reference_test() {
   let context.Context(supernodes:, ..) = context
 
   assert supernodes
-    == dict.from_list([
-      #("Math", reference.Supernode(0)),
-      #("Text", reference.Supernode(1)),
-    ])
+    == dict.new()
+    |> dict.insert("Math", reference.Supernode(0))
+    |> dict.insert("Text", reference.Supernode(1))
 }
 
 pub fn add_context_keeps_existing_registration_test() {
@@ -122,7 +115,8 @@ pub fn add_context_keeps_existing_registration_test() {
   let context.Context(contexts:, ..) = context
 
   assert contexts
-    == dict.from_list([#(reference.Supernode(0), first_nested_context)])
+    == dict.new()
+    |> dict.insert(reference.Supernode(0), first_nested_context)
 }
 
 pub fn get_input_returns_typed_registration_test() {
@@ -184,10 +178,9 @@ pub fn add_contexts_registers_nested_contexts_test() {
   let context.Context(contexts:, ..) = context
 
   assert contexts
-    == dict.from_list([
-      #(reference.Supernode(0), math_context),
-      #(reference.Supernode(1), text_context),
-    ])
+    == dict.new()
+    |> dict.insert(reference.Supernode(0), math_context)
+    |> dict.insert(reference.Supernode(1), text_context)
 }
 
 pub fn get_context_returns_registered_nested_context_test() {

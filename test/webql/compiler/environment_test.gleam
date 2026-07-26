@@ -13,10 +13,9 @@ pub fn add_node_assigns_stable_kind_test() {
   let environment.Environment(nodes:, ..) = environment
 
   assert nodes
-    == dict.from_list([
-      #("Math", reference.Kind(0)),
-      #("Text", reference.Kind(1)),
-    ])
+    == dict.new()
+    |> dict.insert("Math", reference.Kind(0))
+    |> dict.insert("Text", reference.Kind(1))
 }
 
 pub fn add_input_registers_node_port_test() {

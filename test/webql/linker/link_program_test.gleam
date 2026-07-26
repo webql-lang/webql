@@ -40,9 +40,26 @@ pub fn link_program_builds_program_test() {
         ),
       ],
     )
+  let schema =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Normalize",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "GetUser",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "GetPosts",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
   let assert Ok(program.Program(edges:, batches:)) =
-    link_program.link(document, catalog())
+    link_program.link(document, schema)
 
   assert edges
     == [
@@ -102,8 +119,18 @@ pub fn link_program_converts_all_literal_values_test() {
       ],
     )
 
+  let schema =
+    schema.Schema(
+      nodes: dict.insert(
+        dict.new(),
+        "Format",
+        schema.Node(inputs: dict.new(), outputs: dict.new()),
+      ),
+      ports: [],
+    )
+
   let assert Ok(program.Program(edges:, ..)) =
-    link_program.link(document, catalog())
+    link_program.link(document, schema)
 
   assert edges
     == [
@@ -134,21 +161,31 @@ pub fn link_program_batches_independent_nodes_test() {
       edges: [],
     )
 
-  let assert Ok(program.Program(batches: [program.Batch(steps:)], ..)) =
-    link_program.link(document, catalog())
+  let schema =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Left",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "Right",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
-  let names =
-    list.map(steps, fn(step) {
-      let program.Step(name:, ..) = step
-      name
-    })
+  let assert Ok(program.Program(batches: [program.Batch(steps:)], ..)) =
+    link_program.link(document, schema)
+
+  let names = list.map(steps, fn(step) { step.name })
 
   assert list.contains(names, "left")
   assert list.contains(names, "right")
 }
 
 pub fn link_program_links_supernodes_test() {
-  let inline_graph =
+  let graph =
     graph.Graph(
       parameters: [],
       returns: [],
@@ -160,11 +197,21 @@ pub fn link_program_links_supernodes_test() {
     graph.Graph(
       parameters: [],
       returns: [],
-      nodes: [graph.Supernode(name: "normalize", graph: inline_graph)],
+      nodes: [graph.Supernode(name: "normalize", graph:)],
       edges: [],
     )
 
-  let assert Ok(result) = link_program.link(document, catalog())
+  let schema =
+    schema.Schema(
+      nodes: dict.insert(
+        dict.new(),
+        "Add",
+        schema.Node(inputs: dict.new(), outputs: dict.new()),
+      ),
+      ports: [],
+    )
+
+  let assert Ok(result) = link_program.link(document, schema)
   let assert [program.Batch(steps: [step])] = result.batches
 
   let program.Step(name: step_name, node: step_node) = step
@@ -193,8 +240,9 @@ pub fn link_program_reports_unknown_nodes_test() {
       nodes: [graph.Node(name: "missing", node: "Missing")],
       edges: [],
     )
+  let schema = schema.Schema(nodes: dict.new(), ports: [])
 
-  assert link_program.link(document, catalog())
+  assert link_program.link(document, schema)
     == Error(diagnostic.Diagnostic(kind: diagnostic.UnknownNode("Missing")))
 }
 
@@ -218,30 +266,24 @@ pub fn link_program_reports_cycles_test() {
         ),
       ],
     )
+  let schema =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Left",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "Right",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.CycleDetected(
     remaining:,
-  ))) = link_program.link(document, catalog())
+  ))) = link_program.link(document, schema)
 
   assert list.contains(remaining, "left")
   assert list.contains(remaining, "right")
-}
-
-fn node() {
-  schema.Node(inputs: dict.new(), outputs: dict.new())
-}
-
-fn catalog() {
-  schema.Schema(
-    nodes: dict.from_list([
-      #("Normalize", node()),
-      #("GetUser", node()),
-      #("GetPosts", node()),
-      #("Format", node()),
-      #("Left", node()),
-      #("Right", node()),
-      #("Add", node()),
-    ]),
-    ports: [],
-  )
 }

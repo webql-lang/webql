@@ -7,8 +7,9 @@ import webql/schema
 
 pub fn linker_links_empty_graph_test() {
   let document = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
+  let catalog = schema.Schema(nodes: dict.new(), ports: [])
 
-  let linker = linker.new(document, catalog())
+  let linker = linker.new(document, catalog)
   let assert Ok(program.Program(edges:, batches:)) = linker.link(linker)
 
   assert edges == []
@@ -58,8 +59,33 @@ pub fn linker_returns_program_test() {
         ),
       ],
     )
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Normalize",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "GetUser",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "GetPosts",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "GetStats",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "Format",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
-  let linker = linker.new(document, catalog())
+  let linker = linker.new(document, catalog)
   let assert Ok(result) = linker.link(linker)
   let program.Program(edges:, batches:) = result
 
@@ -124,8 +150,17 @@ pub fn linker_links_supernodes_test() {
       nodes: [graph.Supernode(name: "normalize", graph: inline_graph)],
       edges: [],
     )
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Add",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
-  let linker = linker.new(document, catalog())
+  let linker = linker.new(document, catalog)
   let assert Ok(result) = linker.link(linker)
   let assert [program.Batch(steps: [step])] = result.batches
 
@@ -145,22 +180,4 @@ pub fn linker_links_supernodes_test() {
   }
 
   assert inner_names == [["add"]]
-}
-
-fn node() {
-  schema.Node(inputs: dict.new(), outputs: dict.new())
-}
-
-fn catalog() {
-  schema.Schema(
-    nodes: dict.from_list([
-      #("Normalize", node()),
-      #("GetUser", node()),
-      #("GetPosts", node()),
-      #("GetStats", node()),
-      #("Format", node()),
-      #("Add", node()),
-    ]),
-    ports: [],
-  )
 }

@@ -29,13 +29,13 @@ pub fn register_registers_node_ports_from_schema_test() {
   let context = register_node.register(schema, context.new(), node)
   let context.Context(nodes:, inputs:, outputs:, ..) = context
 
-  assert nodes == dict.from_list([#("math", reference.Node(0))])
+  assert nodes
+    == dict.new()
+    |> dict.insert("math", reference.Node(0))
   assert inputs
-    == dict.from_list([
-      #(["math", "left"], #(reference.Input(0), reference.Port(0))),
-    ])
+    == dict.new()
+    |> dict.insert(["math", "left"], #(reference.Input(0), reference.Port(0)))
   assert outputs
-    == dict.from_list([
-      #(["math", "value"], #(reference.Output(0), reference.Port(0))),
-    ])
+    == dict.new()
+    |> dict.insert(["math", "value"], #(reference.Output(0), reference.Port(0)))
 }

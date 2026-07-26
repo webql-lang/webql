@@ -7,23 +7,42 @@ import webql/schema
 
 pub fn link_batch_links_topological_batches_test() {
   let nodes =
-    dict.from_list([
-      #("left", graph.Node(name: "left", node: "Add")),
-      #("right", graph.Node(name: "right", node: "Add")),
-    ])
+    dict.new()
+    |> dict.insert("left", graph.Node(name: "left", node: "Add"))
+    |> dict.insert("right", graph.Node(name: "right", node: "Add"))
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Add",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
   let assert Ok([
     program.Batch(steps: [program.Step(name: "left", ..)]),
     program.Batch(steps: [program.Step(name: "right", ..)]),
-  ]) = link_batch.link([["left"], ["right"]], nodes, catalog(), link_graph)
+  ]) =
+    link_batch.link([["left"], ["right"]], nodes, catalog, fn(_graph, _schema) {
+      Ok(program.Program(edges: [], batches: []))
+    })
 }
 
 pub fn link_batch_links_supernodes_test() {
   let nested = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
   let nodes =
-    dict.from_list([
-      #("nested", graph.Supernode(name: "nested", graph: nested)),
-    ])
+    dict.new()
+    |> dict.insert("nested", graph.Supernode(name: "nested", graph: nested))
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Add",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
 
   let assert Ok([
     program.Batch(steps: [
@@ -32,22 +51,30 @@ pub fn link_batch_links_supernodes_test() {
         node: program.Supernode(program: nested_program),
       ),
     ]),
-  ]) = link_batch.link([["nested"]], nodes, catalog(), link_graph)
+  ]) =
+    link_batch.link([["nested"]], nodes, catalog, fn(_graph, _schema) {
+      Ok(program.Program(edges: [], batches: []))
+    })
 
   assert nested_program == program.Program(edges: [], batches: [])
 }
 
 pub fn link_batch_reports_missing_nodes_test() {
-  assert link_batch.link([["missing"]], dict.new(), catalog(), link_graph)
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Add",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
+
+  assert link_batch.link(
+      [["missing"]],
+      dict.new(),
+      catalog,
+      fn(_graph, _schema) { Ok(program.Program(edges: [], batches: [])) },
+    )
     == Error(diagnostic.Diagnostic(kind: diagnostic.InvalidProgram))
-}
-
-fn link_graph(_graph: graph.Graph, _schema: schema.Schema) {
-  Ok(program.Program(edges: [], batches: []))
-}
-
-fn catalog() {
-  let node = schema.Node(inputs: dict.new(), outputs: dict.new())
-
-  schema.Schema(nodes: dict.from_list([#("Add", node)]), ports: [])
 }

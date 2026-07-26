@@ -5,13 +5,12 @@ import webql/linker/link_route
 
 pub fn link_route_builds_node_dependencies_test() {
   let dependencies =
-    dict.from_list([
-      #("normalize", set.new()),
-      #("user", set.new()),
-      #("posts", set.new()),
-      #("stats", set.new()),
-      #("format", set.new()),
-    ])
+    dict.new()
+    |> dict.insert("normalize", set.new())
+    |> dict.insert("user", set.new())
+    |> dict.insert("posts", set.new())
+    |> dict.insert("stats", set.new())
+    |> dict.insert("format", set.new())
 
   let dependencies =
     dependencies
@@ -45,21 +44,19 @@ pub fn link_route_builds_node_dependencies_test() {
     ))
 
   assert dependencies
-    == dict.from_list([
-      #("normalize", set.new()),
-      #("user", set.from_list(["normalize"])),
-      #("posts", set.from_list(["user"])),
-      #("stats", set.from_list(["posts"])),
-      #("format", set.from_list(["user", "stats"])),
-    ])
+    == dict.new()
+    |> dict.insert("normalize", set.new())
+    |> dict.insert("user", set.from_list(["normalize"]))
+    |> dict.insert("posts", set.from_list(["user"]))
+    |> dict.insert("stats", set.from_list(["posts"]))
+    |> dict.insert("format", set.from_list(["user", "stats"]))
 }
 
 pub fn link_route_ignores_boundaries_and_missing_nodes_test() {
   let dependencies =
-    dict.from_list([
-      #("left", set.new()),
-      #("right", set.new()),
-    ])
+    dict.new()
+    |> dict.insert("left", set.new())
+    |> dict.insert("right", set.new())
 
   let dependencies =
     dependencies
@@ -81,14 +78,13 @@ pub fn link_route_ignores_boundaries_and_missing_nodes_test() {
     ))
 
   assert dependencies
-    == dict.from_list([
-      #("left", set.new()),
-      #("right", set.new()),
-    ])
+    == dict.new()
+    |> dict.insert("left", set.new())
+    |> dict.insert("right", set.new())
 }
 
 pub fn link_route_ignores_self_dependencies_test() {
-  let dependencies = dict.from_list([#("math", set.new())])
+  let dependencies = dict.insert(dict.new(), "math", set.new())
 
   let dependencies =
     dependencies
@@ -97,11 +93,11 @@ pub fn link_route_ignores_self_dependencies_test() {
       target: graph.Input(path: ["math", "l"]),
     ))
 
-  assert dependencies == dict.from_list([#("math", set.new())])
+  assert dependencies == dict.insert(dict.new(), "math", set.new())
 }
 
 pub fn link_route_ignores_constants_test() {
-  let dependencies = dict.from_list([#("math", set.new())])
+  let dependencies = dict.insert(dict.new(), "math", set.new())
 
   let dependencies =
     dependencies
@@ -110,5 +106,5 @@ pub fn link_route_ignores_constants_test() {
       target: graph.Input(path: ["math", "r"]),
     ))
 
-  assert dependencies == dict.from_list([#("math", set.new())])
+  assert dependencies == dict.insert(dict.new(), "math", set.new())
 }
