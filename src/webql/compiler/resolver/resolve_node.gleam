@@ -45,9 +45,9 @@ fn resolve_node(
   )
 
   case environment.get_node(environment, node) {
-    Ok(kind) -> {
+    Ok(_nil) -> {
       let reference = context.next_node(context)
-      let node = hir.Node(name:, node:, kind:, reference:, span:)
+      let node = hir.Node(name:, node:, reference:, span:)
       let context = register_node.register(environment, context, node)
 
       Ok(#(node, context, environment))
@@ -93,29 +93,28 @@ fn resolve_supernode(
   let supernode = hir.Supernode(name:, graph:, reference:, span:)
   let context =
     register_supernode.register(context, name, reference, sub_context)
-  let environment = register_supernode_kind(environment, name, graph)
+  let environment = register_supernode_ports(environment, name, graph)
 
   Ok(#(supernode, context, environment))
 }
 
-fn register_supernode_kind(
+fn register_supernode_ports(
   environment: environment.Environment,
   name: String,
   graph: hir.Graph,
 ) -> environment.Environment {
-  let kind = environment.next_kind(environment)
   let environment = environment.add_node(environment, name)
 
   let environment =
     list.fold(graph.parameters, environment, fn(environment, parameter) {
-      environment.add_input(environment, kind, #(
+      environment.add_input(environment, name, #(
         parameter.name,
         parameter.port.reference,
       ))
     })
 
   list.fold(graph.returns, environment, fn(environment, return) {
-    environment.add_output(environment, kind, #(
+    environment.add_output(environment, name, #(
       return.name,
       return.port.reference,
     ))

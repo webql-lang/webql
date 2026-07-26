@@ -10,10 +10,10 @@ pub fn register_registers_node_ports_from_schema_test() {
   let schema =
     environment.new()
     |> environment.add_node("Math")
-    |> environment.add_inputs(reference.Kind(0), [
+    |> environment.add_inputs("Math", [
       #("left", reference.Port(0)),
     ])
-    |> environment.add_outputs(reference.Kind(0), [
+    |> environment.add_outputs("Math", [
       #("value", reference.Port(0)),
     ])
 
@@ -21,7 +21,6 @@ pub fn register_registers_node_ports_from_schema_test() {
     hir.Node(
       name: "math",
       node: "Math",
-      kind: reference.Kind(0),
       reference: reference.Node(0),
       span: source.Span(start: 0, end: 11),
     )

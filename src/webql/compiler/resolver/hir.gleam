@@ -75,13 +75,7 @@ pub type Node {
     reference: reference.Supernode,
     span: source.Span,
   )
-  Node(
-    name: String,
-    node: String,
-    kind: reference.Kind,
-    reference: reference.Node,
-    span: source.Span,
-  )
+  Node(name: String, node: String, reference: reference.Node, span: source.Span)
 }
 
 /// A directed connection from a producing value to a receiving location.
