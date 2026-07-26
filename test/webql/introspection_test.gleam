@@ -1,49 +1,40 @@
 import gleam/dict
-import gleam/dynamic
 import webql
 import webql/introspection
 import webql/schema
 
-pub fn introspect_empty_operations_test() {
-  assert introspection.introspect(
-      schema.Schema(operations: dict.new(), ports: []),
-    )
-    == introspection.Schema(operations: [], ports: [])
+pub fn introspect_empty_nodes_test() {
+  assert introspection.introspect(schema.Schema(nodes: dict.new(), ports: []))
+    == introspection.Schema(nodes: [], ports: [])
 }
 
 pub fn introspect_schema_through_public_api_test() {
-  assert webql.introspect(schema.Schema(operations: dict.new(), ports: []))
-    == introspection.Schema(operations: [], ports: [])
+  assert webql.introspect(schema.Schema(nodes: dict.new(), ports: []))
+    == introspection.Schema(nodes: [], ports: [])
 }
 
-pub fn introspect_operations_operation_test() {
+pub fn introspect_nodes_test() {
   let schema =
     schema.Schema(
-      operations: dict.from_list([
-        #(
+      nodes: dict.new()
+        |> dict.insert(
           "Test",
-          schema.Operation(
-            inputs: dict.from_list([
-              #("in", schema.Input(name: "in", port: "Text")),
-            ]),
-            resolver: schema.Resolver(resolver: fn(_parameters) {
-              dynamic.properties([])
-            }),
-            outputs: dict.from_list([
-              #("out", schema.Output(name: "out", port: "Text")),
-            ]),
+          schema.Node(
+            inputs: dict.new()
+              |> dict.insert("in", schema.Input(name: "in", port: "Text")),
+            outputs: dict.new()
+              |> dict.insert("out", schema.Output(name: "out", port: "Text")),
           ),
         ),
-      ]),
       ports: [schema.Port(name: "Text")],
     )
 
   let introspection_schema = introspection.introspect(schema)
 
   assert introspection_schema.ports == ["Text"]
-  assert introspection_schema.operations
+  assert introspection_schema.nodes
     == [
-      introspection.Operation(
+      introspection.Node(
         name: "Test",
         inputs: [introspection.Input(name: "in", port: "Text")],
         outputs: [introspection.Output(name: "out", port: "Text")],

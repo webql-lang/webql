@@ -25,5 +25,7 @@ pub fn register_registers_edge_destination_input_test() {
   let context = register_edge.register(context.new(), edge)
   let context.Context(edges:, ..) = context
 
-  assert edges == dict.from_list([#(reference.Input(0), reference.Edge(0))])
+  assert edges
+    == dict.new()
+    |> dict.insert(reference.Input(0), reference.Edge(0))
 }

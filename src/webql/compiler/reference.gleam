@@ -18,9 +18,9 @@ pub type Document {
   Document(Int)
 }
 
-/// A stable schema operation reference.
-pub type Operation {
-  Operation(Int)
+/// A stable schema node kind reference.
+pub type Kind {
+  Kind(Int)
 }
 
 /// A stable graph parameter declaration reference.

@@ -3,11 +3,11 @@ import gleam/list
 import webql/schema
 
 pub type Schema {
-  Schema(operations: List(Operation), ports: List(String))
+  Schema(nodes: List(Node), ports: List(String))
 }
 
-pub type Operation {
-  Operation(name: String, inputs: List(Input), outputs: List(Output))
+pub type Node {
+  Node(name: String, inputs: List(Input), outputs: List(Output))
 }
 
 pub type Input {
@@ -18,14 +18,14 @@ pub type Output {
   Output(name: String, port: String)
 }
 
-/// Builds the public schema exposed by a runtime schema.
+/// Builds the compiler introspection schema from a WebQL schema.
 pub fn introspect(schema: schema.Schema) -> Schema {
-  let schema.Schema(operations:, ports:) = schema
+  let schema.Schema(nodes:, ports:) = schema
 
-  let operations = introspect_operations(operations)
+  let nodes = introspect_nodes(nodes)
   let ports = introspect_ports(ports)
 
-  Schema(operations:, ports:)
+  Schema(nodes:, ports:)
 }
 
 // PRIVATE FUNCTIONS
@@ -34,26 +34,26 @@ fn introspect_ports(ports: List(schema.Port)) {
   list.map(ports, fn(port) { port.name })
 }
 
-fn introspect_operations(operations: dict.Dict(String, schema.Operation)) {
-  operations
+fn introspect_nodes(nodes: dict.Dict(String, schema.Node)) {
+  nodes
   |> dict.to_list()
   |> list.map(fn(entry) {
-    let #(name, operation) = entry
-    introspect_operation(name, operation)
+    let #(name, node) = entry
+    introspect_node(name, node)
   })
 }
 
-fn introspect_operation(name: String, operation: schema.Operation) {
-  let schema.Operation(inputs:, outputs:, ..) = operation
+fn introspect_node(name: String, node: schema.Node) {
+  let schema.Node(inputs:, outputs:) = node
 
-  Operation(
+  Node(
     name:,
-    inputs: introspect_parameters(inputs),
-    outputs: introspect_returns(outputs),
+    inputs: introspect_inputs(inputs),
+    outputs: introspect_outputs(outputs),
   )
 }
 
-fn introspect_parameters(inputs: dict.Dict(String, schema.Input)) {
+fn introspect_inputs(inputs: dict.Dict(String, schema.Input)) {
   inputs
   |> dict.values()
   |> list.map(fn(input) {
@@ -62,7 +62,7 @@ fn introspect_parameters(inputs: dict.Dict(String, schema.Input)) {
   })
 }
 
-fn introspect_returns(outputs: dict.Dict(String, schema.Output)) {
+fn introspect_outputs(outputs: dict.Dict(String, schema.Output)) {
   outputs
   |> dict.values()
   |> list.map(fn(output) {

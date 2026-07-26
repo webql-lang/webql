@@ -1,18 +1,17 @@
 import gleam/dict
 import gleam/list
 import gleam/set
-import webql/assembler/scheduler/diagnostic
-import webql/assembler/scheduler/topology
+import webql/linker/diagnostic
+import webql/linker/topology
 
 pub fn topology_orders_dependency_batches_test() {
   let graph =
     topology.Graph(
-      dependencies: dict.from_list([
-        #("zero", set.new()),
-        #("one", set.from_list(["zero"])),
-        #("two", set.from_list(["one"])),
-        #("three", set.from_list(["zero", "two"])),
-      ]),
+      dependencies: dict.new()
+      |> dict.insert("zero", set.new())
+      |> dict.insert("one", set.from_list(["zero"]))
+      |> dict.insert("two", set.from_list(["one"]))
+      |> dict.insert("three", set.from_list(["zero", "two"])),
     )
 
   assert topology.topology(graph)
@@ -27,10 +26,9 @@ pub fn topology_orders_dependency_batches_test() {
 pub fn topology_keeps_independent_nodes_in_same_batch_test() {
   let graph =
     topology.Graph(
-      dependencies: dict.from_list([
-        #("left", set.new()),
-        #("right", set.new()),
-      ]),
+      dependencies: dict.new()
+      |> dict.insert("left", set.new())
+      |> dict.insert("right", set.new()),
     )
 
   let assert Ok([batch]) = topology.topology(graph)
@@ -42,10 +40,9 @@ pub fn topology_keeps_independent_nodes_in_same_batch_test() {
 pub fn topology_reports_cycle_test() {
   let graph =
     topology.Graph(
-      dependencies: dict.from_list([
-        #("left", set.from_list(["right"])),
-        #("right", set.from_list(["left"])),
-      ]),
+      dependencies: dict.new()
+      |> dict.insert("left", set.from_list(["right"]))
+      |> dict.insert("right", set.from_list(["left"])),
     )
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.CycleDetected(

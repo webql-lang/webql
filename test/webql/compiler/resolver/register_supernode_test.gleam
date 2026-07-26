@@ -14,6 +14,10 @@ pub fn register_registers_supernode_and_nested_context_test() {
     )
   let context.Context(supernodes:, contexts:, ..) = context
 
-  assert supernodes == dict.from_list([#("Inner", reference.Supernode(0))])
-  assert contexts == dict.from_list([#(reference.Supernode(0), sub_context)])
+  assert supernodes
+    == dict.new()
+    |> dict.insert("Inner", reference.Supernode(0))
+  assert contexts
+    == dict.new()
+    |> dict.insert(reference.Supernode(0), sub_context)
 }

@@ -21,9 +21,10 @@ pub fn register_registers_parameter_and_output_test() {
   let context = register_parameter.register(context.new(), parameter)
   let context.Context(parameters:, outputs:, ..) = context
 
-  assert parameters == dict.from_list([#("in", reference.Parameter(0))])
+  assert parameters
+    == dict.new()
+    |> dict.insert("in", reference.Parameter(0))
   assert outputs
-    == dict.from_list([
-      #(["in"], #(reference.Output(0), reference.Port(0))),
-    ])
+    == dict.new()
+    |> dict.insert(["in"], #(reference.Output(0), reference.Port(0)))
 }

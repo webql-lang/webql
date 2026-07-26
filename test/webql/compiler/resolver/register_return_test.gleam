@@ -21,9 +21,10 @@ pub fn register_registers_return_and_input_test() {
   let context = register_return.register(context.new(), return)
   let context.Context(returns:, inputs:, ..) = context
 
-  assert returns == dict.from_list([#("out", reference.Return(0))])
+  assert returns
+    == dict.new()
+    |> dict.insert("out", reference.Return(0))
   assert inputs
-    == dict.from_list([
-      #(["out"], #(reference.Input(0), reference.Port(0))),
-    ])
+    == dict.new()
+    |> dict.insert(["out"], #(reference.Input(0), reference.Port(0)))
 }

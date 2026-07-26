@@ -16,8 +16,8 @@ pub fn compile_resolves_document_test() {
   let c =
     compiler.new(
       introspection.Schema(
-        operations: [
-          introspection.Operation(name: "Types", inputs: [], outputs: [
+        nodes: [
+          introspection.Node(name: "Types", inputs: [], outputs: [
             introspection.Output(name: "value", port: "Int"),
           ]),
         ],
@@ -43,8 +43,8 @@ pub fn compile_materializes_node_ports_test() {
   let c =
     compiler.new(
       introspection.Schema(
-        operations: [
-          introspection.Operation(
+        nodes: [
+          introspection.Node(
             name: "Math",
             inputs: [
               introspection.Input(name: "r", port: "Int"),
@@ -85,13 +85,13 @@ pub fn compile_materializes_supernode_and_node_ports_test() {
   let c =
     compiler.new(
       introspection.Schema(
-        operations: [
-          introspection.Operation(
+        nodes: [
+          introspection.Node(
             name: "ToInt",
             inputs: [introspection.Input(name: "value", port: "String")],
             outputs: [introspection.Output(name: "value", port: "Int")],
           ),
-          introspection.Operation(
+          introspection.Node(
             name: "Math",
             inputs: [
               introspection.Input(name: "l", port: "Int"),
@@ -157,8 +157,8 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
   let c =
     compiler.new(
       introspection.Schema(
-        operations: [
-          introspection.Operation(name: "Math", inputs: [], outputs: [
+        nodes: [
+          introspection.Node(name: "Math", inputs: [], outputs: [
             introspection.Output(name: "value", port: "Int"),
           ]),
         ],
@@ -183,8 +183,8 @@ pub fn compile_rejects_port_mismatch_test() {
   let c =
     compiler.new(
       introspection.Schema(
-        operations: [
-          introspection.Operation(
+        nodes: [
+          introspection.Node(
             name: "Math",
             inputs: [introspection.Input(name: "unused", port: "Int")],
             outputs: [introspection.Output(name: "value", port: "String")],
@@ -209,7 +209,7 @@ pub fn compile_rejects_port_mismatch_test() {
 }
 
 pub fn compile_wraps_lexer_diagnostic_test() {
-  let c = compiler.new(introspection.Schema(operations: [], ports: []))
+  let c = compiler.new(introspection.Schema(nodes: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "!")
 
@@ -221,7 +221,7 @@ pub fn compile_wraps_lexer_diagnostic_test() {
 }
 
 pub fn compile_wraps_parser_diagnostic_test() {
-  let c = compiler.new(introspection.Schema(operations: [], ports: []))
+  let c = compiler.new(introspection.Schema(nodes: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, "{")
 
@@ -236,7 +236,7 @@ pub fn compile_wraps_parser_diagnostic_test() {
 
 pub fn compile_wraps_resolver_diagnostic_test() {
   let graph_source = "-> out: Int {}"
-  let c = compiler.new(introspection.Schema(operations: [], ports: []))
+  let c = compiler.new(introspection.Schema(nodes: [], ports: []))
 
   let assert Error(error) = compiler.compile(c, graph_source)
 

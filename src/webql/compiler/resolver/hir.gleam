@@ -78,7 +78,7 @@ pub type Node {
   Node(
     name: String,
     node: String,
-    operation: reference.Operation,
+    kind: reference.Kind,
     reference: reference.Node,
     span: source.Span,
   )

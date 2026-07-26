@@ -1,13 +1,19 @@
-import gleam/dict
 import gleam/dynamic
-import webql/schema
 
 pub type Program {
-  Program(nodes: dict.Dict(String, Node), edges: List(Edge))
+  Program(edges: List(Edge), batches: List(Batch))
+}
+
+pub type Batch {
+  Batch(steps: List(Step))
+}
+
+pub type Step {
+  Step(name: String, node: Node)
 }
 
 pub type Node {
-  Node(resolver: schema.Resolver)
+  Node(kind: String)
   Supernode(program: Program)
 }
 

@@ -17,14 +17,10 @@ pub opaque type Compiler {
 
 /// Creates a compiler instance with resolver context.
 pub fn new(schema: introspection.Schema) -> Compiler {
-  let introspection.Schema(operations:, ports:) = schema
+  let introspection.Schema(nodes:, ports:) = schema
 
   let environment =
-    list.fold(
-      operations,
-      environment.add_ports(environment.new(), ports),
-      load_operation,
-    )
+    list.fold(nodes, environment.add_ports(environment.new(), ports), load_node)
 
   Compiler(environment:)
 }
@@ -58,55 +54,55 @@ pub fn compile(
 
 // PRIVATE FUNCTIONS
 // =================
-fn load_operation(
+fn load_node(
   environment: environment.Environment,
-  operation: introspection.Operation,
+  node: introspection.Node,
 ) -> environment.Environment {
-  let introspection.Operation(name:, inputs:, outputs:) = operation
+  let introspection.Node(name:, inputs:, outputs:) = node
 
   environment
-  |> environment.add_operation(name)
+  |> environment.add_node(name)
   |> load_parameters(name, inputs)
   |> load_returns(name, outputs)
 }
 
 fn load_parameters(
   environment: environment.Environment,
-  operation: String,
+  node: String,
   inputs: List(introspection.Input),
 ) -> environment.Environment {
   use environment, input <- list.fold(inputs, environment)
   let introspection.Input(name:, port:) = input
 
   let environment = environment.add_port(environment, port)
-  let operation = environment.get_operation(environment, operation)
+  let node = environment.get_node(environment, node)
   let port = environment.get_port(environment, port)
 
-  case operation, port {
-    Ok(operation), Ok(port) ->
-      environment.add_input(environment, operation, #(name, port))
+  case node, port {
+    Ok(node), Ok(port) ->
+      environment.add_input(environment, node, #(name, port))
 
-    _operation, _port -> environment
+    _node, _port -> environment
   }
 }
 
 fn load_returns(
   environment: environment.Environment,
-  operation: String,
+  node: String,
   outputs: List(introspection.Output),
 ) -> environment.Environment {
   use environment, output <- list.fold(outputs, environment)
   let introspection.Output(name:, port:) = output
 
   let environment = environment.add_port(environment, port)
-  let operation = environment.get_operation(environment, operation)
+  let node = environment.get_node(environment, node)
   let port = environment.get_port(environment, port)
 
-  case operation, port {
-    Ok(operation), Ok(port) ->
-      environment.add_output(environment, operation, #(name, port))
+  case node, port {
+    Ok(node), Ok(port) ->
+      environment.add_output(environment, node, #(name, port))
 
-    _operation, _port -> environment
+    _node, _port -> environment
   }
 }
 
