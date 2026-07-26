@@ -1,14 +1,11 @@
 import gleam/dict
 
 pub type Schema {
-  Schema(operations: dict.Dict(String, Operation), ports: List(Port))
+  Schema(nodes: dict.Dict(String, Node), ports: List(Port))
 }
 
-pub type Operation {
-  Operation(
-    inputs: dict.Dict(String, Input),
-    outputs: dict.Dict(String, Output),
-  )
+pub type Node {
+  Node(inputs: dict.Dict(String, Input), outputs: dict.Dict(String, Output))
 }
 
 pub type Port {

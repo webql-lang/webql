@@ -1,5 +1,5 @@
 pub type DiagnosticKind {
-  UnknownOperation(name: String)
+  UnknownNode(name: String)
   CycleDetected(remaining: List(String))
   InvalidProgram
 }

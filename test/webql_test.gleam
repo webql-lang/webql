@@ -13,7 +13,7 @@ pub fn main() {
 
 pub fn link_returns_program_test() {
   let document = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
-  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let schema = schema.Schema(nodes: dict.new(), ports: [])
 
   assert webql.link(document, schema)
     == Ok(program.Program(edges: [], batches: []))
@@ -27,12 +27,12 @@ pub fn link_reports_linker_diagnostics_test() {
       nodes: [graph.Node(name: "missing", node: "Missing")],
       edges: [],
     )
-  let schema = schema.Schema(operations: dict.new(), ports: [])
+  let schema = schema.Schema(nodes: dict.new(), ports: [])
 
   assert webql.link(document, schema)
     == Error(
       diagnostic.Diagnostic(
-        kind: diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownOperation(
+        kind: diagnostic.LinkerDiagnostic(linker_diagnostic.UnknownNode(
           "Missing",
         )),
       ),

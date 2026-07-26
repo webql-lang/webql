@@ -9,7 +9,7 @@ import webql/compiler/resolver/resolve_node
 import webql/compiler/source
 
 pub fn resolve_node_test() {
-  let schema = environment.add_operation(environment.new(), "Math")
+  let schema = environment.add_node(environment.new(), "Math")
 
   let node_to_resolve =
     ast.Node(name: "math", node: "Math", span: source.Span(start: 0, end: 11))
@@ -26,7 +26,7 @@ pub fn resolve_node_test() {
     == hir.Node(
       name: "math",
       node: "Math",
-      operation: reference.Operation(0),
+      kind: reference.Kind(0),
       reference: reference.Node(0),
       span: source.Span(start: 0, end: 11),
     )
@@ -154,7 +154,7 @@ pub fn resolve_node_resolves_supernode_test() {
 }
 
 pub fn resolve_node_returns_duplicate_supernode_test() {
-  let schema = environment.add_operation(environment.new(), "Inner")
+  let schema = environment.add_node(environment.new(), "Inner")
 
   let supernode_to_resolve =
     ast.Supernode(
@@ -185,7 +185,7 @@ pub fn resolve_node_returns_duplicate_supernode_test() {
 }
 
 pub fn resolve_node_returns_duplicate_supernode_for_schema_node_test() {
-  let schema = environment.add_operation(environment.new(), "Math")
+  let schema = environment.add_node(environment.new(), "Math")
 
   let supernode_to_resolve =
     ast.Supernode(

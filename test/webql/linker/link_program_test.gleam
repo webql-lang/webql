@@ -42,7 +42,7 @@ pub fn link_program_builds_program_test() {
     )
 
   let assert Ok(program.Program(edges:, batches:)) =
-    link_program.link(document, operations())
+    link_program.link(document, catalog())
 
   assert edges
     == [
@@ -103,7 +103,7 @@ pub fn link_program_converts_all_literal_values_test() {
     )
 
   let assert Ok(program.Program(edges:, ..)) =
-    link_program.link(document, operations())
+    link_program.link(document, catalog())
 
   assert edges
     == [
@@ -135,7 +135,7 @@ pub fn link_program_batches_independent_nodes_test() {
     )
 
   let assert Ok(program.Program(batches: [program.Batch(steps:)], ..)) =
-    link_program.link(document, operations())
+    link_program.link(document, catalog())
 
   let names =
     list.map(steps, fn(step) {
@@ -164,7 +164,7 @@ pub fn link_program_links_supernodes_test() {
       edges: [],
     )
 
-  let assert Ok(result) = link_program.link(document, operations())
+  let assert Ok(result) = link_program.link(document, catalog())
   let assert [program.Batch(steps: [step])] = result.batches
 
   let program.Step(name: step_name, node: step_node) = step
@@ -185,7 +185,7 @@ pub fn link_program_links_supernodes_test() {
   assert inner_names == [["add"]]
 }
 
-pub fn link_program_reports_unknown_operations_test() {
+pub fn link_program_reports_unknown_nodes_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -194,10 +194,8 @@ pub fn link_program_reports_unknown_operations_test() {
       edges: [],
     )
 
-  assert link_program.link(document, operations())
-    == Error(
-      diagnostic.Diagnostic(kind: diagnostic.UnknownOperation("Missing")),
-    )
+  assert link_program.link(document, catalog())
+    == Error(diagnostic.Diagnostic(kind: diagnostic.UnknownNode("Missing")))
 }
 
 pub fn link_program_reports_cycles_test() {
@@ -223,26 +221,26 @@ pub fn link_program_reports_cycles_test() {
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.CycleDetected(
     remaining:,
-  ))) = link_program.link(document, operations())
+  ))) = link_program.link(document, catalog())
 
   assert list.contains(remaining, "left")
   assert list.contains(remaining, "right")
 }
 
-fn operation() {
-  schema.Operation(inputs: dict.new(), outputs: dict.new())
+fn node() {
+  schema.Node(inputs: dict.new(), outputs: dict.new())
 }
 
-fn operations() {
+fn catalog() {
   schema.Schema(
-    operations: dict.from_list([
-      #("Normalize", operation()),
-      #("GetUser", operation()),
-      #("GetPosts", operation()),
-      #("Format", operation()),
-      #("Left", operation()),
-      #("Right", operation()),
-      #("Add", operation()),
+    nodes: dict.from_list([
+      #("Normalize", node()),
+      #("GetUser", node()),
+      #("GetPosts", node()),
+      #("Format", node()),
+      #("Left", node()),
+      #("Right", node()),
+      #("Add", node()),
     ]),
     ports: [],
   )

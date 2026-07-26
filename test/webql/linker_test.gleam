@@ -8,7 +8,7 @@ import webql/schema
 pub fn linker_links_empty_graph_test() {
   let document = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
 
-  let linker = linker.new(document, operations())
+  let linker = linker.new(document, catalog())
   let assert Ok(program.Program(edges:, batches:)) = linker.link(linker)
 
   assert edges == []
@@ -59,7 +59,7 @@ pub fn linker_returns_program_test() {
       ],
     )
 
-  let linker = linker.new(document, operations())
+  let linker = linker.new(document, catalog())
   let assert Ok(result) = linker.link(linker)
   let program.Program(edges:, batches:) = result
 
@@ -125,7 +125,7 @@ pub fn linker_links_supernodes_test() {
       edges: [],
     )
 
-  let linker = linker.new(document, operations())
+  let linker = linker.new(document, catalog())
   let assert Ok(result) = linker.link(linker)
   let assert [program.Batch(steps: [step])] = result.batches
 
@@ -147,19 +147,19 @@ pub fn linker_links_supernodes_test() {
   assert inner_names == [["add"]]
 }
 
-fn operation() {
-  schema.Operation(inputs: dict.new(), outputs: dict.new())
+fn node() {
+  schema.Node(inputs: dict.new(), outputs: dict.new())
 }
 
-fn operations() {
+fn catalog() {
   schema.Schema(
-    operations: dict.from_list([
-      #("Normalize", operation()),
-      #("GetUser", operation()),
-      #("GetPosts", operation()),
-      #("GetStats", operation()),
-      #("Format", operation()),
-      #("Add", operation()),
+    nodes: dict.from_list([
+      #("Normalize", node()),
+      #("GetUser", node()),
+      #("GetPosts", node()),
+      #("GetStats", node()),
+      #("Format", node()),
+      #("Add", node()),
     ]),
     ports: [],
   )

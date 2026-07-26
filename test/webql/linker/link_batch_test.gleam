@@ -15,7 +15,7 @@ pub fn link_batch_links_topological_batches_test() {
   let assert Ok([
     program.Batch(steps: [program.Step(name: "left", ..)]),
     program.Batch(steps: [program.Step(name: "right", ..)]),
-  ]) = link_batch.link([["left"], ["right"]], nodes, operations(), link_graph)
+  ]) = link_batch.link([["left"], ["right"]], nodes, catalog(), link_graph)
 }
 
 pub fn link_batch_links_supernodes_test() {
@@ -32,13 +32,13 @@ pub fn link_batch_links_supernodes_test() {
         node: program.Supernode(program: nested_program),
       ),
     ]),
-  ]) = link_batch.link([["nested"]], nodes, operations(), link_graph)
+  ]) = link_batch.link([["nested"]], nodes, catalog(), link_graph)
 
   assert nested_program == program.Program(edges: [], batches: [])
 }
 
 pub fn link_batch_reports_missing_nodes_test() {
-  assert link_batch.link([["missing"]], dict.new(), operations(), link_graph)
+  assert link_batch.link([["missing"]], dict.new(), catalog(), link_graph)
     == Error(diagnostic.Diagnostic(kind: diagnostic.InvalidProgram))
 }
 
@@ -46,8 +46,8 @@ fn link_graph(_graph: graph.Graph, _schema: schema.Schema) {
   Ok(program.Program(edges: [], batches: []))
 }
 
-fn operations() {
-  let operation = schema.Operation(inputs: dict.new(), outputs: dict.new())
+fn catalog() {
+  let node = schema.Node(inputs: dict.new(), outputs: dict.new())
 
-  schema.Schema(operations: dict.from_list([#("Add", operation)]), ports: [])
+  schema.Schema(nodes: dict.from_list([#("Add", node)]), ports: [])
 }

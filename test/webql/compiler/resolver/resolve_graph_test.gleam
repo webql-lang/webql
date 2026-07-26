@@ -125,7 +125,7 @@ pub fn resolve_graph_resolves_body_test() {
         hir.Node(
           name: "inner",
           node: "Inner",
-          operation: reference.Operation(0),
+          kind: reference.Kind(0),
           reference: reference.Node(0),
           span: source.Span(start: 42, end: 55),
         ),

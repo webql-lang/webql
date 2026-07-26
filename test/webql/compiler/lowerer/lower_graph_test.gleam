@@ -35,7 +35,7 @@ pub fn lower_graph_test() {
         hir.Node(
           name: "m",
           node: "Math",
-          operation: reference.Operation(0),
+          kind: reference.Kind(0),
           reference: reference.Node(0),
           span: source.Span(start: 19, end: 27),
         ),

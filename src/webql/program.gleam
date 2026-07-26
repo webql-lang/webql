@@ -13,7 +13,7 @@ pub type Step {
 }
 
 pub type Node {
-  Node(operation: String)
+  Node(kind: String)
   Supernode(program: Program)
 }
 

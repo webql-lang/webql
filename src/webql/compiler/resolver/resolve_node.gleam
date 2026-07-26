@@ -44,10 +44,10 @@ fn resolve_node(
     )),
   )
 
-  case environment.get_operation(environment, node) {
-    Ok(operation) -> {
+  case environment.get_node(environment, node) {
+    Ok(kind) -> {
       let reference = context.next_node(context)
-      let node = hir.Node(name:, node:, operation:, reference:, span:)
+      let node = hir.Node(name:, node:, kind:, reference:, span:)
       let context = register_node.register(environment, context, node)
 
       Ok(#(node, context, environment))
@@ -67,7 +67,7 @@ fn resolve_supernode(
   resolve_graph,
 ) {
   use <- bool.guard(
-    when: result.is_ok(environment.get_operation(environment, name)),
+    when: result.is_ok(environment.get_node(environment, name)),
     return: Error(diagnostic.Diagnostic(
       kind: diagnostic.DuplicateSupernode(name),
       span:,
@@ -93,29 +93,29 @@ fn resolve_supernode(
   let supernode = hir.Supernode(name:, graph:, reference:, span:)
   let context =
     register_supernode.register(context, name, reference, sub_context)
-  let environment = register_supernode_operation(environment, name, graph)
+  let environment = register_supernode_kind(environment, name, graph)
 
   Ok(#(supernode, context, environment))
 }
 
-fn register_supernode_operation(
+fn register_supernode_kind(
   environment: environment.Environment,
   name: String,
   graph: hir.Graph,
 ) -> environment.Environment {
-  let operation = environment.next_operation(environment)
-  let environment = environment.add_operation(environment, name)
+  let kind = environment.next_kind(environment)
+  let environment = environment.add_node(environment, name)
 
   let environment =
     list.fold(graph.parameters, environment, fn(environment, parameter) {
-      environment.add_input(environment, operation, #(
+      environment.add_input(environment, kind, #(
         parameter.name,
         parameter.port.reference,
       ))
     })
 
   list.fold(graph.returns, environment, fn(environment, return) {
-    environment.add_output(environment, operation, #(
+    environment.add_output(environment, kind, #(
       return.name,
       return.port.reference,
     ))
