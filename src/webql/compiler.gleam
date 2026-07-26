@@ -75,12 +75,14 @@ fn load_parameters(
   let introspection.Input(name:, port:) = input
 
   let environment = environment.add_port(environment, port)
+  let node = environment.get_node(environment, node)
   let port = environment.get_port(environment, port)
 
-  case port {
-    Ok(port) -> environment.add_input(environment, node, #(name, port))
+  case node, port {
+    Ok(node), Ok(port) ->
+      environment.add_input(environment, node, #(name, port))
 
-    Error(_nil) -> environment
+    _node, _port -> environment
   }
 }
 
@@ -93,12 +95,14 @@ fn load_returns(
   let introspection.Output(name:, port:) = output
 
   let environment = environment.add_port(environment, port)
+  let node = environment.get_node(environment, node)
   let port = environment.get_port(environment, port)
 
-  case port {
-    Ok(port) -> environment.add_output(environment, node, #(name, port))
+  case node, port {
+    Ok(node), Ok(port) ->
+      environment.add_output(environment, node, #(name, port))
 
-    Error(_nil) -> environment
+    _node, _port -> environment
   }
 }
 

@@ -10,10 +10,10 @@ pub fn register_registers_node_ports_from_schema_test() {
   let schema =
     environment.new()
     |> environment.add_node("Math")
-    |> environment.add_inputs("Math", [
+    |> environment.add_inputs(reference.Node(0), [
       #("left", reference.Port(0)),
     ])
-    |> environment.add_outputs("Math", [
+    |> environment.add_outputs(reference.Node(0), [
       #("value", reference.Port(0)),
     ])
 

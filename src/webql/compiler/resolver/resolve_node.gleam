@@ -45,7 +45,7 @@ fn resolve_node(
   )
 
   case environment.get_node(environment, node) {
-    Ok(_nil) -> {
+    Ok(_reference) -> {
       let reference = context.next_node(context)
       let node = hir.Node(name:, node:, reference:, span:)
       let context = register_node.register(environment, context, node)
@@ -103,18 +103,19 @@ fn register_supernode_ports(
   name: String,
   graph: hir.Graph,
 ) -> environment.Environment {
+  let node = environment.next_node(environment)
   let environment = environment.add_node(environment, name)
 
   let environment =
     list.fold(graph.parameters, environment, fn(environment, parameter) {
-      environment.add_input(environment, name, #(
+      environment.add_input(environment, node, #(
         parameter.name,
         parameter.port.reference,
       ))
     })
 
   list.fold(graph.returns, environment, fn(environment, return) {
-    environment.add_output(environment, name, #(
+    environment.add_output(environment, node, #(
       return.name,
       return.port.reference,
     ))
