@@ -18,11 +18,6 @@ pub type Document {
   Document(Int)
 }
 
-/// A stable schema node kind reference.
-pub type Kind {
-  Kind(Int)
-}
-
 /// A stable graph parameter declaration reference.
 pub type Parameter {
   Parameter(Int)

@@ -13,8 +13,14 @@ pub fn register(
   let context = context.add_node(context, node.name)
 
   case node {
-    hir.Node(name:, kind:, ..) ->
-      register_node_ports(context, environment, name, kind)
+    hir.Node(name:, node:, ..) -> {
+      case environment.get_node(environment, node) {
+        Ok(reference) ->
+          register_node_ports(context, environment, name, reference)
+
+        Error(_nil) -> context
+      }
+    }
 
     hir.Supernode(..) -> context
   }
@@ -26,14 +32,14 @@ fn register_node_ports(
   context: context.Context,
   environment: environment.Environment,
   name: String,
-  kind: reference.Kind,
+  node: reference.Node,
 ) {
-  let context = case environment.get_inputs(environment, kind) {
+  let context = case environment.get_inputs(environment, node) {
     Ok(inputs) -> register_inputs(context, name, inputs)
     Error(_nil) -> context
   }
 
-  case environment.get_outputs(environment, kind) {
+  case environment.get_outputs(environment, node) {
     Ok(outputs) -> register_outputs(context, name, outputs)
     Error(_nil) -> context
   }

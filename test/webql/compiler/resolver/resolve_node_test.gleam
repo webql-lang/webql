@@ -26,7 +26,6 @@ pub fn resolve_node_test() {
     == hir.Node(
       name: "math",
       node: "Math",
-      kind: reference.Kind(0),
       reference: reference.Node(0),
       span: source.Span(start: 0, end: 11),
     )
