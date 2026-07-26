@@ -1,17 +1,17 @@
 import gleam/dict
 import webql/linker/diagnostic
-import webql/plan
+import webql/program
 import webql/schema
 
-/// Links a runtime operation into an executable plan node.
+/// Links a schema operation into a program node.
 pub fn link(
   operation: String,
   schema: schema.Schema,
-) -> Result(plan.Node, diagnostic.Diagnostic) {
+) -> Result(program.Node, diagnostic.Diagnostic) {
   let schema.Schema(operations:, ..) = schema
 
   case dict.get(operations, operation) {
-    Ok(schema.Operation(resolver:, ..)) -> Ok(plan.Node(resolver:))
+    Ok(_operation) -> Ok(program.Node(operation:))
     Error(_nil) ->
       Error(diagnostic.Diagnostic(kind: diagnostic.UnknownOperation(operation)))
   }

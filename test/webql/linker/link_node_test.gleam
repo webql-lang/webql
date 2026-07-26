@@ -1,17 +1,13 @@
 import gleam/dict
-import gleam/dynamic
 import webql/linker/diagnostic
 import webql/linker/link_node
-import webql/plan
+import webql/program
 import webql/schema
 
-pub fn link_node_links_runtime_operations_test() {
+pub fn link_node_links_schema_operations_test() {
   let assert Ok(node) = link_node.link("Add", operations())
 
-  assert case node {
-    plan.Node(_) -> True
-    plan.Supernode(_) -> False
-  }
+  assert node == program.Node(operation: "Add")
 }
 
 pub fn link_node_reports_unknown_operations_test() {
@@ -22,14 +18,7 @@ pub fn link_node_reports_unknown_operations_test() {
 }
 
 fn operations() {
-  let resolver =
-    schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
-  let operation =
-    schema.Operation(
-      inputs: dict.new(),
-      outputs: dict.new(),
-      resolver: resolver,
-    )
+  let operation = schema.Operation(inputs: dict.new(), outputs: dict.new())
 
   schema.Schema(operations: dict.from_list([#("Add", operation)]), ports: [])
 }

@@ -8,14 +8,14 @@ import webql/linker/link_batch
 import webql/linker/link_edge
 import webql/linker/link_route
 import webql/linker/topology
-import webql/plan
+import webql/program
 import webql/schema
 
-/// Links a graph and schema into an executable plan.
+/// Links a graph and schema into a program.
 pub fn link(
   graph: graph.Graph,
   schema: schema.Schema,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
+) -> Result(program.Program, diagnostic.Diagnostic) {
   let graph.Graph(nodes:, edges:, ..) = graph
 
   let nodes =
@@ -44,5 +44,5 @@ pub fn link(
   use batches <- result.try(link_batch.link(topology, nodes, schema, link))
 
   let edges = link_edge.link(edges)
-  Ok(plan.Plan(edges:, batches:))
+  Ok(program.Program(edges:, batches:))
 }

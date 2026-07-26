@@ -3,11 +3,11 @@ import gleam/dynamic
 import gleam/list
 import webql/graph
 import webql/linker/diagnostic
-import webql/linker/link_plan
-import webql/plan
+import webql/linker/link_program
+import webql/program
 import webql/schema
 
-pub fn link_plan_builds_executable_plan_test() {
+pub fn link_program_builds_program_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -41,38 +41,38 @@ pub fn link_plan_builds_executable_plan_test() {
       ],
     )
 
-  let assert Ok(plan.Plan(edges:, batches:)) =
-    link_plan.link(document, operations())
+  let assert Ok(program.Program(edges:, batches:)) =
+    link_program.link(document, operations())
 
   assert edges
     == [
-      plan.Edge(
-        source: plan.Literal(value: dynamic.int(0)),
-        target: plan.Input(path: ["normalize", "zero"]),
+      program.Edge(
+        source: program.Literal(value: dynamic.int(0)),
+        target: program.Input(path: ["normalize", "zero"]),
       ),
-      plan.Edge(
-        source: plan.Output(path: ["user_id"]),
-        target: plan.Input(path: ["normalize", "value"]),
+      program.Edge(
+        source: program.Output(path: ["user_id"]),
+        target: program.Input(path: ["normalize", "value"]),
       ),
-      plan.Edge(
-        source: plan.Output(path: ["normalize", "value"]),
-        target: plan.Input(path: ["user", "id"]),
+      program.Edge(
+        source: program.Output(path: ["normalize", "value"]),
+        target: program.Input(path: ["user", "id"]),
       ),
-      plan.Edge(
-        source: plan.Output(path: ["user", "id"]),
-        target: plan.Input(path: ["posts", "user_id"]),
+      program.Edge(
+        source: program.Output(path: ["user", "id"]),
+        target: program.Input(path: ["posts", "user_id"]),
       ),
-      plan.Edge(
-        source: plan.Output(path: ["posts", "items"]),
-        target: plan.Input(path: ["summary"]),
+      program.Edge(
+        source: program.Output(path: ["posts", "items"]),
+        target: program.Input(path: ["summary"]),
       ),
     ]
 
   let batch_step_names =
     list.map(batches, fn(steps) {
-      let plan.Batch(steps: steps) = steps
+      let program.Batch(steps: steps) = steps
       list.map(steps, fn(step) {
-        let plan.Step(name:, ..) = step
+        let program.Step(name:, ..) = step
         name
       })
     })
@@ -80,7 +80,7 @@ pub fn link_plan_builds_executable_plan_test() {
   assert batch_step_names == [["normalize"], ["user"], ["posts"]]
 }
 
-pub fn link_plan_converts_all_literal_values_test() {
+pub fn link_program_converts_all_literal_values_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -102,26 +102,27 @@ pub fn link_plan_converts_all_literal_values_test() {
       ],
     )
 
-  let assert Ok(plan.Plan(edges:, ..)) = link_plan.link(document, operations())
+  let assert Ok(program.Program(edges:, ..)) =
+    link_program.link(document, operations())
 
   assert edges
     == [
-      plan.Edge(
-        source: plan.Literal(dynamic.int(1)),
-        target: plan.Input(["format", "integer"]),
+      program.Edge(
+        source: program.Literal(dynamic.int(1)),
+        target: program.Input(["format", "integer"]),
       ),
-      plan.Edge(
-        source: plan.Literal(dynamic.float(1.1)),
-        target: plan.Input(["format", "float"]),
+      program.Edge(
+        source: program.Literal(dynamic.float(1.1)),
+        target: program.Input(["format", "float"]),
       ),
-      plan.Edge(
-        source: plan.Literal(dynamic.string("one")),
-        target: plan.Input(["format", "string"]),
+      program.Edge(
+        source: program.Literal(dynamic.string("one")),
+        target: program.Input(["format", "string"]),
       ),
     ]
 }
 
-pub fn link_plan_batches_independent_nodes_test() {
+pub fn link_program_batches_independent_nodes_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -133,12 +134,12 @@ pub fn link_plan_batches_independent_nodes_test() {
       edges: [],
     )
 
-  let assert Ok(plan.Plan(batches: [plan.Batch(steps:)], ..)) =
-    link_plan.link(document, operations())
+  let assert Ok(program.Program(batches: [program.Batch(steps:)], ..)) =
+    link_program.link(document, operations())
 
   let names =
     list.map(steps, fn(step) {
-      let plan.Step(name:, ..) = step
+      let program.Step(name:, ..) = step
       name
     })
 
@@ -146,7 +147,7 @@ pub fn link_plan_batches_independent_nodes_test() {
   assert list.contains(names, "right")
 }
 
-pub fn link_plan_links_inline_resolvers_test() {
+pub fn link_program_links_supernodes_test() {
   let inline_graph =
     graph.Graph(
       parameters: [],
@@ -163,28 +164,28 @@ pub fn link_plan_links_inline_resolvers_test() {
       edges: [],
     )
 
-  let assert Ok(result) = link_plan.link(document, operations())
-  let assert [plan.Batch(steps: [step])] = result.batches
+  let assert Ok(result) = link_program.link(document, operations())
+  let assert [program.Batch(steps: [step])] = result.batches
 
-  let plan.Step(name: step_name, node: step_resolver) = step
+  let program.Step(name: step_name, node: step_node) = step
   assert step_name == "normalize"
 
-  let inner_names = case step_resolver {
-    plan.Supernode(plan: inner) ->
+  let inner_names = case step_node {
+    program.Supernode(program: inner) ->
       list.map(inner.batches, fn(b) {
-        let plan.Batch(steps: inner_steps) = b
+        let program.Batch(steps: inner_steps) = b
         list.map(inner_steps, fn(s) {
-          let plan.Step(name: s_name, ..) = s
+          let program.Step(name: s_name, ..) = s
           s_name
         })
       })
-    plan.Node(_) -> []
+    program.Node(_) -> []
   }
 
   assert inner_names == [["add"]]
 }
 
-pub fn link_plan_reports_unknown_operations_test() {
+pub fn link_program_reports_unknown_operations_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -193,13 +194,13 @@ pub fn link_plan_reports_unknown_operations_test() {
       edges: [],
     )
 
-  assert link_plan.link(document, operations())
+  assert link_program.link(document, operations())
     == Error(
       diagnostic.Diagnostic(kind: diagnostic.UnknownOperation("Missing")),
     )
 }
 
-pub fn link_plan_reports_cycles_test() {
+pub fn link_program_reports_cycles_test() {
   let document =
     graph.Graph(
       parameters: [],
@@ -222,22 +223,14 @@ pub fn link_plan_reports_cycles_test() {
 
   let assert Error(diagnostic.Diagnostic(kind: diagnostic.CycleDetected(
     remaining:,
-  ))) = link_plan.link(document, operations())
+  ))) = link_program.link(document, operations())
 
   assert list.contains(remaining, "left")
   assert list.contains(remaining, "right")
 }
 
-fn resolver() {
-  schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
-}
-
 fn operation() {
-  schema.Operation(
-    inputs: dict.new(),
-    outputs: dict.new(),
-    resolver: resolver(),
-  )
+  schema.Operation(inputs: dict.new(), outputs: dict.new())
 }
 
 fn operations() {

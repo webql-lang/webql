@@ -1,9 +1,8 @@
 import gleam/dict
-import gleam/dynamic
 import webql/graph
 import webql/linker/diagnostic
 import webql/linker/link_batch
-import webql/plan
+import webql/program
 import webql/schema
 
 pub fn link_batch_links_topological_batches_test() {
@@ -14,8 +13,8 @@ pub fn link_batch_links_topological_batches_test() {
     ])
 
   let assert Ok([
-    plan.Batch(steps: [plan.Step(name: "left", ..)]),
-    plan.Batch(steps: [plan.Step(name: "right", ..)]),
+    program.Batch(steps: [program.Step(name: "left", ..)]),
+    program.Batch(steps: [program.Step(name: "right", ..)]),
   ]) = link_batch.link([["left"], ["right"]], nodes, operations(), link_graph)
 }
 
@@ -27,32 +26,28 @@ pub fn link_batch_links_supernodes_test() {
     ])
 
   let assert Ok([
-    plan.Batch(steps: [
-      plan.Step(name: "nested", node: plan.Supernode(plan: nested_plan)),
+    program.Batch(steps: [
+      program.Step(
+        name: "nested",
+        node: program.Supernode(program: nested_program),
+      ),
     ]),
   ]) = link_batch.link([["nested"]], nodes, operations(), link_graph)
 
-  assert nested_plan == plan.Plan(edges: [], batches: [])
+  assert nested_program == program.Program(edges: [], batches: [])
 }
 
 pub fn link_batch_reports_missing_nodes_test() {
   assert link_batch.link([["missing"]], dict.new(), operations(), link_graph)
-    == Error(diagnostic.Diagnostic(kind: diagnostic.InvalidPlan))
+    == Error(diagnostic.Diagnostic(kind: diagnostic.InvalidProgram))
 }
 
 fn link_graph(_graph: graph.Graph, _schema: schema.Schema) {
-  Ok(plan.Plan(edges: [], batches: []))
+  Ok(program.Program(edges: [], batches: []))
 }
 
 fn operations() {
-  let resolver =
-    schema.Resolver(resolver: fn(_inputs) { dynamic.properties([]) })
-  let operation =
-    schema.Operation(
-      inputs: dict.new(),
-      outputs: dict.new(),
-      resolver: resolver,
-    )
+  let operation = schema.Operation(inputs: dict.new(), outputs: dict.new())
 
   schema.Schema(operations: dict.from_list([#("Add", operation)]), ports: [])
 }

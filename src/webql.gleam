@@ -3,7 +3,7 @@ import webql/diagnostic
 import webql/graph
 import webql/introspection
 import webql/linker
-import webql/plan
+import webql/program
 import webql/schema
 
 /// Compiles WebQL source into a graph.
@@ -24,15 +24,15 @@ pub fn compile(
   }
 }
 
-/// Links a WebQL graph into an executable plan.
+/// Links a WebQL graph into a program.
 pub fn link(
   graph: graph.Graph,
   schema: schema.Schema,
-) -> Result(plan.Plan, diagnostic.Diagnostic) {
+) -> Result(program.Program, diagnostic.Diagnostic) {
   let linker = linker.new(graph, schema)
 
   case linker.link(linker) {
-    Ok(plan) -> Ok(plan)
+    Ok(program) -> Ok(program)
 
     Error(diagnostic) ->
       Error(

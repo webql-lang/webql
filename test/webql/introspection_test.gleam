@@ -1,5 +1,4 @@
 import gleam/dict
-import gleam/dynamic
 import webql
 import webql/introspection
 import webql/schema
@@ -26,9 +25,6 @@ pub fn introspect_operations_operation_test() {
             inputs: dict.from_list([
               #("in", schema.Input(name: "in", port: "Text")),
             ]),
-            resolver: schema.Resolver(resolver: fn(_parameters) {
-              dynamic.properties([])
-            }),
             outputs: dict.from_list([
               #("out", schema.Output(name: "out", port: "Text")),
             ]),

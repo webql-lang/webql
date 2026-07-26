@@ -4,18 +4,19 @@ import webql
 import webql/diagnostic
 import webql/graph
 import webql/linker/diagnostic as linker_diagnostic
-import webql/plan
+import webql/program
 import webql/schema
 
 pub fn main() {
   gleeunit.main()
 }
 
-pub fn link_returns_executable_plan_test() {
+pub fn link_returns_program_test() {
   let document = graph.Graph(parameters: [], returns: [], nodes: [], edges: [])
   let schema = schema.Schema(operations: dict.new(), ports: [])
 
-  assert webql.link(document, schema) == Ok(plan.Plan(edges: [], batches: []))
+  assert webql.link(document, schema)
+    == Ok(program.Program(edges: [], batches: []))
 }
 
 pub fn link_reports_linker_diagnostics_test() {

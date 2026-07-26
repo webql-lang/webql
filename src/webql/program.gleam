@@ -1,8 +1,7 @@
 import gleam/dynamic
-import webql/schema
 
-pub type Plan {
-  Plan(edges: List(Edge), batches: List(Batch))
+pub type Program {
+  Program(edges: List(Edge), batches: List(Batch))
 }
 
 pub type Batch {
@@ -14,8 +13,8 @@ pub type Step {
 }
 
 pub type Node {
-  Node(resolver: schema.Resolver)
-  Supernode(plan: Plan)
+  Node(operation: String)
+  Supernode(program: Program)
 }
 
 pub type Edge {

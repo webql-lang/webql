@@ -44,7 +44,7 @@ fn introspect_operations(operations: dict.Dict(String, schema.Operation)) {
 }
 
 fn introspect_operation(name: String, operation: schema.Operation) {
-  let schema.Operation(inputs:, outputs:, ..) = operation
+  let schema.Operation(inputs:, outputs:) = operation
 
   Operation(
     name:,

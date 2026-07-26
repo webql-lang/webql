@@ -1,7 +1,7 @@
 import gleam/dynamic
 import webql/graph
 import webql/linker/link_edge
-import webql/plan
+import webql/program
 
 pub fn link_edge_links_outputs_and_literals_test() {
   let edges = [
@@ -25,21 +25,21 @@ pub fn link_edge_links_outputs_and_literals_test() {
 
   assert link_edge.link(edges)
     == [
-      plan.Edge(
-        source: plan.Output(path: ["left", "value"]),
-        target: plan.Input(path: ["right", "value"]),
+      program.Edge(
+        source: program.Output(path: ["left", "value"]),
+        target: program.Input(path: ["right", "value"]),
       ),
-      plan.Edge(
-        source: plan.Literal(value: dynamic.int(1)),
-        target: plan.Input(path: ["right", "integer"]),
+      program.Edge(
+        source: program.Literal(value: dynamic.int(1)),
+        target: program.Input(path: ["right", "integer"]),
       ),
-      plan.Edge(
-        source: plan.Literal(value: dynamic.float(1.1)),
-        target: plan.Input(path: ["right", "float"]),
+      program.Edge(
+        source: program.Literal(value: dynamic.float(1.1)),
+        target: program.Input(path: ["right", "float"]),
       ),
-      plan.Edge(
-        source: plan.Literal(value: dynamic.string("one")),
-        target: plan.Input(path: ["right", "string"]),
+      program.Edge(
+        source: program.Literal(value: dynamic.string("one")),
+        target: program.Input(path: ["right", "string"]),
       ),
     ]
 }

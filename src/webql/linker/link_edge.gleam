@@ -1,28 +1,28 @@
 import gleam/dynamic
 import gleam/list
 import webql/graph
-import webql/plan
+import webql/program
 
-/// Links graph edges into executable plan edges.
-pub fn link(edges: List(graph.Edge)) -> List(plan.Edge) {
+/// Links graph edges into program edges.
+pub fn link(edges: List(graph.Edge)) -> List(program.Edge) {
   list.map(edges, fn(edge) {
     case edge {
       graph.Edge(
         source: graph.Output(path: source),
         target: graph.Input(path: target),
       ) ->
-        plan.Edge(
-          source: plan.Output(path: source),
-          target: plan.Input(path: target),
+        program.Edge(
+          source: program.Output(path: source),
+          target: program.Input(path: target),
         )
 
       graph.Edge(
         source: graph.Literal(value:),
         target: graph.Input(path: target),
       ) ->
-        plan.Edge(
-          source: plan.Literal(value: link_value(value)),
-          target: plan.Input(path: target),
+        program.Edge(
+          source: program.Literal(value: link_value(value)),
+          target: program.Input(path: target),
         )
     }
   })
