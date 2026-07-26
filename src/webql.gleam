@@ -1,9 +1,9 @@
-import webql/assembler
-import webql/assembler/plan
 import webql/compiler
 import webql/diagnostic
 import webql/graph
 import webql/introspection
+import webql/linker
+import webql/plan
 import webql/schema
 
 /// Compiles WebQL source into a graph.
@@ -24,21 +24,19 @@ pub fn compile(
   }
 }
 
-/// Assembles a WebQL graph into a executable plan.
-pub fn assemble(
+/// Links a WebQL graph into an executable plan.
+pub fn link(
   graph: graph.Graph,
   schema: schema.Schema,
 ) -> Result(plan.Plan, diagnostic.Diagnostic) {
-  let assembler = assembler.new(schema)
+  let linker = linker.new(graph, schema)
 
-  case assembler.assemble(assembler, graph) {
+  case linker.link(linker) {
     Ok(plan) -> Ok(plan)
 
     Error(diagnostic) ->
       Error(
-        diagnostic.Diagnostic(kind: diagnostic.AssemblerDiagnostic(
-          diagnostic.kind,
-        )),
+        diagnostic.Diagnostic(kind: diagnostic.LinkerDiagnostic(diagnostic.kind)),
       )
   }
 }
