@@ -4,7 +4,7 @@ import gleam/list
 import gleam/result
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/register_node
@@ -14,17 +14,17 @@ import webql/compiler/resolver/register_supernode
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  node: ast.Node,
+  node: parser.Node,
   resolve_graph,
 ) -> Result(
   #(hir.Node, context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   case node {
-    ast.Node(name:, node:, span:) ->
+    parser.Node(name:, node:, span:) ->
       resolve_node(environment, context, name, node, span)
 
-    ast.Supernode(name:, graph:, span:) ->
+    parser.Supernode(name:, graph:, span:) ->
       resolve_supernode(environment, context, name, graph, span, resolve_graph)
   }
 }
@@ -62,7 +62,7 @@ fn resolve_supernode(
   environment: environment.Environment,
   context: context.Context,
   name: String,
-  graph: ast.Graph,
+  graph: parser.Graph,
   span,
   resolve_graph,
 ) {

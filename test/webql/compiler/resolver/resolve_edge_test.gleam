@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -14,12 +14,12 @@ pub fn resolve_port_edge_test() {
     |> context.add_input(["out"], reference.Port(0))
 
   let edge_to_resolve =
-    ast.Edge(
-      source: ast.Output(
+    parser.Edge(
+      source: parser.Output(
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      target: ast.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
+      target: parser.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -53,16 +53,16 @@ pub fn resolve_value_output_edge_test() {
   let context = context.add_input(context.new(), ["out"], reference.Port(0))
 
   let edge_to_resolve =
-    ast.Edge(
-      source: ast.Literal(
-        value: ast.String(
+    parser.Edge(
+      source: parser.Literal(
+        value: parser.String(
           name: "String",
           value: "test",
           span: source.Span(start: 0, end: 6),
         ),
         span: source.Span(start: 0, end: 6),
       ),
-      target: ast.Input(path: ["out"], span: source.Span(start: 10, end: 14)),
+      target: parser.Input(path: ["out"], span: source.Span(start: 10, end: 14)),
       span: source.Span(start: 0, end: 14),
     )
 
@@ -94,12 +94,12 @@ pub fn resolve_returns_unknown_output_for_missing_port_output_test() {
   let context = context.add_input(context.new(), ["out"], reference.Port(0))
 
   let edge_to_resolve =
-    ast.Edge(
-      source: ast.Output(
+    parser.Edge(
+      source: parser.Output(
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      target: ast.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
+      target: parser.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -123,12 +123,12 @@ pub fn resolve_returns_unknown_input_for_missing_port_input_test() {
     context.add_output(context.new(), ["math", "out"], reference.Port(0))
 
   let edge_to_resolve =
-    ast.Edge(
-      source: ast.Output(
+    parser.Edge(
+      source: parser.Output(
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      target: ast.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
+      target: parser.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
       span: source.Span(start: 0, end: 16),
     )
 
@@ -155,12 +155,12 @@ pub fn resolve_returns_duplicate_input_edge_for_existing_edge_test() {
     |> context.add_edge(reference.Input(0))
 
   let edge_to_resolve =
-    ast.Edge(
-      source: ast.Output(
+    parser.Edge(
+      source: parser.Output(
         path: ["math", "out"],
         span: source.Span(start: 0, end: 8),
       ),
-      target: ast.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
+      target: parser.Input(path: ["out"], span: source.Span(start: 12, end: 16)),
       span: source.Span(start: 0, end: 16),
     )
 

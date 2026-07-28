@@ -2,7 +2,7 @@ import gleam/bool
 import gleam/result
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -12,10 +12,10 @@ import webql/compiler/resolver/resolve_port
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  field: ast.Parameter,
+  field: parser.Parameter,
   reference: reference.Parameter,
 ) -> Result(hir.Parameter, diagnostic.Diagnostic) {
-  let ast.Parameter(name:, port:, span:) = field
+  let parser.Parameter(name:, port:, span:) = field
 
   use <- bool.guard(
     when: result.is_ok(context.get_parameter(context, name)),

@@ -2,7 +2,7 @@ import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_lower_identifier_stops_correctly_test() {
-  let assert Ok(tokens) = lexer.tokenize("test(")
+  let assert Ok(tokens) = lexer.lex("test(")
 
   assert tokens
     == [
@@ -16,7 +16,7 @@ pub fn lex_lower_identifier_stops_correctly_test() {
 }
 
 pub fn lex_lower_identifier_allows_letters_digits_and_underscore_test() {
-  let assert Ok(tokens) = lexer.tokenize("123 test_2,")
+  let assert Ok(tokens) = lexer.lex("123 test_2,")
 
   assert tokens
     == [
@@ -32,7 +32,7 @@ pub fn lex_lower_identifier_allows_letters_digits_and_underscore_test() {
 }
 
 pub fn lex_lower_identifier_stops_on_whitespace_test() {
-  let assert Ok(tokens) = lexer.tokenize("1234567890test rest")
+  let assert Ok(tokens) = lexer.lex("1234567890test rest")
 
   assert tokens
     == [
@@ -51,7 +51,7 @@ pub fn lex_lower_identifier_stops_on_whitespace_test() {
 }
 
 pub fn lex_lower_identifier_stops_before_uppercase_test() {
-  let assert Ok(tokens) = lexer.tokenize("mathPort")
+  let assert Ok(tokens) = lexer.lex("mathPort")
 
   assert tokens
     == [

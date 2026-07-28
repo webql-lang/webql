@@ -2,7 +2,7 @@ import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_comment_stops_at_newline_test() {
-  let assert Ok(tokens) = lexer.tokenize("#hello\nworld")
+  let assert Ok(tokens) = lexer.lex("#hello\nworld")
 
   assert tokens
     == [
@@ -17,7 +17,7 @@ pub fn lex_comment_stops_at_newline_test() {
 }
 
 pub fn lex_comment_stops_at_crlf_test() {
-  let assert Ok(tokens) = lexer.tokenize("#hello\r\nworld")
+  let assert Ok(tokens) = lexer.lex("#hello\r\nworld")
 
   assert tokens
     == [
@@ -32,7 +32,7 @@ pub fn lex_comment_stops_at_crlf_test() {
 }
 
 pub fn lex_comment_stops_at_cr_test() {
-  let assert Ok(tokens) = lexer.tokenize("#hello\rworld")
+  let assert Ok(tokens) = lexer.lex("#hello\rworld")
 
   assert tokens
     == [
@@ -47,7 +47,7 @@ pub fn lex_comment_stops_at_cr_test() {
 }
 
 pub fn lex_comment_stops_at_eof_test() {
-  let assert Ok(tokens) = lexer.tokenize("#hello")
+  let assert Ok(tokens) = lexer.lex("#hello")
 
   assert tokens
     == [
@@ -57,7 +57,7 @@ pub fn lex_comment_stops_at_eof_test() {
 }
 
 pub fn lex_comment_respects_non_zero_start_test() {
-  let assert Ok(tokens) = lexer.tokenize("test #hello\nworld")
+  let assert Ok(tokens) = lexer.lex("test #hello\nworld")
 
   assert tokens
     == [

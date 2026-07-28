@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/resolve_value
@@ -10,12 +10,12 @@ import webql/compiler/source
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  source: ast.Source,
+  source: parser.Source,
 ) -> Result(hir.Source, diagnostic.Diagnostic) {
   case source {
-    ast.Output(path:, span:) -> resolve_output(context, path, span)
+    parser.Output(path:, span:) -> resolve_output(context, path, span)
 
-    ast.Literal(value:, span:) -> resolve_literal(environment, value, span)
+    parser.Literal(value:, span:) -> resolve_literal(environment, value, span)
   }
 }
 
@@ -36,7 +36,7 @@ fn resolve_output(
 
 fn resolve_literal(
   environment: environment.Environment,
-  value: ast.Value,
+  value: parser.Value,
   span: source.Span,
 ) {
   case environment.get_port(environment, value.name) {

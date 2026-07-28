@@ -1,17 +1,17 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/resolve_document
 
 pub opaque type Resolver {
-  Resolver(document: ast.Document)
+  Resolver(document: parser.Document)
 }
 
 /// Creates a new resolver instance from a parser document.
-pub fn new(document: ast.Document) -> Resolver {
+pub fn new(document: parser.Document) -> Resolver {
   Resolver(document:)
 }
 

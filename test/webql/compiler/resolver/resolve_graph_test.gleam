@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -11,30 +11,30 @@ pub fn resolve_graph_resolves_body_test() {
   let schema = environment.add_port(environment.new(), "Int")
 
   let graph_to_resolve =
-    ast.Graph(
+    parser.Graph(
       parameters: [
-        ast.Parameter(
+        parser.Parameter(
           name: "in",
-          port: ast.Port(name: "Int", span: source.Span(start: 4, end: 7)),
+          port: parser.Port(name: "Int", span: source.Span(start: 4, end: 7)),
           span: source.Span(start: 0, end: 7),
         ),
       ],
       returns: [
-        ast.Return(
+        parser.Return(
           name: "out",
-          port: ast.Port(name: "Int", span: source.Span(start: 15, end: 18)),
+          port: parser.Port(name: "Int", span: source.Span(start: 15, end: 18)),
           span: source.Span(start: 10, end: 18),
         ),
       ],
       nodes: [
-        ast.Supernode(
+        parser.Supernode(
           name: "Inner",
-          graph: ast.Graph(
+          graph: parser.Graph(
             parameters: [],
             returns: [
-              ast.Return(
+              parser.Return(
                 name: "value",
-                port: ast.Port(
+                port: parser.Port(
                   name: "Int",
                   span: source.Span(start: 35, end: 38),
                 ),
@@ -47,19 +47,19 @@ pub fn resolve_graph_resolves_body_test() {
           ),
           span: source.Span(start: 20, end: 41),
         ),
-        ast.Node(
+        parser.Node(
           name: "inner",
           node: "Inner",
           span: source.Span(start: 42, end: 55),
         ),
       ],
       edges: [
-        ast.Edge(
-          source: ast.Output(
+        parser.Edge(
+          source: parser.Output(
             path: ["in"],
             span: source.Span(start: 54, end: 57),
           ),
-          target: ast.Input(
+          target: parser.Input(
             path: ["out"],
             span: source.Span(start: 61, end: 65),
           ),
@@ -153,13 +153,13 @@ pub fn resolve_graph_returns_duplicate_supernode_test() {
   let schema = environment.new()
 
   let graph_to_resolve =
-    ast.Graph(
+    parser.Graph(
       parameters: [],
       returns: [],
       nodes: [
-        ast.Supernode(
+        parser.Supernode(
           name: "Inner",
-          graph: ast.Graph(
+          graph: parser.Graph(
             parameters: [],
             returns: [],
             nodes: [],
@@ -168,9 +168,9 @@ pub fn resolve_graph_returns_duplicate_supernode_test() {
           ),
           span: source.Span(start: 0, end: 0),
         ),
-        ast.Supernode(
+        parser.Supernode(
           name: "Inner",
-          graph: ast.Graph(
+          graph: parser.Graph(
             parameters: [],
             returns: [],
             nodes: [],
@@ -198,42 +198,42 @@ pub fn resolve_graph_returns_duplicate_edge_for_second_value_output_to_same_inpu
   let schema = environment.add_port(environment.new(), "Int")
 
   let graph_to_resolve =
-    ast.Graph(
+    parser.Graph(
       parameters: [],
       returns: [
-        ast.Return(
+        parser.Return(
           name: "out",
-          port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
+          port: parser.Port(name: "Int", span: source.Span(start: 7, end: 10)),
           span: source.Span(start: 2, end: 10),
         ),
       ],
       nodes: [],
       edges: [
-        ast.Edge(
-          source: ast.Literal(
-            value: ast.Int(
+        parser.Edge(
+          source: parser.Literal(
+            value: parser.Int(
               name: "Int",
               value: 1,
               span: source.Span(start: 13, end: 14),
             ),
             span: source.Span(start: 13, end: 14),
           ),
-          target: ast.Input(
+          target: parser.Input(
             path: ["out"],
             span: source.Span(start: 18, end: 22),
           ),
           span: source.Span(start: 13, end: 22),
         ),
-        ast.Edge(
-          source: ast.Literal(
-            value: ast.Int(
+        parser.Edge(
+          source: parser.Literal(
+            value: parser.Int(
               name: "Int",
               value: 2,
               span: source.Span(start: 23, end: 24),
             ),
             span: source.Span(start: 23, end: 24),
           ),
-          target: ast.Input(
+          target: parser.Input(
             path: ["out"],
             span: source.Span(start: 28, end: 32),
           ),

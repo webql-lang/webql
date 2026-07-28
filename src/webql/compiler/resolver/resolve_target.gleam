@@ -1,14 +1,14 @@
 import webql/compiler/context
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 
 /// Resolves an edge target.
 pub fn resolve(
   context: context.Context,
-  target: ast.Target,
+  target: parser.Target,
 ) -> Result(hir.Target, diagnostic.Diagnostic) {
-  let ast.Input(path:, span:) = target
+  let parser.Input(path:, span:) = target
 
   case context.get_input(context, path) {
     Ok(#(reference, _port)) -> Ok(hir.Input(path:, reference:, span:))

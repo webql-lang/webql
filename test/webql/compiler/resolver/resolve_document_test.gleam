@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/resolve_document
@@ -10,13 +10,13 @@ pub fn resolve_document_wraps_resolved_graph_test() {
   let schema = environment.add_port(environment.new(), "Int")
 
   let document_to_resolve =
-    ast.Document(
-      graph: ast.Graph(
+    parser.Document(
+      graph: parser.Graph(
         parameters: [],
         returns: [
-          ast.Return(
+          parser.Return(
             name: "out",
-            port: ast.Port(name: "Int", span: source.Span(start: 8, end: 11)),
+            port: parser.Port(name: "Int", span: source.Span(start: 8, end: 11)),
             span: source.Span(start: 3, end: 11),
           ),
         ],

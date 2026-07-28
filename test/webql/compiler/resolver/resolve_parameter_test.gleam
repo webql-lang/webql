@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -11,9 +11,9 @@ pub fn resolve_resolves_parameter_with_named_type_annotation_test() {
   let schema = environment.add_port(environment.new(), "Int")
 
   let parameter_to_resolve =
-    ast.Parameter(
+    parser.Parameter(
       name: "value",
-      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: parser.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -42,9 +42,9 @@ pub fn resolve_returns_unknown_type_for_missing_parameter_annotation_test() {
   let schema = environment.new()
 
   let parameter_to_resolve =
-    ast.Parameter(
+    parser.Parameter(
       name: "value",
-      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: parser.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 
@@ -67,9 +67,9 @@ pub fn resolve_returns_duplicate_parameter_for_existing_parameter_test() {
   let context = context.add_parameter(context.new(), "value")
 
   let parameter_to_resolve =
-    ast.Parameter(
+    parser.Parameter(
       name: "value",
-      port: ast.Port(name: "Int", span: source.Span(start: 7, end: 10)),
+      port: parser.Port(name: "Int", span: source.Span(start: 7, end: 10)),
       span: source.Span(start: 0, end: 10),
     )
 

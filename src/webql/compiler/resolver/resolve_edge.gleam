@@ -2,7 +2,7 @@ import gleam/bool
 import gleam/result
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -13,10 +13,10 @@ import webql/compiler/resolver/resolve_target
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  edge: ast.Edge,
+  edge: parser.Edge,
   reference: reference.Edge,
 ) -> Result(hir.Edge, diagnostic.Diagnostic) {
-  let ast.Edge(source:, target:, span:) = edge
+  let parser.Edge(source:, target:, span:) = edge
 
   use source <- result.try(resolve_source.resolve(environment, context, source))
   use target <- result.try(resolve_target.resolve(context, target))

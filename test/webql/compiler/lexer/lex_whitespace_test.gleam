@@ -2,7 +2,7 @@ import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_whitespace_stops_at_non_whitespace_test() {
-  let assert Ok(tokens) = lexer.tokenize(" \t\n\rhello")
+  let assert Ok(tokens) = lexer.lex(" \t\n\rhello")
 
   assert tokens
     == [
@@ -16,7 +16,7 @@ pub fn lex_whitespace_stops_at_non_whitespace_test() {
 }
 
 pub fn lex_whitespace_consumes_until_eof_test() {
-  let assert Ok(tokens) = lexer.tokenize(" \t\n\r")
+  let assert Ok(tokens) = lexer.lex(" \t\n\r")
 
   assert tokens
     == [
@@ -26,7 +26,7 @@ pub fn lex_whitespace_consumes_until_eof_test() {
 }
 
 pub fn lex_whitespace_respects_non_zero_start_test() {
-  let assert Ok(tokens) = lexer.tokenize("1234567890 \thello")
+  let assert Ok(tokens) = lexer.lex("1234567890 \thello")
 
   assert tokens
     == [

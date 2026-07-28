@@ -1,7 +1,7 @@
 import webql/compiler
 import webql/compiler/diagnostic
 import webql/compiler/lexer
-import webql/compiler/parser/diagnostic as parser_diagnostic
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic as resolver_diagnostic
 import webql/compiler/source
@@ -226,9 +226,7 @@ pub fn compile_wraps_parser_diagnostic_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ParserDiagnostic(parser_diagnostic.UnexpectedToken(
-        lexer.LBrace,
-      )),
+      kind: diagnostic.ParserDiagnostic(parser.UnexpectedToken(lexer.LBrace)),
       span: source.Span(start: 0, end: 1),
     )
 }

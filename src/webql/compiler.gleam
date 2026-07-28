@@ -34,8 +34,7 @@ pub fn compile(
 
   use tokens <- result.try(compile_lex(source))
 
-  let parser = parser.new(source, tokens)
-  use document <- result.try(compile_parse(parser))
+  use document <- result.try(compile_parse(source, tokens))
 
   let resolver = resolver.new(document)
   use #(document, context) <- result.try(compile_resolve(
@@ -106,7 +105,7 @@ fn load_returns(
 }
 
 fn compile_lex(source: String) {
-  case lexer.tokenize(source) {
+  case lexer.lex(source) {
     Ok(tokens) -> Ok(tokens)
 
     Error(error) ->
@@ -117,8 +116,8 @@ fn compile_lex(source: String) {
   }
 }
 
-fn compile_parse(parser: parser.Parser) {
-  case parser.parse(parser) {
+fn compile_parse(source: String, tokens: List(lexer.Token)) {
+  case parser.parse(source, tokens) {
     Ok(document) -> Ok(document)
 
     Error(error) ->

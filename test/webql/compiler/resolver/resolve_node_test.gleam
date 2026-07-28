@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
@@ -12,7 +12,11 @@ pub fn resolve_node_test() {
   let schema = environment.add_node(environment.new(), "Math")
 
   let node_to_resolve =
-    ast.Node(name: "math", node: "Math", span: source.Span(start: 0, end: 11))
+    parser.Node(
+      name: "math",
+      node: "Math",
+      span: source.Span(start: 0, end: 11),
+    )
 
   let assert Ok(#(node, _context, _environment)) =
     resolve_node.resolve(
@@ -35,7 +39,11 @@ pub fn resolve_returns_duplicate_node_for_existing_node_test() {
   let context = context.add_node(context.new(), "math")
 
   let node_to_resolve =
-    ast.Node(name: "math", node: "Math", span: source.Span(start: 0, end: 11))
+    parser.Node(
+      name: "math",
+      node: "Math",
+      span: source.Span(start: 0, end: 11),
+    )
 
   let assert Error(error) =
     resolve_node.resolve(
@@ -56,31 +64,37 @@ pub fn resolve_node_resolves_supernode_test() {
   let schema = environment.add_port(environment.new(), "Int")
 
   let supernode_to_resolve =
-    ast.Supernode(
+    parser.Supernode(
       name: "Inner",
-      graph: ast.Graph(
+      graph: parser.Graph(
         parameters: [
-          ast.Parameter(
+          parser.Parameter(
             name: "in",
-            port: ast.Port(name: "Int", span: source.Span(start: 15, end: 18)),
+            port: parser.Port(
+              name: "Int",
+              span: source.Span(start: 15, end: 18),
+            ),
             span: source.Span(start: 11, end: 18),
           ),
         ],
         returns: [
-          ast.Return(
+          parser.Return(
             name: "out",
-            port: ast.Port(name: "Int", span: source.Span(start: 27, end: 30)),
+            port: parser.Port(
+              name: "Int",
+              span: source.Span(start: 27, end: 30),
+            ),
             span: source.Span(start: 22, end: 30),
           ),
         ],
         nodes: [],
         edges: [
-          ast.Edge(
-            source: ast.Output(
+          parser.Edge(
+            source: parser.Output(
               path: ["in"],
               span: source.Span(start: 34, end: 37),
             ),
-            target: ast.Input(
+            target: parser.Input(
               path: ["out"],
               span: source.Span(start: 41, end: 45),
             ),
@@ -156,9 +170,9 @@ pub fn resolve_node_returns_duplicate_supernode_test() {
   let schema = environment.add_node(environment.new(), "Inner")
 
   let supernode_to_resolve =
-    ast.Supernode(
+    parser.Supernode(
       name: "Inner",
-      graph: ast.Graph(
+      graph: parser.Graph(
         parameters: [],
         returns: [],
         nodes: [],
@@ -187,9 +201,9 @@ pub fn resolve_node_returns_duplicate_supernode_for_schema_node_test() {
   let schema = environment.add_node(environment.new(), "Math")
 
   let supernode_to_resolve =
-    ast.Supernode(
+    parser.Supernode(
       name: "Math",
-      graph: ast.Graph(
+      graph: parser.Graph(
         parameters: [],
         returns: [],
         nodes: [],

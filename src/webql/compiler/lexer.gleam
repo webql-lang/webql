@@ -41,6 +41,10 @@ pub type Token {
   Token(kind: TokenKind, span: source.Span)
 }
 
+type Cursor {
+  Cursor(remaining_bytes: BitArray, position: Int)
+}
+
 pub type DiagnosticKind {
   IllegalToken
   UnterminatedString
@@ -50,34 +54,30 @@ pub type Diagnostic {
   Diagnostic(kind: DiagnosticKind, span: source.Span)
 }
 
-/// Tokenizes source, stopping at the first invalid token.
-pub fn tokenize(source: String) -> Result(List(Token), Diagnostic) {
+/// Lexes source, stopping at the first invalid token.
+pub fn lex(source: String) -> Result(List(Token), Diagnostic) {
   let bytes = bit_array.from_string(source)
   let cursor = Cursor(remaining_bytes: bytes, position: 0)
 
-  case tokenize_strict_source(cursor, []) {
+  case lex_strict_source(cursor, []) {
     Ok(result) -> Ok(list.reverse(result))
     Error(diagnostic) -> Error(diagnostic)
   }
 }
 
 /// Tokenizes source, preserving invalid tokens so callers can recover.
-pub fn tokenize_recovering(source: String) -> List(Token) {
+pub fn lex_recovering(source: String) -> List(Token) {
   let bytes = bit_array.from_string(source)
   let cursor = Cursor(remaining_bytes: bytes, position: 0)
 
   cursor
-  |> tokenize_recovering_source([])
+  |> lex_recovering_source([])
   |> list.reverse()
-}
-
-type Cursor {
-  Cursor(remaining_bytes: BitArray, position: Int)
 }
 
 // PRIVATE FUNCTIONS
 // =================
-fn tokenize_strict_source(cursor: Cursor, tokens: List(Token)) {
+fn lex_strict_source(cursor: Cursor, tokens: List(Token)) {
   let #(token, rest) = lex_token(cursor)
   let cursor = Cursor(remaining_bytes: rest, position: token.span.end)
 
@@ -89,11 +89,11 @@ fn tokenize_strict_source(cursor: Cursor, tokens: List(Token)) {
     EOF -> Ok([token, ..tokens])
 
     // =========== CONT ===========
-    _continue -> tokenize_strict_source(cursor, [token, ..tokens])
+    _continue -> lex_strict_source(cursor, [token, ..tokens])
   }
 }
 
-fn tokenize_recovering_source(cursor: Cursor, tokens: List(Token)) {
+fn lex_recovering_source(cursor: Cursor, tokens: List(Token)) {
   let #(token, rest) = lex_token(cursor)
   let cursor = Cursor(remaining_bytes: rest, position: token.span.end)
 
@@ -102,7 +102,7 @@ fn tokenize_recovering_source(cursor: Cursor, tokens: List(Token)) {
     EOF -> [token, ..tokens]
 
     // =========== CONT ===========
-    _continue -> tokenize_recovering_source(cursor, [token, ..tokens])
+    _continue -> lex_recovering_source(cursor, [token, ..tokens])
   }
 }
 

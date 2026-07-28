@@ -2,7 +2,7 @@ import gleam/list
 import gleam/result
 import webql/compiler/context
 import webql/compiler/environment
-import webql/compiler/parser/ast
+import webql/compiler/parser
 import webql/compiler/resolver/diagnostic
 import webql/compiler/resolver/hir
 import webql/compiler/resolver/register_edge
@@ -17,7 +17,7 @@ import webql/compiler/resolver/resolve_return
 pub fn resolve(
   environment: environment.Environment,
   context: context.Context,
-  graph: ast.Graph,
+  graph: parser.Graph,
 ) -> Result(#(hir.Graph, context.Context), diagnostic.Diagnostic) {
   use #(graph, context, _environment) <- result.try(resolve_body(
     environment,
@@ -32,12 +32,12 @@ pub fn resolve(
 fn resolve_body(
   environment: environment.Environment,
   context: context.Context,
-  graph: ast.Graph,
+  graph: parser.Graph,
 ) -> Result(
   #(hir.Graph, context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
-  let ast.Graph(parameters:, returns:, nodes:, edges:, span:) = graph
+  let parser.Graph(parameters:, returns:, nodes:, edges:, span:) = graph
 
   use #(parameters, context) <- result.try(resolve_parameters(
     environment,
@@ -73,7 +73,7 @@ fn resolve_body(
 fn resolve_parameters(
   environment: environment.Environment,
   context: context.Context,
-  parameters: List(ast.Parameter),
+  parameters: List(parser.Parameter),
 ) {
   case parameters {
     [parameter, ..rest] -> {
@@ -103,7 +103,7 @@ fn resolve_parameters(
 fn resolve_returns(
   environment: environment.Environment,
   context: context.Context,
-  returns: List(ast.Return),
+  returns: List(parser.Return),
 ) {
   case returns {
     [return, ..rest] -> {
@@ -133,13 +133,13 @@ fn resolve_returns(
 fn resolve_supernodes(
   environment: environment.Environment,
   context: context.Context,
-  nodes: List(ast.Node),
+  nodes: List(parser.Node),
 ) -> Result(
   #(List(hir.Node), context.Context, environment.Environment),
   diagnostic.Diagnostic,
 ) {
   case nodes {
-    [ast.Supernode(..) as supernode, ..nodes] -> {
+    [parser.Supernode(..) as supernode, ..nodes] -> {
       use #(supernode, context, environment) <- result.try(resolve_node.resolve(
         environment,
         context,
@@ -156,7 +156,8 @@ fn resolve_supernodes(
       Ok(#([supernode, ..nodes], context, environment))
     }
 
-    [ast.Node(..), ..nodes] -> resolve_supernodes(environment, context, nodes)
+    [parser.Node(..), ..nodes] ->
+      resolve_supernodes(environment, context, nodes)
 
     [] -> Ok(#([], context, environment))
   }
@@ -165,10 +166,10 @@ fn resolve_supernodes(
 fn resolve_nodes(
   environment: environment.Environment,
   context: context.Context,
-  nodes: List(ast.Node),
+  nodes: List(parser.Node),
 ) {
   case nodes {
-    [ast.Node(..) as node, ..nodes] -> {
+    [parser.Node(..) as node, ..nodes] -> {
       use #(node, context, _environment) <- result.try(resolve_node.resolve(
         environment,
         context,
@@ -185,7 +186,8 @@ fn resolve_nodes(
       Ok(#([node, ..nodes], context))
     }
 
-    [ast.Supernode(..), ..nodes] -> resolve_nodes(environment, context, nodes)
+    [parser.Supernode(..), ..nodes] ->
+      resolve_nodes(environment, context, nodes)
 
     [] -> Ok(#([], context))
   }
@@ -194,7 +196,7 @@ fn resolve_nodes(
 fn resolve_edges(
   environment: environment.Environment,
   context: context.Context,
-  edges: List(ast.Edge),
+  edges: List(parser.Edge),
 ) {
   case edges {
     [edge, ..edges] -> {

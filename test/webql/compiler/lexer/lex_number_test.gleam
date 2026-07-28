@@ -2,7 +2,7 @@ import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_int_stops_correctly_test() {
-  let assert Ok(tokens) = lexer.tokenize("23 abc")
+  let assert Ok(tokens) = lexer.lex("23 abc")
 
   assert tokens
     == [
@@ -17,7 +17,7 @@ pub fn lex_int_stops_correctly_test() {
 }
 
 pub fn lex_float_detected_test() {
-  let assert Ok(tokens) = lexer.tokenize("23.45,")
+  let assert Ok(tokens) = lexer.lex("23.45,")
 
   assert tokens
     == [
@@ -28,7 +28,7 @@ pub fn lex_float_detected_test() {
 }
 
 pub fn lex_allows_underscores_in_int_test() {
-  let assert Ok(tokens) = lexer.tokenize("2_3x")
+  let assert Ok(tokens) = lexer.lex("2_3x")
 
   assert tokens
     == [

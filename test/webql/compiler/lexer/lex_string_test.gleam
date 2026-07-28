@@ -2,7 +2,7 @@ import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_string_stops_correctly_test() {
-  let assert Ok(tokens) = lexer.tokenize("\"hello\" world")
+  let assert Ok(tokens) = lexer.lex("\"hello\" world")
 
   assert tokens
     == [
@@ -17,7 +17,7 @@ pub fn lex_string_stops_correctly_test() {
 }
 
 pub fn lex_string_allows_escaped_quote_test() {
-  let assert Ok(tokens) = lexer.tokenize("\"hello\\\"world\".")
+  let assert Ok(tokens) = lexer.lex("\"hello\\\"world\".")
 
   assert tokens
     == [
@@ -28,7 +28,7 @@ pub fn lex_string_allows_escaped_quote_test() {
 }
 
 pub fn lex_string_allows_escaped_characters_test() {
-  let assert Ok(tokens) = lexer.tokenize("\"a\\nb\".")
+  let assert Ok(tokens) = lexer.lex("\"a\\nb\".")
 
   assert tokens
     == [
@@ -39,7 +39,7 @@ pub fn lex_string_allows_escaped_characters_test() {
 }
 
 pub fn lex_string_unterminated_test() {
-  let tokens = lexer.tokenize_recovering("\"hello")
+  let tokens = lexer.lex_recovering("\"hello")
 
   assert tokens
     == [
@@ -52,7 +52,7 @@ pub fn lex_string_unterminated_test() {
 }
 
 pub fn lex_string_unterminated_after_escape_test() {
-  let tokens = lexer.tokenize_recovering("\"hello\\")
+  let tokens = lexer.lex_recovering("\"hello\\")
 
   assert tokens
     == [
@@ -65,7 +65,7 @@ pub fn lex_string_unterminated_after_escape_test() {
 }
 
 pub fn lex_string_respects_non_zero_start_test() {
-  let assert Ok(tokens) = lexer.tokenize("1234 \"abc\",")
+  let assert Ok(tokens) = lexer.lex("1234 \"abc\",")
 
   assert tokens
     == [
