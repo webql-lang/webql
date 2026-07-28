@@ -1,5 +1,4 @@
 import webql/compiler/lexer
-import webql/compiler/lexer/token
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_graph
@@ -9,10 +8,7 @@ import webql/compiler/source
 pub fn parse_supernode_test() {
   let source = "Inner = -> out: Int {}"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(supernode, _, rest)) =
     parse_supernode.parse(source, tokens, parse_graph.parse)
@@ -37,16 +33,13 @@ pub fn parse_supernode_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 22, end: 22))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 22, end: 22))]
 }
 
 pub fn parse_supernode_preserves_remaining_tokens_test() {
   let source = "Inner = -> out: Int {} next"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(supernode, _, rest)) =
     parse_supernode.parse(source, tokens, parse_graph.parse)
@@ -72,29 +65,26 @@ pub fn parse_supernode_preserves_remaining_tokens_test() {
 
   assert rest
     == [
-      token.Token(kind: token.Space, span: source.Span(start: 22, end: 23)),
-      token.Token(
-        kind: token.LowerIdentifier,
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 22, end: 23)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
         span: source.Span(start: 23, end: 27),
       ),
-      token.Token(kind: token.EOF, span: source.Span(start: 27, end: 27)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 27, end: 27)),
     ]
 }
 
 pub fn parse_returns_unexpected_token_for_lower_identifier_supernode_name_test() {
   let source = "inner = -> out: Int {}"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) =
     parse_supernode.parse(source, tokens, parse_graph.parse)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.LowerIdentifier),
+      kind: diagnostic.UnexpectedToken(lexer.LowerIdentifier),
       span: source.Span(start: 0, end: 5),
     )
 }

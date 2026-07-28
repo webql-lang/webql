@@ -1,5 +1,5 @@
 import gleam/bit_array
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/diagnostic
 import webql/compiler/source
 
@@ -7,17 +7,17 @@ import webql/compiler/source
 /// If the remaining tokens still are invalid, returns an unexpected token or EOF diagnostic.
 pub fn parse(
   source source: String,
-  tokens tokens: List(token.Token),
-) -> Result(List(token.Token), diagnostic.Diagnostic) {
+  tokens tokens: List(lexer.Token),
+) -> Result(List(lexer.Token), diagnostic.Diagnostic) {
   let bytes = bit_array.from_string(source)
   let byte_length = bit_array.byte_size(bytes)
 
   case tokens {
-    [token.Token(kind: token.Space, ..), ..rest]
-    | [token.Token(kind: token.CommentSingle, ..), ..rest] ->
+    [lexer.Token(kind: lexer.Whitespace, ..), ..rest]
+    | [lexer.Token(kind: lexer.Comment, ..), ..rest] ->
       Ok(parse_nonstarter(rest))
 
-    [token.Token(kind: token.EOF, ..), ..] ->
+    [lexer.Token(kind: lexer.EOF, ..), ..] ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedEof,
         span: source.Span(start: byte_length, end: byte_length),
@@ -39,11 +39,10 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_nonstarter(tokens: List(token.Token)) {
+fn parse_nonstarter(tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.Space, ..), ..rest]
-    | [token.Token(kind: token.CommentSingle, ..), ..rest] ->
-      parse_nonstarter(rest)
+    [lexer.Token(kind: lexer.Whitespace, ..), ..rest]
+    | [lexer.Token(kind: lexer.Comment, ..), ..rest] -> parse_nonstarter(rest)
 
     _token -> tokens
   }

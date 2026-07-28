@@ -1,47 +1,72 @@
-import webql/compiler/lexer/lex_upper_identifier
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_upper_identifier_stops_correctly_test() {
-  let #(tok, rest) = lex_upper_identifier.lex(<<"Testing(":utf8>>, 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("Testing(")
 
-  assert tok
-    == token.Token(
-      kind: token.UpperIdentifier,
-      span: source.Span(start: 0, end: 7),
-    )
-  assert rest == <<"(":utf8>>
+  assert tokens
+    == [
+      lexer.Token(
+        kind: lexer.UpperIdentifier,
+        span: source.Span(start: 0, end: 7),
+      ),
+      lexer.Token(kind: lexer.LParen, span: source.Span(start: 7, end: 8)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 8, end: 8)),
+    ]
 }
 
 pub fn lex_upper_identifier_allows_letters_and_digits_test() {
-  let #(tok, rest) = lex_upper_identifier.lex(<<"Test1,":utf8>>, 4, 0)
+  let assert Ok(tokens) = lexer.tokenize("123 Test1,")
 
-  assert tok
-    == token.Token(
-      kind: token.UpperIdentifier,
-      span: source.Span(start: 4, end: 9),
-    )
-  assert rest == <<",":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Int, span: source.Span(start: 0, end: 3)),
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 3, end: 4)),
+      lexer.Token(
+        kind: lexer.UpperIdentifier,
+        span: source.Span(start: 4, end: 9),
+      ),
+      lexer.Token(kind: lexer.Comma, span: source.Span(start: 9, end: 10)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 10, end: 10)),
+    ]
 }
 
 pub fn lex_upper_identifier_stops_on_whitespace_test() {
-  let #(tok, rest) = lex_upper_identifier.lex(<<"TEST rest":utf8>>, 10, 0)
+  let assert Ok(tokens) = lexer.tokenize("1234567890TEST rest")
 
-  assert tok
-    == token.Token(
-      kind: token.UpperIdentifier,
-      span: source.Span(start: 10, end: 14),
-    )
-  assert rest == <<" rest":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Int, span: source.Span(start: 0, end: 10)),
+      lexer.Token(
+        kind: lexer.UpperIdentifier,
+        span: source.Span(start: 10, end: 14),
+      ),
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 14, end: 15)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
+        span: source.Span(start: 15, end: 19),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 19, end: 19)),
+    ]
 }
 
 pub fn lex_upper_identifier_stops_before_underscore_test() {
-  let #(tok, rest) = lex_upper_identifier.lex(<<"Node_Value":utf8>>, 0, 0)
+  let tokens = lexer.tokenize_recovering("Node_Value")
 
-  assert tok
-    == token.Token(
-      kind: token.UpperIdentifier,
-      span: source.Span(start: 0, end: 4),
-    )
-  assert rest == <<"_Value":utf8>>
+  assert tokens
+    == [
+      lexer.Token(
+        kind: lexer.UpperIdentifier,
+        span: source.Span(start: 0, end: 4),
+      ),
+      lexer.Token(
+        kind: lexer.Invalid(lexer.IllegalToken),
+        span: source.Span(start: 4, end: 5),
+      ),
+      lexer.Token(
+        kind: lexer.UpperIdentifier,
+        span: source.Span(start: 5, end: 10),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 10, end: 10)),
+    ]
 }

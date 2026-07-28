@@ -1,16 +1,16 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_document
 import webql/compiler/parser/parse_nonstarter
 
 pub opaque type Parser {
-  Parser(source: String, tokens: List(token.Token))
+  Parser(source: String, tokens: List(lexer.Token))
 }
 
 /// Creates a new parser instance from a source.
-pub fn new(source: String, tokens: List(token.Token)) -> Parser {
+pub fn new(source: String, tokens: List(lexer.Token)) -> Parser {
   Parser(source:, tokens:)
 }
 
@@ -27,11 +27,11 @@ pub fn parse(parser: Parser) -> Result(ast.Document, diagnostic.Diagnostic) {
 // =================
 fn parse_eof(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   document: ast.Document,
 ) -> Result(ast.Document, diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.EOF, ..)] -> Ok(document)
+    [lexer.Token(kind: lexer.EOF, ..)] -> Ok(document)
 
     _token -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))

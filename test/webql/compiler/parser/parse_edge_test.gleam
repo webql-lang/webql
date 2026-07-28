@@ -1,5 +1,4 @@
 import webql/compiler/lexer
-import webql/compiler/lexer/token
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_edge
@@ -8,10 +7,7 @@ import webql/compiler/source
 pub fn parse_node_port_edge_supernode_test() {
   let source = "m.out -> .out"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
@@ -26,16 +22,13 @@ pub fn parse_node_port_edge_supernode_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 13, end: 13))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 13, end: 13))]
 }
 
 pub fn parse_literal_edge_supernode_test() {
   let source = "\"test\" -> .out"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
@@ -54,16 +47,13 @@ pub fn parse_literal_edge_supernode_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 14, end: 14))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 14, end: 14))]
 }
 
 pub fn parse_preserves_remaining_tokens_after_supernode_test() {
   let source = ".in -> .out extra"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(edge, _, rest)) = parse_edge.parse(source, tokens)
 
@@ -76,28 +66,25 @@ pub fn parse_preserves_remaining_tokens_after_supernode_test() {
 
   assert rest
     == [
-      token.Token(kind: token.Space, span: source.Span(start: 11, end: 12)),
-      token.Token(
-        kind: token.LowerIdentifier,
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 11, end: 12)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
         span: source.Span(start: 12, end: 17),
       ),
-      token.Token(kind: token.EOF, span: source.Span(start: 17, end: 17)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 17, end: 17)),
     ]
 }
 
 pub fn parse_returns_unexpected_token_for_invalid_supernode_start_test() {
   let source = "Math"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_edge.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.UpperIdentifier),
+      kind: diagnostic.UnexpectedToken(lexer.UpperIdentifier),
       span: source.Span(start: 0, end: 4),
     )
 }
@@ -105,16 +92,13 @@ pub fn parse_returns_unexpected_token_for_invalid_supernode_start_test() {
 pub fn parse_returns_unexpected_token_for_upper_identifier_edge_source_test() {
   let source = "Math -> .out"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_edge.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.UpperIdentifier),
+      kind: diagnostic.UnexpectedToken(lexer.UpperIdentifier),
       span: source.Span(start: 0, end: 4),
     )
 }
@@ -122,10 +106,7 @@ pub fn parse_returns_unexpected_token_for_upper_identifier_edge_source_test() {
 pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
   let source = ".in -> "
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_edge.parse(source, tokens)
 
@@ -139,16 +120,13 @@ pub fn parse_returns_unexpected_eof_when_edge_target_is_missing_test() {
 pub fn parse_returns_unexpected_token_for_literal_edge_target_test() {
   let source = ".in -> \"out\""
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_edge.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.String),
+      kind: diagnostic.UnexpectedToken(lexer.String),
       span: source.Span(start: 7, end: 12),
     )
 }

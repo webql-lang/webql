@@ -1,5 +1,5 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_graph
@@ -14,15 +14,15 @@ import webql/compiler/source
 ///     -> out: Int { ... }
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
 ) -> Result(
-  #(ast.Document, source.Span, List(token.Token)),
+  #(ast.Document, source.Span, List(lexer.Token)),
   diagnostic.Diagnostic,
 ) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, ..), ..]
-    | [token.Token(kind: token.Dot, ..), ..]
-    | [token.Token(kind: token.RArrow, ..), ..] ->
+    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..]
+    | [lexer.Token(kind: lexer.Dot, ..), ..]
+    | [lexer.Token(kind: lexer.RArrow, ..), ..] ->
       parse_document(source, tokens)
 
     _tokens -> {
@@ -34,7 +34,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_document(source: String, tokens: List(token.Token)) {
+fn parse_document(source: String, tokens: List(lexer.Token)) {
   use #(graph, span, rest) <- result.try(parse_graph.parse(source, tokens))
 
   Ok(#(ast.Document(graph:, span:), span, rest))

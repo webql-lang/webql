@@ -2,7 +2,7 @@ import gleam/float
 import gleam/int
 import gleam/result
 import gleam/string
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
@@ -23,20 +23,20 @@ const string = "String"
 ///     "test"
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
-) -> Result(#(ast.Value, source.Span, List(token.Token)), diagnostic.Diagnostic) {
+  tokens: List(lexer.Token),
+) -> Result(#(ast.Value, source.Span, List(lexer.Token)), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.Int, span:), ..rest] -> {
+    [lexer.Token(kind: lexer.Int, span:), ..rest] -> {
       use value <- result.try(parse_int(source, span))
       Ok(#(value, span, rest))
     }
 
-    [token.Token(kind: token.Float, span:), ..rest] -> {
+    [lexer.Token(kind: lexer.Float, span:), ..rest] -> {
       use value <- result.try(parse_float(source, span))
       Ok(#(value, span, rest))
     }
 
-    [token.Token(kind: token.String, span:), ..rest] -> {
+    [lexer.Token(kind: lexer.String, span:), ..rest] -> {
       let value = parse_string(source, span)
 
       Ok(#(ast.String(name: string, value:, span:), span, rest))
@@ -67,7 +67,7 @@ fn parse_int(source: String, span: source.Span) {
 
     Error(_error) ->
       Error(diagnostic.Diagnostic(
-        kind: diagnostic.UnexpectedToken(token.Int),
+        kind: diagnostic.UnexpectedToken(lexer.Int),
         span:,
       ))
   }
@@ -81,7 +81,7 @@ fn parse_float(source: String, span: source.Span) {
 
     Error(_error) ->
       Error(diagnostic.Diagnostic(
-        kind: diagnostic.UnexpectedToken(token.Float),
+        kind: diagnostic.UnexpectedToken(lexer.Float),
         span:,
       ))
   }

@@ -1,28 +1,42 @@
-import gleam/bit_array
-import webql/compiler/lexer/lex_number
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_int_stops_correctly_test() {
-  let #(tok, rest) = lex_number.lex(bit_array.from_string("23 abc"), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("23 abc")
 
-  assert tok
-    == token.Token(kind: token.Int, span: source.Span(start: 0, end: 2))
-  assert rest == <<" abc":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Int, span: source.Span(start: 0, end: 2)),
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 2, end: 3)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
+        span: source.Span(start: 3, end: 6),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 6, end: 6)),
+    ]
 }
 
 pub fn lex_float_detected_test() {
-  let #(tok, rest) = lex_number.lex(bit_array.from_string("23.45;"), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("23.45,")
 
-  assert tok
-    == token.Token(kind: token.Float, span: source.Span(start: 0, end: 5))
-  assert rest == <<";":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Float, span: source.Span(start: 0, end: 5)),
+      lexer.Token(kind: lexer.Comma, span: source.Span(start: 5, end: 6)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 6, end: 6)),
+    ]
 }
 
 pub fn lex_allows_underscores_in_int_test() {
-  let #(tok, rest) = lex_number.lex(bit_array.from_string("2_3x"), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("2_3x")
 
-  assert tok
-    == token.Token(kind: token.Int, span: source.Span(start: 0, end: 3))
-  assert rest == <<"x":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Int, span: source.Span(start: 0, end: 3)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
+        span: source.Span(start: 3, end: 4),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 4, end: 4)),
+    ]
 }

@@ -1,6 +1,6 @@
 import gleam/list
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_edge
@@ -14,12 +14,12 @@ import webql/compiler/source
 /// Parses a graph.
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
-) -> Result(#(ast.Graph, source.Span, List(token.Token)), diagnostic.Diagnostic) {
+  tokens: List(lexer.Token),
+) -> Result(#(ast.Graph, source.Span, List(lexer.Token)), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..]
-    | [token.Token(kind: token.Dot, span:), ..]
-    | [token.Token(kind: token.RArrow, span:), ..] ->
+    [lexer.Token(kind: lexer.LowerIdentifier, span:), ..]
+    | [lexer.Token(kind: lexer.Dot, span:), ..]
+    | [lexer.Token(kind: lexer.RArrow, span:), ..] ->
       parse_graph(source, tokens, span.start)
 
     _tokens -> {
@@ -31,7 +31,7 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_graph(source: String, tokens: List(token.Token), start: Int) {
+fn parse_graph(source: String, tokens: List(lexer.Token), start: Int) {
   use #(parameters, _span, rest) <- result.try(
     parse_parameters(source, tokens, []),
   )
@@ -59,11 +59,11 @@ fn parse_graph(source: String, tokens: List(token.Token), start: Int) {
 
 fn parse_parameters(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   parameters: List(ast.Parameter),
 ) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
+    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..] -> {
       use #(parameter, _span, rest) <- result.try(parse_parameter.parse(
         source,
         tokens,
@@ -72,10 +72,10 @@ fn parse_parameters(
       parse_parameters(source, rest, [parameter, ..parameters])
     }
 
-    [token.Token(kind: token.Comma, ..), ..rest] ->
+    [lexer.Token(kind: lexer.Comma, ..), ..rest] ->
       parse_parameters(source, rest, parameters)
 
-    [token.Token(kind: token.RArrow, span:), ..rest] ->
+    [lexer.Token(kind: lexer.RArrow, span:), ..rest] ->
       Ok(#(parameters, span, rest))
 
     _tokens -> {
@@ -87,11 +87,11 @@ fn parse_parameters(
 
 fn parse_returns(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   returns: List(ast.Return),
 ) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, ..), ..] -> {
+    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..] -> {
       use #(return, _span, rest) <- result.try(parse_return.parse(
         source,
         tokens,
@@ -100,10 +100,10 @@ fn parse_returns(
       parse_returns(source, rest, [return, ..returns])
     }
 
-    [token.Token(kind: token.Comma, ..), ..rest] ->
+    [lexer.Token(kind: lexer.Comma, ..), ..rest] ->
       parse_returns(source, rest, returns)
 
-    [token.Token(kind: token.LBrace, span:), ..] -> Ok(#(returns, span, tokens))
+    [lexer.Token(kind: lexer.LBrace, span:), ..] -> Ok(#(returns, span, tokens))
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
@@ -114,20 +114,20 @@ fn parse_returns(
 
 fn parse_body(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   nodes: List(ast.Node),
   edges: List(ast.Edge),
 ) -> Result(
-  #(#(List(ast.Node), List(ast.Edge)), source.Span, List(token.Token)),
+  #(#(List(ast.Node), List(ast.Edge)), source.Span, List(lexer.Token)),
   diagnostic.Diagnostic,
 ) {
   use tokens <- result.try(parse_left_brace(source, tokens))
   parse_block_body(source, tokens, nodes, edges)
 }
 
-fn parse_left_brace(source: String, tokens: List(token.Token)) {
+fn parse_left_brace(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.LBrace, ..), ..rest] -> Ok(rest)
+    [lexer.Token(kind: lexer.LBrace, ..), ..rest] -> Ok(rest)
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))
@@ -138,15 +138,15 @@ fn parse_left_brace(source: String, tokens: List(token.Token)) {
 
 fn parse_block_body(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   nodes: List(ast.Node),
   edges: List(ast.Edge),
 ) {
   case tokens {
-    [token.Token(kind: token.RBrace, span:), ..rest] ->
+    [lexer.Token(kind: lexer.RBrace, span:), ..rest] ->
       Ok(#(#(nodes, edges), span, rest))
 
-    [token.Token(kind: token.UpperIdentifier, ..), ..] -> {
+    [lexer.Token(kind: lexer.UpperIdentifier, ..), ..] -> {
       use #(node, _span, rest) <- result.try(parse_supernode.parse(
         source,
         tokens,
@@ -156,13 +156,13 @@ fn parse_block_body(
       parse_block_body(source, rest, [node, ..nodes], edges)
     }
 
-    [token.Token(kind: token.LowerIdentifier, ..), ..] ->
+    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..] ->
       parse_lower_block_body(source, tokens, nodes, edges)
 
-    [token.Token(kind: token.Dot, ..), ..]
-    | [token.Token(kind: token.Int, ..), ..]
-    | [token.Token(kind: token.Float, ..), ..]
-    | [token.Token(kind: token.String, ..), ..] -> {
+    [lexer.Token(kind: lexer.Dot, ..), ..]
+    | [lexer.Token(kind: lexer.Int, ..), ..]
+    | [lexer.Token(kind: lexer.Float, ..), ..]
+    | [lexer.Token(kind: lexer.String, ..), ..] -> {
       use #(edge, _span, rest) <- result.try(parse_edge.parse(source, tokens))
 
       parse_block_body(source, rest, nodes, [edge, ..edges])
@@ -177,14 +177,14 @@ fn parse_block_body(
 
 fn parse_lower_block_body(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
   nodes: List(ast.Node),
   edges: List(ast.Edge),
 ) {
   case tokens {
     [
-      token.Token(kind: token.LowerIdentifier, ..),
-      token.Token(kind: token.Equal, ..),
+      lexer.Token(kind: lexer.LowerIdentifier, ..),
+      lexer.Token(kind: lexer.Equal, ..),
       ..
     ] -> {
       use #(node, _span, rest) <- result.try(parse_node.parse(source, tokens))
@@ -193,15 +193,15 @@ fn parse_lower_block_body(
     }
 
     [
-      token.Token(kind: token.LowerIdentifier, ..),
-      token.Token(kind: token.Dot, ..),
+      lexer.Token(kind: lexer.LowerIdentifier, ..),
+      lexer.Token(kind: lexer.Dot, ..),
       ..
     ] -> {
       use #(edge, _span, rest) <- result.try(parse_edge.parse(source, tokens))
       parse_block_body(source, rest, nodes, [edge, ..edges])
     }
 
-    [token.Token(kind: token.LowerIdentifier, ..) as identifier, ..rest] -> {
+    [lexer.Token(kind: lexer.LowerIdentifier, ..) as identifier, ..rest] -> {
       use rest <- result.try(parse_nonstarter.parse(source, rest))
 
       parse_lower_block_body(source, [identifier, ..rest], nodes, edges)

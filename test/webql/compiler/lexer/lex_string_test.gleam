@@ -1,61 +1,78 @@
-import gleam/bit_array
-import webql/compiler/lexer/diagnostic
-import webql/compiler/lexer/lex_string
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/source
 
 pub fn lex_string_stops_correctly_test() {
-  let #(tok, rest) =
-    lex_string.lex(bit_array.from_string("hello\" world"), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("\"hello\" world")
 
-  assert tok
-    == token.Token(kind: token.String, span: source.Span(start: 0, end: 6))
-  assert rest == <<" world":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.String, span: source.Span(start: 0, end: 7)),
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 7, end: 8)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
+        span: source.Span(start: 8, end: 13),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 13, end: 13)),
+    ]
 }
 
 pub fn lex_string_allows_escaped_quote_test() {
-  let #(tok, rest) =
-    lex_string.lex(bit_array.from_string("hello\\\"world\";"), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("\"hello\\\"world\".")
 
-  assert tok
-    == token.Token(kind: token.String, span: source.Span(start: 0, end: 13))
-  assert rest == <<";":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.String, span: source.Span(start: 0, end: 14)),
+      lexer.Token(kind: lexer.Dot, span: source.Span(start: 14, end: 15)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 15, end: 15)),
+    ]
 }
 
 pub fn lex_string_allows_escaped_characters_test() {
-  let #(tok, rest) = lex_string.lex(bit_array.from_string("a\\nb\"."), 0, 0)
+  let assert Ok(tokens) = lexer.tokenize("\"a\\nb\".")
 
-  assert tok
-    == token.Token(kind: token.String, span: source.Span(start: 0, end: 5))
-  assert rest == <<".":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.String, span: source.Span(start: 0, end: 6)),
+      lexer.Token(kind: lexer.Dot, span: source.Span(start: 6, end: 7)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 7, end: 7)),
+    ]
 }
 
 pub fn lex_string_unterminated_test() {
-  let #(tok, rest) = lex_string.lex(bit_array.from_string("hello"), 0, 0)
+  let tokens = lexer.tokenize_recovering("\"hello")
 
-  assert tok
-    == token.Token(
-      kind: token.Diagnostic(diagnostic.UnterminatedString),
-      span: source.Span(start: 0, end: 5),
-    )
-  assert rest == <<>>
+  assert tokens
+    == [
+      lexer.Token(
+        kind: lexer.Invalid(lexer.UnterminatedString),
+        span: source.Span(start: 0, end: 6),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 6, end: 6)),
+    ]
 }
 
 pub fn lex_string_unterminated_after_escape_test() {
-  let #(tok, rest) = lex_string.lex(bit_array.from_string("hello\\"), 0, 0)
+  let tokens = lexer.tokenize_recovering("\"hello\\")
 
-  assert tok
-    == token.Token(
-      kind: token.Diagnostic(diagnostic.UnterminatedString),
-      span: source.Span(start: 0, end: 6),
-    )
-  assert rest == <<>>
+  assert tokens
+    == [
+      lexer.Token(
+        kind: lexer.Invalid(lexer.UnterminatedString),
+        span: source.Span(start: 0, end: 7),
+      ),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 7, end: 7)),
+    ]
 }
 
 pub fn lex_string_respects_non_zero_start_test() {
-  let #(tok, rest) = lex_string.lex(bit_array.from_string("abc\";"), 5, 0)
+  let assert Ok(tokens) = lexer.tokenize("1234 \"abc\",")
 
-  assert tok
-    == token.Token(kind: token.String, span: source.Span(start: 5, end: 9))
-  assert rest == <<";":utf8>>
+  assert tokens
+    == [
+      lexer.Token(kind: lexer.Int, span: source.Span(start: 0, end: 4)),
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 4, end: 5)),
+      lexer.Token(kind: lexer.String, span: source.Span(start: 5, end: 10)),
+      lexer.Token(kind: lexer.Comma, span: source.Span(start: 10, end: 11)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 11, end: 11)),
+    ]
 }

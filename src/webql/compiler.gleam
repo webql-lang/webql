@@ -32,8 +32,7 @@ pub fn compile(
 ) -> Result(graph.Graph, diagnostic.Diagnostic) {
   let context = context.new()
 
-  let lexer = lexer.new(source)
-  use tokens <- result.try(compile_lex(lexer))
+  use tokens <- result.try(compile_lex(source))
 
   let parser = parser.new(source, tokens)
   use document <- result.try(compile_parse(parser))
@@ -106,8 +105,8 @@ fn load_returns(
   }
 }
 
-fn compile_lex(lexer: lexer.Lexer) {
-  case lexer.lex(lexer) {
+fn compile_lex(source: String) {
+  case lexer.tokenize(source) {
     Ok(tokens) -> Ok(tokens)
 
     Error(error) ->

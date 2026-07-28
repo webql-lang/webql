@@ -1,5 +1,5 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
@@ -8,12 +8,12 @@ import webql/compiler/source
 /// Parses a nested graph supernode.
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
-  parse_graph: fn(String, List(token.Token)) ->
-    Result(#(ast.Graph, source.Span, List(token.Token)), diagnostic.Diagnostic),
-) -> Result(#(ast.Node, source.Span, List(token.Token)), diagnostic.Diagnostic) {
+  tokens: List(lexer.Token),
+  parse_graph: fn(String, List(lexer.Token)) ->
+    Result(#(ast.Graph, source.Span, List(lexer.Token)), diagnostic.Diagnostic),
+) -> Result(#(ast.Node, source.Span, List(lexer.Token)), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.UpperIdentifier, span:), ..rest] -> {
+    [lexer.Token(kind: lexer.UpperIdentifier, span:), ..rest] -> {
       let name = #(source.slice(source, span), span, rest)
 
       parse_supernode_name(source, name, parse_graph)
@@ -30,9 +30,9 @@ pub fn parse(
 // =================
 fn parse_supernode_name(
   source: String,
-  name: #(String, source.Span, List(token.Token)),
-  parse_graph: fn(String, List(token.Token)) ->
-    Result(#(ast.Graph, source.Span, List(token.Token)), diagnostic.Diagnostic),
+  name: #(String, source.Span, List(lexer.Token)),
+  parse_graph: fn(String, List(lexer.Token)) ->
+    Result(#(ast.Graph, source.Span, List(lexer.Token)), diagnostic.Diagnostic),
 ) {
   let #(name, name_span, rest) = name
   use rest <- result.try(parse_equal(source, rest))
@@ -43,9 +43,9 @@ fn parse_supernode_name(
   Ok(#(ast.Supernode(name:, graph:, span:), span, rest))
 }
 
-fn parse_equal(source: String, tokens: List(token.Token)) {
+fn parse_equal(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.Equal, ..), ..rest] -> Ok(rest)
+    [lexer.Token(kind: lexer.Equal, ..), ..rest] -> Ok(rest)
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))

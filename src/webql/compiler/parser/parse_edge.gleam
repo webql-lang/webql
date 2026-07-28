@@ -1,5 +1,5 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
@@ -10,14 +10,14 @@ import webql/compiler/source
 /// Parses an edge inside a graph body.
 pub fn parse(
   document: String,
-  tokens: List(token.Token),
-) -> Result(#(ast.Edge, source.Span, List(token.Token)), diagnostic.Diagnostic) {
+  tokens: List(lexer.Token),
+) -> Result(#(ast.Edge, source.Span, List(lexer.Token)), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, ..), ..]
-    | [token.Token(kind: token.Dot, ..), ..]
-    | [token.Token(kind: token.Int, ..), ..]
-    | [token.Token(kind: token.Float, ..), ..]
-    | [token.Token(kind: token.String, ..), ..] ->
+    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..]
+    | [lexer.Token(kind: lexer.Dot, ..), ..]
+    | [lexer.Token(kind: lexer.Int, ..), ..]
+    | [lexer.Token(kind: lexer.Float, ..), ..]
+    | [lexer.Token(kind: lexer.String, ..), ..] ->
       parse_edge_source(document, tokens)
 
     _tokens -> {
@@ -29,19 +29,19 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_edge_source(document: String, tokens: List(token.Token)) {
+fn parse_edge_source(document: String, tokens: List(lexer.Token)) {
   use source <- result.try(parse_source.parse(document, tokens))
   parse_arrow(document, source)
 }
 
 fn parse_arrow(
   document: String,
-  source: #(ast.Source, source.Span, List(token.Token)),
+  source: #(ast.Source, source.Span, List(lexer.Token)),
 ) {
   let #(source, source_span, rest) = source
 
   case rest {
-    [token.Token(kind: token.RArrow, ..), ..rest] -> {
+    [lexer.Token(kind: lexer.RArrow, ..), ..rest] -> {
       use target <- result.try(parse_target.parse(document, rest))
       let #(target, target_span, rest) = target
       let span = source.cover(source_span, target_span)

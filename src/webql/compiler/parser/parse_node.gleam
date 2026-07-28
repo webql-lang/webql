@@ -1,5 +1,5 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
@@ -13,10 +13,10 @@ import webql/compiler/source
 ///     value = "hello world"
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
-) -> Result(#(ast.Node, source.Span, List(token.Token)), diagnostic.Diagnostic) {
+  tokens: List(lexer.Token),
+) -> Result(#(ast.Node, source.Span, List(lexer.Token)), diagnostic.Diagnostic) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..rest] -> {
+    [lexer.Token(kind: lexer.LowerIdentifier, span:), ..rest] -> {
       let name = source.slice(source, span)
       let name_span = span
 
@@ -37,9 +37,9 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_node(source: String, tokens: List(token.Token)) {
+fn parse_node(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.UpperIdentifier, span:), ..rest] ->
+    [lexer.Token(kind: lexer.UpperIdentifier, span:), ..rest] ->
       Ok(#(source.slice(source, span), span, rest))
 
     _tokens -> {
@@ -49,9 +49,9 @@ fn parse_node(source: String, tokens: List(token.Token)) {
   }
 }
 
-fn parse_equal(source: String, tokens: List(token.Token)) {
+fn parse_equal(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.Equal, ..), ..rest] -> Ok(rest)
+    [lexer.Token(kind: lexer.Equal, ..), ..rest] -> Ok(rest)
 
     _tokens -> {
       use rest <- result.try(parse_nonstarter.parse(source, tokens))

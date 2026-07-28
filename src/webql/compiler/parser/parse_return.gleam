@@ -1,5 +1,5 @@
 import gleam/result
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_nonstarter
@@ -9,9 +9,9 @@ import webql/compiler/source
 /// Parses a graph return.
 pub fn parse(
   source: String,
-  tokens: List(token.Token),
+  tokens: List(lexer.Token),
 ) -> Result(
-  #(ast.Return, source.Span, List(token.Token)),
+  #(ast.Return, source.Span, List(lexer.Token)),
   diagnostic.Diagnostic,
 ) {
   use key <- result.try(parse_key(source, tokens))
@@ -26,9 +26,9 @@ pub fn parse(
 
 // PRIVATE FUNCTIONS
 // =================
-fn parse_key(source: String, tokens: List(token.Token)) {
+fn parse_key(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.LowerIdentifier, span:), ..rest] ->
+    [lexer.Token(kind: lexer.LowerIdentifier, span:), ..rest] ->
       Ok(#(source.slice(source, span), span, rest))
 
     _tokens -> {
@@ -38,11 +38,11 @@ fn parse_key(source: String, tokens: List(token.Token)) {
   }
 }
 
-fn parse_separator(tokens: List(token.Token)) {
+fn parse_separator(tokens: List(lexer.Token)) {
   case tokens {
-    [token.Token(kind: token.Colon, ..), ..rest] -> Ok(rest)
+    [lexer.Token(kind: lexer.Colon, ..), ..rest] -> Ok(rest)
 
-    [token.Token(kind:, span:), ..] ->
+    [lexer.Token(kind:, span:), ..] ->
       Error(diagnostic.Diagnostic(
         kind: diagnostic.UnexpectedToken(kind:),
         span:,

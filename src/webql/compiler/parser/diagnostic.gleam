@@ -1,9 +1,9 @@
-import webql/compiler/lexer/token
+import webql/compiler/lexer
 import webql/compiler/source
 
 pub type DiagnosticKind {
   UnexpectedEof
-  UnexpectedToken(kind: token.TokenKind)
+  UnexpectedToken(kind: lexer.TokenKind)
 }
 
 pub type Diagnostic {

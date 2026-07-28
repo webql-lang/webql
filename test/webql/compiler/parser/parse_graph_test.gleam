@@ -1,5 +1,4 @@
 import webql/compiler/lexer
-import webql/compiler/lexer/token
 import webql/compiler/parser/ast
 import webql/compiler/parser/diagnostic
 import webql/compiler/parser/parse_graph
@@ -9,10 +8,7 @@ pub fn parse_parses_graph_with_nested_graph_and_supernode_test() {
   let source =
     "a: Int, b: String -> c: Float, d: Bool { Inner = x: Int -> y: Int {} .a -> .c }"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(graph, _, rest)) = parse_graph.parse(source, tokens)
 
@@ -86,16 +82,13 @@ pub fn parse_parses_graph_with_nested_graph_and_supernode_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 79, end: 79))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 79, end: 79))]
 }
 
 pub fn parse_skips_leading_and_internal_spaces_test() {
   let source = "  a: Int , b: String -> c: Bool { }"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(graph, _, rest)) = parse_graph.parse(source, tokens)
 
@@ -126,16 +119,13 @@ pub fn parse_skips_leading_and_internal_spaces_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 35, end: 35))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 35, end: 35))]
 }
 
 pub fn parse_parses_graph_body_with_lowercase_node_and_edge_test() {
   let source = "-> out: Int { m = Math m.out -> .out }"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(graph, _, rest)) = parse_graph.parse(source, tokens)
 
@@ -168,22 +158,19 @@ pub fn parse_parses_graph_body_with_lowercase_node_and_edge_test() {
     )
 
   assert rest
-    == [token.Token(kind: token.EOF, span: source.Span(start: 38, end: 38))]
+    == [lexer.Token(kind: lexer.EOF, span: source.Span(start: 38, end: 38))]
 }
 
 pub fn parse_rejects_literal_node_when_spaces_exist_before_equal_test() {
   let source = "-> out: Int { value   = 123 }"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_graph.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.Int),
+      kind: diagnostic.UnexpectedToken(lexer.Int),
       span: source.Span(start: 24, end: 27),
     )
 }
@@ -191,10 +178,7 @@ pub fn parse_rejects_literal_node_when_spaces_exist_before_equal_test() {
 pub fn parse_preserves_remaining_tokens_after_graph_test() {
   let source = "-> out: Int {} tail"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Ok(#(graph, _, rest)) = parse_graph.parse(source, tokens)
 
@@ -215,28 +199,25 @@ pub fn parse_preserves_remaining_tokens_after_graph_test() {
 
   assert rest
     == [
-      token.Token(kind: token.Space, span: source.Span(start: 14, end: 15)),
-      token.Token(
-        kind: token.LowerIdentifier,
+      lexer.Token(kind: lexer.Whitespace, span: source.Span(start: 14, end: 15)),
+      lexer.Token(
+        kind: lexer.LowerIdentifier,
         span: source.Span(start: 15, end: 19),
       ),
-      token.Token(kind: token.EOF, span: source.Span(start: 19, end: 19)),
+      lexer.Token(kind: lexer.EOF, span: source.Span(start: 19, end: 19)),
     ]
 }
 
 pub fn parse_returns_unexpected_token_for_invalid_graph_start_test() {
   let source = "{"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_graph.parse(source, tokens)
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.UnexpectedToken(token.LBrace),
+      kind: diagnostic.UnexpectedToken(lexer.LBrace),
       span: source.Span(start: 0, end: 1),
     )
 }
@@ -244,10 +225,7 @@ pub fn parse_returns_unexpected_token_for_invalid_graph_start_test() {
 pub fn parse_returns_unexpected_eof_when_graph_body_is_unterminated_test() {
   let source = "-> out: Int {"
 
-  let assert Ok(tokens) =
-    source
-    |> lexer.new()
-    |> lexer.lex()
+  let assert Ok(tokens) = lexer.tokenize(source)
 
   let assert Error(error) = parse_graph.parse(source, tokens)
 
