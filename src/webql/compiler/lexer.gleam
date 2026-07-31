@@ -85,6 +85,13 @@ fn lex_strict_source(cursor: Cursor, tokens: List(Token)) {
     // ========== INVALID =========
     Invalid(kind) -> Error(Diagnostic(kind:, span: token.span))
 
+    // ========== MARKERS =========
+    // TODO: by default, we skip all tokens so the parser can injest
+    // tokens cleanly. with the introduction of a formatter, we will need to
+    // turn this on again.
+    Comment -> lex_strict_source(cursor, tokens)
+    Whitespace -> lex_strict_source(cursor, tokens)
+
     // ============ EOF ===========
     EOF -> Ok([token, ..tokens])
 
@@ -100,6 +107,13 @@ fn lex_recovering_source(cursor: Cursor, tokens: List(Token)) {
   case token.kind {
     // ============ EOF ===========
     EOF -> [token, ..tokens]
+
+    // ========== MARKERS =========
+    // TODO: by default, we skip all tokens so the parser can injest
+    // tokens cleanly. with the introduction of a formatter, we will need to
+    // turn this on again.
+    Comment -> lex_recovering_source(cursor, tokens)
+    Whitespace -> lex_recovering_source(cursor, tokens)
 
     // =========== CONT ===========
     _continue -> lex_recovering_source(cursor, [token, ..tokens])
