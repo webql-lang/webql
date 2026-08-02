@@ -1,15 +1,26 @@
 import gleam/list
 import gleam/result
 import webql/compiler/context
-import webql/compiler/diagnostic
 import webql/compiler/environment
 import webql/compiler/lexer
 import webql/compiler/lowerer
 import webql/compiler/parser
 import webql/compiler/resolver
+import webql/compiler/source
 import webql/compiler/typechecker
 import webql/graph
 import webql/introspection
+
+pub type DiagnosticKind {
+  LexerDiagnostic(kind: lexer.DiagnosticKind)
+  ParserDiagnostic(kind: parser.DiagnosticKind)
+  ResolverDiagnostic(kind: resolver.DiagnosticKind)
+  TypecheckerDiagnostic(kind: typechecker.DiagnosticKind)
+}
+
+pub type Diagnostic {
+  Diagnostic(kind: DiagnosticKind, span: source.Span)
+}
 
 pub opaque type Compiler {
   Compiler(environment: environment.Environment)
@@ -29,7 +40,7 @@ pub fn new(schema: introspection.Schema) -> Compiler {
 pub fn compile(
   compiler: Compiler,
   source: String,
-) -> Result(graph.Graph, diagnostic.Diagnostic) {
+) -> Result(graph.Graph, Diagnostic) {
   let context = context.new()
 
   use tokens <- result.try(compile_lex(source))
@@ -108,10 +119,7 @@ fn compile_lex(source: String) {
     Ok(tokens) -> Ok(tokens)
 
     Error(error) ->
-      Error(diagnostic.Diagnostic(
-        kind: diagnostic.LexerDiagnostic(error.kind),
-        span: error.span,
-      ))
+      Error(Diagnostic(kind: LexerDiagnostic(error.kind), span: error.span))
   }
 }
 
@@ -120,10 +128,7 @@ fn compile_parse(source: String, tokens: List(lexer.Token)) {
     Ok(document) -> Ok(document)
 
     Error(error) ->
-      Error(diagnostic.Diagnostic(
-        kind: diagnostic.ParserDiagnostic(error.kind),
-        span: error.span,
-      ))
+      Error(Diagnostic(kind: ParserDiagnostic(error.kind), span: error.span))
   }
 }
 
@@ -136,10 +141,7 @@ fn compile_resolve(
     Ok(document) -> Ok(document)
 
     Error(error) ->
-      Error(diagnostic.Diagnostic(
-        kind: diagnostic.ResolverDiagnostic(error.kind),
-        span: error.span,
-      ))
+      Error(Diagnostic(kind: ResolverDiagnostic(error.kind), span: error.span))
   }
 }
 
@@ -151,8 +153,8 @@ fn compile_typecheck(
     Ok(document) -> Ok(document)
 
     Error(error) ->
-      Error(diagnostic.Diagnostic(
-        kind: diagnostic.TypecheckerDiagnostic(error.kind),
+      Error(Diagnostic(
+        kind: TypecheckerDiagnostic(error.kind),
         span: error.span,
       ))
   }

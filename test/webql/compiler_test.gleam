@@ -1,5 +1,4 @@
 import webql/compiler
-import webql/compiler/diagnostic
 import webql/compiler/lexer
 import webql/compiler/parser
 import webql/compiler/reference
@@ -168,8 +167,8 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
   let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver.UnknownInput(["m", "l"])),
+    == compiler.Diagnostic(
+      kind: compiler.ResolverDiagnostic(resolver.UnknownInput(["m", "l"])),
       span: source.Span(start: 38, end: 41),
     )
 }
@@ -194,8 +193,8 @@ pub fn compile_rejects_port_mismatch_test() {
   let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.TypecheckerDiagnostic(typechecker.TypeMismatch(
+    == compiler.Diagnostic(
+      kind: compiler.TypecheckerDiagnostic(typechecker.TypeMismatch(
         expected: reference.Port(0),
         found: reference.Port(1),
       )),
@@ -209,8 +208,8 @@ pub fn compile_wraps_lexer_diagnostic_test() {
   let assert Error(error) = compiler.compile(c, "!")
 
   assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.LexerDiagnostic(lexer.IllegalToken),
+    == compiler.Diagnostic(
+      kind: compiler.LexerDiagnostic(lexer.IllegalToken),
       span: source.Span(start: 0, end: 1),
     )
 }
@@ -221,8 +220,8 @@ pub fn compile_wraps_parser_diagnostic_test() {
   let assert Error(error) = compiler.compile(c, "{")
 
   assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.ParserDiagnostic(parser.UnexpectedToken(lexer.LBrace)),
+    == compiler.Diagnostic(
+      kind: compiler.ParserDiagnostic(parser.UnexpectedToken(lexer.LBrace)),
       span: source.Span(start: 0, end: 1),
     )
 }
@@ -234,8 +233,8 @@ pub fn compile_wraps_resolver_diagnostic_test() {
   let assert Error(error) = compiler.compile(c, graph_source)
 
   assert error
-    == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver.UnknownPort("Int")),
+    == compiler.Diagnostic(
+      kind: compiler.ResolverDiagnostic(resolver.UnknownPort("Int")),
       span: source.Span(start: 8, end: 11),
     )
 }

@@ -1,7 +1,6 @@
 import gleam/dict
 import gleeunit
 import webql
-import webql/diagnostic
 import webql/graph
 import webql/linker
 import webql/program
@@ -31,8 +30,8 @@ pub fn link_reports_linker_diagnostics_test() {
 
   assert webql.link(document, schema)
     == Error(
-      diagnostic.Diagnostic(
-        kind: diagnostic.LinkerDiagnostic(linker.UnknownNode("Missing")),
+      webql.Diagnostic(
+        kind: webql.LinkerDiagnostic(linker.UnknownNode("Missing")),
       ),
     )
 }
