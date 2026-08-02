@@ -5,7 +5,7 @@ import webql/compiler/parser
 import webql/compiler/reference
 import webql/compiler/resolver
 import webql/compiler/source
-import webql/compiler/typechecker/diagnostic as typechecker_diagnostic
+import webql/compiler/typechecker
 import webql/graph
 import webql/introspection
 
@@ -195,12 +195,10 @@ pub fn compile_rejects_port_mismatch_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.TypecheckerDiagnostic(
-        typechecker_diagnostic.TypeMismatch(
-          expected: reference.Port(0),
-          found: reference.Port(1),
-        ),
-      ),
+      kind: diagnostic.TypecheckerDiagnostic(typechecker.TypeMismatch(
+        expected: reference.Port(0),
+        found: reference.Port(1),
+      )),
       span: source.Span(start: 23, end: 38),
     )
 }
