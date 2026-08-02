@@ -1,13 +1,13 @@
 import webql/compiler/lowerer/lower_document
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_document_test() {
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [],
         nodes: [],

@@ -45,9 +45,9 @@ pub fn slice_empty_source_test() {
   assert result == ""
 }
 
-pub fn slice_uses_byte_offsets_test() {
+pub fn slice_uses_character_offsets_test() {
   let source = "🌲hello"
-  let span = source.Span(start: 4, end: 9)
+  let span = source.Span(start: 1, end: 6)
 
   let result = source.slice(source, span)
 

@@ -3,7 +3,7 @@ import webql/compiler/diagnostic
 import webql/compiler/lexer
 import webql/compiler/parser
 import webql/compiler/reference
-import webql/compiler/resolver/diagnostic as resolver_diagnostic
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic as typechecker_diagnostic
 import webql/graph
@@ -169,9 +169,7 @@ pub fn compile_ignores_unknown_node_port_registration_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(
-        resolver_diagnostic.UnknownInput(["m", "l"]),
-      ),
+      kind: diagnostic.ResolverDiagnostic(resolver.UnknownInput(["m", "l"])),
       span: source.Span(start: 38, end: 41),
     )
 }
@@ -239,7 +237,7 @@ pub fn compile_wraps_resolver_diagnostic_test() {
 
   assert error
     == diagnostic.Diagnostic(
-      kind: diagnostic.ResolverDiagnostic(resolver_diagnostic.UnknownPort("Int")),
+      kind: diagnostic.ResolverDiagnostic(resolver.UnknownPort("Int")),
       span: source.Span(start: 8, end: 11),
     )
 }

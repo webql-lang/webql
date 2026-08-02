@@ -1,12 +1,12 @@
 import webql/compiler/lowerer/lower_source
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_source_lowers_port_output_test() {
   let output =
-    hir.Output(
+    resolver.Output(
       path: ["result"],
       reference: reference.Output(0),
       span: source.Span(start: 0, end: 6),
@@ -17,7 +17,7 @@ pub fn lower_source_lowers_port_output_test() {
 
 pub fn lower_source_lowers_multi_part_port_output_test() {
   let output =
-    hir.Output(
+    resolver.Output(
       path: ["node", "value"],
       reference: reference.Output(0),
       span: source.Span(start: 0, end: 10),
@@ -28,8 +28,8 @@ pub fn lower_source_lowers_multi_part_port_output_test() {
 
 pub fn lower_source_lowers_int_value_test() {
   let output =
-    hir.Literal(
-      value: hir.Int(
+    resolver.Literal(
+      value: resolver.Int(
         name: "Int",
         value: 42,
         span: source.Span(start: 0, end: 2),
@@ -43,8 +43,8 @@ pub fn lower_source_lowers_int_value_test() {
 
 pub fn lower_source_lowers_float_value_test() {
   let output =
-    hir.Literal(
-      value: hir.Float(
+    resolver.Literal(
+      value: resolver.Float(
         name: "Float",
         value: 3.14,
         span: source.Span(start: 0, end: 4),
@@ -58,8 +58,8 @@ pub fn lower_source_lowers_float_value_test() {
 
 pub fn lower_source_lowers_string_value_test() {
   let output =
-    hir.Literal(
-      value: hir.String(
+    resolver.Literal(
+      value: resolver.String(
         name: "String",
         value: "hello",
         span: source.Span(start: 0, end: 7),

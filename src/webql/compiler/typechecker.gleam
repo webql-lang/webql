@@ -1,14 +1,14 @@
 import webql/compiler/context
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_document
 
 pub opaque type Typechecker {
-  Typechecker(document: hir.Document)
+  Typechecker(document: resolver.Document)
 }
 
 /// Creates a new typechecker instance from a resolver document.
-pub fn new(document: hir.Document) -> Typechecker {
+pub fn new(document: resolver.Document) -> Typechecker {
   Typechecker(document:)
 }
 
@@ -16,6 +16,6 @@ pub fn new(document: hir.Document) -> Typechecker {
 pub fn resolve(
   typechecker: Typechecker,
   context: context.Context,
-) -> Result(hir.Document, diagnostic.Diagnostic) {
+) -> Result(resolver.Document, diagnostic.Diagnostic) {
   typecheck_document.typecheck(typechecker.document, context)
 }

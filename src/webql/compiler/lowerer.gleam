@@ -1,13 +1,13 @@
 import webql/compiler/lowerer/lower_document
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/graph
 
 pub opaque type Lowerer {
-  Lowerer(document: hir.Document)
+  Lowerer(document: resolver.Document)
 }
 
 /// Creates a new lowerer instance from a resolver document.
-pub fn new(document: hir.Document) -> Lowerer {
+pub fn new(document: resolver.Document) -> Lowerer {
   Lowerer(document:)
 }
 

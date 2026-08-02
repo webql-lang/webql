@@ -1,14 +1,14 @@
 import webql/compiler/lowerer/lower_return
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_return_test() {
   let return =
-    hir.Return(
+    resolver.Return(
       name: "out",
-      port: hir.Port(
+      port: resolver.Port(
         name: "Int",
         reference: reference.Port(0),
         span: source.Span(start: 8, end: 11),

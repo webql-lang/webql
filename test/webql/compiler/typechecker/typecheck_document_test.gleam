@@ -1,6 +1,6 @@
 import webql/compiler/context
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/compiler/typechecker/diagnostic
 import webql/compiler/typechecker/typecheck_document
@@ -9,15 +9,15 @@ pub fn typecheck_accepts_matching_edge_types_test() {
   let context = context.add_input(context.new(), ["string"], reference.Port(1))
 
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [],
         nodes: [],
         edges: [
-          hir.Edge(
-            source: hir.Literal(
-              value: hir.String(
+          resolver.Edge(
+            source: resolver.Literal(
+              value: resolver.String(
                 name: "String",
                 value: "ok",
                 span: source.Span(start: 0, end: 4),
@@ -25,7 +25,7 @@ pub fn typecheck_accepts_matching_edge_types_test() {
               port: reference.Port(1),
               span: source.Span(start: 0, end: 4),
             ),
-            target: hir.Input(
+            target: resolver.Input(
               path: ["string"],
               reference: reference.Input(0),
               span: source.Span(start: 8, end: 15),
@@ -47,15 +47,15 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
   let context = context.add_input(context.new(), ["string"], reference.Port(1))
 
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [],
         nodes: [],
         edges: [
-          hir.Edge(
-            source: hir.Literal(
-              value: hir.Int(
+          resolver.Edge(
+            source: resolver.Literal(
+              value: resolver.Int(
                 name: "Int",
                 value: 1,
                 span: source.Span(start: 0, end: 1),
@@ -63,7 +63,7 @@ pub fn typecheck_rejects_mismatched_edge_types_test() {
               port: reference.Port(0),
               span: source.Span(start: 0, end: 1),
             ),
-            target: hir.Input(
+            target: resolver.Input(
               path: ["string"],
               reference: reference.Input(0),
               span: source.Span(start: 5, end: 12),
@@ -98,21 +98,21 @@ pub fn typecheck_rejects_nested_supernode_mismatch_test() {
     context.add_context(context.new(), reference.Supernode(0), nested_context)
 
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [],
         nodes: [
-          hir.Supernode(
+          resolver.Supernode(
             name: "Inner",
-            graph: hir.Graph(
+            graph: resolver.Graph(
               parameters: [],
               returns: [],
               nodes: [],
               edges: [
-                hir.Edge(
-                  source: hir.Literal(
-                    value: hir.Int(
+                resolver.Edge(
+                  source: resolver.Literal(
+                    value: resolver.Int(
                       name: "Int",
                       value: 1,
                       span: source.Span(start: 0, end: 1),
@@ -120,7 +120,7 @@ pub fn typecheck_rejects_nested_supernode_mismatch_test() {
                     port: reference.Port(0),
                     span: source.Span(start: 0, end: 1),
                   ),
-                  target: hir.Input(
+                  target: resolver.Input(
                     path: ["string"],
                     reference: reference.Input(0),
                     span: source.Span(start: 5, end: 12),
@@ -162,21 +162,21 @@ pub fn typecheck_accepts_matching_nested_supernode_test() {
     context.add_context(context.new(), reference.Supernode(0), nested_context)
 
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [],
         nodes: [
-          hir.Supernode(
+          resolver.Supernode(
             name: "Inner",
-            graph: hir.Graph(
+            graph: resolver.Graph(
               parameters: [],
               returns: [],
               nodes: [],
               edges: [
-                hir.Edge(
-                  source: hir.Literal(
-                    value: hir.String(
+                resolver.Edge(
+                  source: resolver.Literal(
+                    value: resolver.String(
                       name: "String",
                       value: "ok",
                       span: source.Span(start: 0, end: 4),
@@ -184,7 +184,7 @@ pub fn typecheck_accepts_matching_nested_supernode_test() {
                     port: reference.Port(1),
                     span: source.Span(start: 0, end: 4),
                   ),
-                  target: hir.Input(
+                  target: resolver.Input(
                     path: ["string"],
                     reference: reference.Input(0),
                     span: source.Span(start: 8, end: 15),

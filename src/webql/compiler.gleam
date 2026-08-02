@@ -36,11 +36,10 @@ pub fn compile(
 
   use document <- result.try(compile_parse(source, tokens))
 
-  let resolver = resolver.new(document)
   use #(document, context) <- result.try(compile_resolve(
     compiler,
     context,
-    resolver,
+    document,
   ))
 
   let typechecker = typechecker.new(document)
@@ -131,9 +130,9 @@ fn compile_parse(source: String, tokens: List(lexer.Token)) {
 fn compile_resolve(
   compiler: Compiler,
   context: context.Context,
-  resolver: resolver.Resolver,
+  document: parser.Document,
 ) {
-  case resolver.resolve(resolver, compiler.environment, context) {
+  case resolver.resolve(document, compiler.environment, context) {
     Ok(document) -> Ok(document)
 
     Error(error) ->

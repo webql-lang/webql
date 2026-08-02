@@ -1,14 +1,14 @@
 import gleam/result
 import webql/compiler/context
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/typechecker/diagnostic
 
 /// Typechecks a resolved edge.
 pub fn typecheck(
-  edge: hir.Edge,
+  edge: resolver.Edge,
   context: context.Context,
 ) -> Result(Nil, diagnostic.Diagnostic) {
-  let hir.Edge(source:, target:, span:, ..) = edge
+  let resolver.Edge(source:, target:, span:, ..) = edge
   use expected <- result.try(get_port_target(context, target))
   use found <- result.try(get_port_source(context, source))
 
@@ -24,20 +24,20 @@ pub fn typecheck(
 
 // PRIVATE FUNCTIONS
 // =================
-fn get_port_source(context: context.Context, source: hir.Source) {
+fn get_port_source(context: context.Context, source: resolver.Source) {
   case source {
-    hir.Output(path:, span:, ..) -> {
+    resolver.Output(path:, span:, ..) -> {
       use #(_reference, port) <- result.try(get_output(context, path, span))
 
       Ok(port)
     }
 
-    hir.Literal(port:, ..) -> Ok(port)
+    resolver.Literal(port:, ..) -> Ok(port)
   }
 }
 
-fn get_port_target(context: context.Context, target: hir.Target) {
-  let hir.Input(path:, span:, ..) = target
+fn get_port_target(context: context.Context, target: resolver.Target) {
+  let resolver.Input(path:, span:, ..) = target
 
   use #(_reference, port) <- result.try(get_input(context, path, span))
   Ok(port)

@@ -203,8 +203,8 @@ pub fn parse_returns_unexpected_eof_for_unterminated_graph_test() {
 pub fn parse_rejects_parameter_without_colon_test() {
   assert_diagnostic(
     "name String -> {}",
-    parser.UnexpectedToken(lexer.Whitespace),
-    source.Span(start: 4, end: 5),
+    parser.UnexpectedToken(lexer.UpperIdentifier),
+    source.Span(start: 5, end: 11),
   )
 }
 
@@ -235,8 +235,8 @@ pub fn parse_rejects_lowercase_parameter_port_test() {
 pub fn parse_rejects_return_without_colon_test() {
   assert_diagnostic(
     "-> name String {}",
-    parser.UnexpectedToken(lexer.Whitespace),
-    source.Span(start: 7, end: 8),
+    parser.UnexpectedToken(lexer.UpperIdentifier),
+    source.Span(start: 8, end: 14),
   )
 }
 
@@ -272,20 +272,24 @@ pub fn parse_rejects_lowercase_supernode_name_test() {
   )
 }
 
-pub fn parse_rejects_space_between_source_alias_and_port_test() {
-  assert_diagnostic(
-    "-> { m .out -> .out }",
-    parser.UnexpectedToken(lexer.Whitespace),
-    source.Span(start: 6, end: 7),
-  )
+pub fn parse_accepts_space_between_source_alias_and_port_test() {
+  let assert Ok(parser.Document(
+    graph: parser.Graph(
+      edges: [parser.Edge(source: parser.Output(path: ["m", "out"], ..), ..)],
+      ..,
+    ),
+    ..,
+  )) = parse_source("-> { m .out -> .out }")
 }
 
-pub fn parse_rejects_space_between_target_alias_and_port_test() {
-  assert_diagnostic(
-    "-> { .out -> m .in }",
-    parser.UnexpectedToken(lexer.Whitespace),
-    source.Span(start: 14, end: 15),
-  )
+pub fn parse_accepts_space_between_target_alias_and_port_test() {
+  let assert Ok(parser.Document(
+    graph: parser.Graph(
+      edges: [parser.Edge(target: parser.Input(path: ["m", "in"], ..), ..)],
+      ..,
+    ),
+    ..,
+  )) = parse_source("-> { .out -> m .in }")
 }
 
 pub fn parse_rejects_graph_source_without_port_name_test() {

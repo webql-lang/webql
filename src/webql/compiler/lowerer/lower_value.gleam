@@ -1,11 +1,11 @@
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/graph
 
 /// Lowers a resolved value into an IR literal value.
-pub fn lower(value: hir.Value) -> graph.Value {
+pub fn lower(value: resolver.Value) -> graph.Value {
   case value {
-    hir.Int(value:, ..) -> graph.Int(value:)
-    hir.Float(value:, ..) -> graph.Float(value:)
-    hir.String(value:, ..) -> graph.String(value:)
+    resolver.Int(value:, ..) -> graph.Int(value:)
+    resolver.Float(value:, ..) -> graph.Float(value:)
+    resolver.String(value:, ..) -> graph.String(value:)
   }
 }

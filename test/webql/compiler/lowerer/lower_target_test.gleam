@@ -1,12 +1,12 @@
 import webql/compiler/lowerer/lower_target
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_target_lowers_single_element_path_test() {
   let input =
-    hir.Input(
+    resolver.Input(
       path: ["value"],
       reference: reference.Input(0),
       span: source.Span(start: 0, end: 5),
@@ -17,7 +17,7 @@ pub fn lower_target_lowers_single_element_path_test() {
 
 pub fn lower_target_lowers_multi_part_path_test() {
   let input =
-    hir.Input(
+    resolver.Input(
       path: ["user", "id"],
       reference: reference.Input(0),
       span: source.Span(start: 0, end: 7),
@@ -28,7 +28,7 @@ pub fn lower_target_lowers_multi_part_path_test() {
 
 pub fn lower_target_preserves_path_length_test() {
   let input =
-    hir.Input(
+    resolver.Input(
       path: ["a", "b", "c"],
       reference: reference.Input(0),
       span: source.Span(start: 0, end: 5),

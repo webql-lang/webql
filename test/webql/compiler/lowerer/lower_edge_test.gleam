@@ -1,18 +1,18 @@
 import webql/compiler/lowerer/lower_edge
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_port_edge_test() {
   let edge =
-    hir.Edge(
-      source: hir.Output(
+    resolver.Edge(
+      source: resolver.Output(
         path: ["m", "value"],
         reference: reference.Output(0),
         span: source.Span(start: 0, end: 7),
       ),
-      target: hir.Input(
+      target: resolver.Input(
         path: ["out"],
         reference: reference.Input(0),
         span: source.Span(start: 11, end: 15),
@@ -30,9 +30,9 @@ pub fn lower_port_edge_test() {
 
 pub fn lower_value_edge_output_test() {
   let edge =
-    hir.Edge(
-      source: hir.Literal(
-        value: hir.Int(
+    resolver.Edge(
+      source: resolver.Literal(
+        value: resolver.Int(
           name: "Int",
           value: 1,
           span: source.Span(start: 0, end: 1),
@@ -40,7 +40,7 @@ pub fn lower_value_edge_output_test() {
         port: reference.Port(0),
         span: source.Span(start: 0, end: 1),
       ),
-      target: hir.Input(
+      target: resolver.Input(
         path: ["m", "left"],
         reference: reference.Input(0),
         span: source.Span(start: 5, end: 11),

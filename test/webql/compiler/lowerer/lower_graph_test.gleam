@@ -1,16 +1,16 @@
 import webql/compiler/lowerer/lower_graph
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lower_graph_test() {
   let graph =
-    hir.Graph(
+    resolver.Graph(
       parameters: [
-        hir.Parameter(
+        resolver.Parameter(
           name: "in",
-          port: hir.Port(
+          port: resolver.Port(
             name: "Int",
             reference: reference.Port(0),
             span: source.Span(start: 4, end: 7),
@@ -20,9 +20,9 @@ pub fn lower_graph_test() {
         ),
       ],
       returns: [
-        hir.Return(
+        resolver.Return(
           name: "out",
-          port: hir.Port(
+          port: resolver.Port(
             name: "Int",
             reference: reference.Port(0),
             span: source.Span(start: 15, end: 18),
@@ -32,7 +32,7 @@ pub fn lower_graph_test() {
         ),
       ],
       nodes: [
-        hir.Node(
+        resolver.Node(
           name: "m",
           node: "Math",
           reference: reference.Node(0),
@@ -40,13 +40,13 @@ pub fn lower_graph_test() {
         ),
       ],
       edges: [
-        hir.Edge(
-          source: hir.Output(
+        resolver.Edge(
+          source: resolver.Output(
             path: ["m", "value"],
             reference: reference.Output(0),
             span: source.Span(start: 28, end: 35),
           ),
-          target: hir.Input(
+          target: resolver.Input(
             path: ["out"],
             reference: reference.Input(0),
             span: source.Span(start: 39, end: 43),

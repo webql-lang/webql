@@ -1,18 +1,18 @@
 import webql/compiler/lowerer
 import webql/compiler/reference
-import webql/compiler/resolver/hir
+import webql/compiler/resolver
 import webql/compiler/source
 import webql/graph
 
 pub fn lowerer_lowers_document_test() {
   let document =
-    hir.Document(
-      graph: hir.Graph(
+    resolver.Document(
+      graph: resolver.Graph(
         parameters: [],
         returns: [
-          hir.Return(
+          resolver.Return(
             name: "out",
-            port: hir.Port(
+            port: resolver.Port(
               name: "Int",
               reference: reference.Port(0),
               span: source.Span(start: 8, end: 11),

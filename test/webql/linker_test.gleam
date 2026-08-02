@@ -1,4 +1,5 @@
 import gleam/dict
+import gleam/dynamic
 import gleam/list
 import webql/graph
 import webql/linker
@@ -180,4 +181,180 @@ pub fn linker_links_supernodes_test() {
   }
 
   assert inner_names == [["add"]]
+}
+
+pub fn linker_converts_all_literal_values_test() {
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "format", node: "Format")],
+      edges: [
+        graph.Edge(
+          source: graph.Literal(value: graph.Int(1)),
+          target: graph.Input(path: ["format", "integer"]),
+        ),
+        graph.Edge(
+          source: graph.Literal(value: graph.Float(1.1)),
+          target: graph.Input(path: ["format", "float"]),
+        ),
+        graph.Edge(
+          source: graph.Literal(value: graph.String("one")),
+          target: graph.Input(path: ["format", "string"]),
+        ),
+      ],
+    )
+
+  let catalog =
+    schema.Schema(
+      nodes: dict.insert(
+        dict.new(),
+        "Format",
+        schema.Node(inputs: dict.new(), outputs: dict.new()),
+      ),
+      ports: [],
+    )
+
+  let linker = linker.new(document, catalog)
+  let assert Ok(program.Program(edges:, ..)) = linker.link(linker)
+
+  assert edges
+    == [
+      program.Edge(
+        source: program.Literal(dynamic.int(1)),
+        target: program.Input(["format", "integer"]),
+      ),
+      program.Edge(
+        source: program.Literal(dynamic.float(1.1)),
+        target: program.Input(["format", "float"]),
+      ),
+      program.Edge(
+        source: program.Literal(dynamic.string("one")),
+        target: program.Input(["format", "string"]),
+      ),
+    ]
+}
+
+pub fn linker_batches_independent_nodes_test() {
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [
+        graph.Node(name: "left", node: "Left"),
+        graph.Node(name: "right", node: "Right"),
+      ],
+      edges: [],
+    )
+
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Left",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "Right",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
+
+  let linker = linker.new(document, catalog)
+  let assert Ok(program.Program(batches: [program.Batch(steps:)], ..)) =
+    linker.link(linker)
+
+  let names = list.map(steps, fn(step) { step.name })
+
+  assert list.contains(names, "left")
+  assert list.contains(names, "right")
+}
+
+pub fn linker_ignores_self_dependencies_test() {
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "math", node: "Math")],
+      edges: [
+        graph.Edge(
+          source: graph.Output(path: ["math", "value"]),
+          target: graph.Input(path: ["math", "left"]),
+        ),
+      ],
+    )
+
+  let catalog =
+    schema.Schema(
+      nodes: dict.insert(
+        dict.new(),
+        "Math",
+        schema.Node(inputs: dict.new(), outputs: dict.new()),
+      ),
+      ports: [],
+    )
+
+  let linker = linker.new(document, catalog)
+  let assert Ok(program.Program(batches: [program.Batch(steps: [step])], ..)) =
+    linker.link(linker)
+
+  assert step.name == "math"
+}
+
+pub fn linker_reports_unknown_nodes_test() {
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [graph.Node(name: "missing", node: "Missing")],
+      edges: [],
+    )
+  let catalog = schema.Schema(nodes: dict.new(), ports: [])
+  let linker = linker.new(document, catalog)
+
+  assert linker.link(linker)
+    == Error(linker.Diagnostic(kind: linker.UnknownNode("Missing")))
+}
+
+pub fn linker_reports_cycles_test() {
+  let document =
+    graph.Graph(
+      parameters: [],
+      returns: [],
+      nodes: [
+        graph.Node(name: "left", node: "Left"),
+        graph.Node(name: "right", node: "Right"),
+      ],
+      edges: [
+        graph.Edge(
+          source: graph.Output(path: ["left", "value"]),
+          target: graph.Input(path: ["right", "value"]),
+        ),
+        graph.Edge(
+          source: graph.Output(path: ["right", "value"]),
+          target: graph.Input(path: ["left", "value"]),
+        ),
+      ],
+    )
+  let catalog =
+    schema.Schema(
+      nodes: dict.new()
+        |> dict.insert(
+          "Left",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        )
+        |> dict.insert(
+          "Right",
+          schema.Node(inputs: dict.new(), outputs: dict.new()),
+        ),
+      ports: [],
+    )
+  let linker = linker.new(document, catalog)
+
+  let assert Error(linker.Diagnostic(kind: linker.CycleDetected(remaining:))) =
+    linker.link(linker)
+
+  assert list.contains(remaining, "left")
+  assert list.contains(remaining, "right")
 }

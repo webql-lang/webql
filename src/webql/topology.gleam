@@ -2,17 +2,16 @@ import gleam/bool
 import gleam/dict
 import gleam/list
 import gleam/set
-import webql/linker/diagnostic
 
-pub type Graph {
-  Graph(dependencies: dict.Dict(String, set.Set(String)))
+pub type Topology {
+  Topology(dependencies: dict.Dict(String, set.Set(String)))
 }
 
 /// Topologically sorts a graph into batches of node names.
 pub fn topology(
-  graph: Graph,
-) -> Result(List(List(String)), diagnostic.Diagnostic) {
-  let Graph(dependencies:) = graph
+  topology: Topology,
+) -> Result(List(List(String)), List(String)) {
+  let Topology(dependencies:) = topology
   toposort(dependencies, [])
 }
 
@@ -33,12 +32,7 @@ fn toposort(
       |> drop_dependencies(batch)
       |> toposort([batch, ..batches])
 
-    [] ->
-      Error(
-        diagnostic.Diagnostic(
-          kind: diagnostic.CycleDetected(remaining: dict.keys(dependencies)),
-        ),
-      )
+    [] -> Error(dict.keys(dependencies))
   }
 }
 
