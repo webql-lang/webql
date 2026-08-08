@@ -4,7 +4,6 @@ import webql/compiler/source
 
 pub type TokenKind {
   // ========== LITERALS ==========
-  Name
   Int
   Float
   String
