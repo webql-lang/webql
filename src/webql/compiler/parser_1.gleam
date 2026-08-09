@@ -2,145 +2,84 @@ import gleam/bit_array
 import gleam/float
 import gleam/int
 import gleam/list
+import gleam/option
 import gleam/result
 import webql/compiler/lexer
 import webql/compiler/source
 
-/// A block containing interface declarations and body statements.
-///
-/// ## Examples
-///
-///     token: Uuid, in: Int -> out: Int {
-///       math = .token -> Math
-///       add = math.Add
-///       1 -> add.l
-///       add.out -> .out
-///     }
+/// A WebQL block containing its interface and value-ordered body.
 pub type Ast {
-  Ast(ports: List(Port), elements: List(Element), span: source.Span)
+  Ast(
+    parameters: List(Declaration),
+    returns: List(Declaration),
+    elements: List(Element),
+  )
 }
 
-/// A named parameter or return declared by a block.
+/// A typed parameter or return declaration.
 ///
 /// ## Examples
 ///
 ///     token: Uuid
-///     in: Int
-///     -> out: Int
-pub type Port {
-  Input(name: String, typename: Typename, span: source.Span)
-  Output(name: String, typename: Typename, span: source.Span)
+///     out: Int
+pub type Declaration {
+  Declaration(name: String, typename: String)
 }
 
-/// A body statement, optionally assigned to a name.
+/// A value-ordered body element.
+///
+/// A definition can bind a value, edge, or nested block.
 ///
 /// ## Examples
 ///
-///     math = .token -> Math
-///     add = math.Add
-///     1 -> add.l
+///     value = 1
+///     service = .token -> Service
+///     .input -> operation.input
+///     Inner = in: Int -> out: Int { .in -> .out }
 pub type Element {
-  Labeled(name: String, value: Value, span: source.Span)
-  Unlabeled(Value, span: source.Span)
+  Definition(name: String, typename: option.Option(String), element: Element)
+  Edge(from: Value, to: Value)
+  Value(Value)
+  Block(Ast)
 }
 
-/// A value stored by a labeled element or used as an unlabeled edge.
+/// A literal, port, node path, or vertex path.
 ///
 /// ## Examples
 ///
-///     math.Add
-///     1 -> add.l
-///     in: Int -> out: Int { .in -> .out }
-pub type Value {
-  Member(Path, span: source.Span)
-  Block(Ast, span: source.Span)
-  Edge(from: Vertex, to: Vertex, span: source.Span)
-  Literal(Literal, span: source.Span)
-}
-
-/// One end of an edge, represented by a reference or a literal source.
-///
-/// ## Examples
-///
-///     .token
-///     add.l
-///     Math
 ///     1
-pub type Vertex {
-  Reference(Path, span: source.Span)
-  Source(Literal, span: source.Span)
-}
-
-/// The parsed payload of a primitive literal.
-///
-/// `lexeme` preserves the literal's original source representation.
-///
-/// ## Examples
-///
-///     123
 ///     1.23
 ///     "hello"
-pub type Literal {
-  Int(lexeme: String, value: Int, span: source.Span)
-  Float(lexeme: String, value: Float, span: source.Span)
-  String(lexeme: String, value: String, span: source.Span)
-}
-
-/// A type name referenced by an interface declaration.
-///
-/// ## Examples
-///
-///     Int
-///     Float
-///     String
-///     Uuid
-pub type Typename {
-  Typename(String, span: source.Span)
-}
-
-/// A reference to an interface port or a local named element.
-///
-/// ## Examples
-///
-///     Port("token")
-///     Neighbor(["add", "l"])
-///     Neighbor(["math", "Add"])
-///     Port("out")
-pub type Path {
+///     .token
+///     Math
+///     service.Add
+///     value
+///     operation.out
+pub type Value {
+  Int(Int)
+  Float(Float)
+  String(String)
   Port(String)
-  Neighbor(List(String))
+  Node(List(String))
+  Vertex(List(String))
 }
 
 /// The kind of syntax error encountered while parsing.
-///
-/// ## Examples
-///
-///     UnexpectedEof
-///     UnexpectedToken(found: found, expected: ExpectedElement)
 pub type DiagnosticKind {
   UnexpectedEof
   UnexpectedToken(found: lexer.TokenKind, expected: Expected)
 }
 
-/// A syntax error and the source span where it occurred.
-///
-/// ## Examples
-///
-///     Diagnostic(kind: UnexpectedEof, span: span)
+/// A syntax error and the value span where it occurred.
 pub type Diagnostic {
   Diagnostic(kind: DiagnosticKind, span: source.Span)
 }
 
 /// What the parser expected at the point of a syntax error.
-///
-/// ## Examples
-///
-///     ExpectedElement
-///     ExpectedToken(kind)
 pub type Expected {
+  ExpectedDeclaration
   ExpectedElement
-  ExpectedPath
-  ExpectedVertex
+  ExpectedValue
   ExpectedLiteral
   ExpectedToken(kind: lexer.TokenKind)
 }
@@ -154,19 +93,78 @@ pub fn parse(
 
   case rest {
     [lexer.Token(kind: lexer.EOF, ..)] -> Ok(ast)
-    tokens -> parse_unexpected(source, tokens, ExpectedElement)
+    tokens -> parse_unexpected(source, tokens, ExpectedDeclaration)
   }
 }
 
 // PRIVATE FUNCTIONS
 // =================
 fn parse_ast(source: String, tokens: List(lexer.Token)) {
-  use #(ports, start, rest) <- result.try(parse_ports(source, tokens))
-  use #(elements, end, rest) <- result.try(parse_elements(source, rest, []))
+  use #(parameters, rest) <- result.try(parse_parameters(source, tokens))
+  use #(returns, rest) <- result.try(parse_returns(source, rest))
+  use #(elements, rest) <- result.try(parse_elements(source, rest, []))
 
-  let span = source.Span(start:, end:)
+  Ok(#(Ast(parameters:, returns:, elements:), rest))
+}
 
-  Ok(#(Ast(ports:, elements:, span:), rest))
+fn parse_parameters(source: String, tokens: List(lexer.Token)) {
+  use #(parameters, rest) <- result.try(parse_declarations(source, tokens, []))
+
+  case rest {
+    // SYNTAX: `->`
+    [lexer.Token(kind: lexer.RArrow, ..), ..rest] -> Ok(#(parameters, rest))
+    tokens -> parse_unexpected(source, tokens, ExpectedToken(lexer.RArrow))
+  }
+}
+
+fn parse_returns(source: String, tokens: List(lexer.Token)) {
+  use #(returns, rest) <- result.try(parse_declarations(source, tokens, []))
+
+  case rest {
+    // SYNTAX: `{`
+    [lexer.Token(kind: lexer.LBrace, ..), ..rest] -> Ok(#(returns, rest))
+    tokens -> parse_unexpected(source, tokens, ExpectedToken(lexer.LBrace))
+  }
+}
+
+fn parse_declarations(
+  source: String,
+  tokens: List(lexer.Token),
+  declarations: List(Declaration),
+) {
+  case tokens, declarations {
+    // SYNTAX: `->` or `{`
+    [lexer.Token(kind: lexer.RArrow, ..), ..], _
+    | [lexer.Token(kind: lexer.LBrace, ..), ..], _
+    -> Ok(#(list.reverse(declarations), tokens))
+
+    // SYNTAX: `name: Type` or `, name: Type`
+    tokens, [] | [lexer.Token(kind: lexer.Comma, ..), ..tokens], [_, ..] -> {
+      use #(declaration, rest) <- result.try(parse_declaration(source, tokens))
+      parse_declarations(source, rest, [declaration, ..declarations])
+    }
+
+    tokens, _ -> parse_unexpected(source, tokens, ExpectedToken(lexer.Comma))
+  }
+}
+
+fn parse_declaration(source: String, tokens: List(lexer.Token)) {
+  case tokens {
+    // SYNTAX: `name: Type`
+    [
+      lexer.Token(kind: lexer.LowerIdentifier, ..) as name,
+      lexer.Token(kind: lexer.Colon, ..),
+      lexer.Token(kind: lexer.UpperIdentifier, ..) as typename,
+      ..rest
+    ] -> {
+      let name = source.slice(source, name.span)
+      let typename = source.slice(source, typename.span)
+      Ok(#(Declaration(name:, typename:), rest))
+    }
+
+    tokens ->
+      parse_unexpected(source, tokens, ExpectedToken(lexer.LowerIdentifier))
+  }
 }
 
 fn parse_elements(
@@ -175,8 +173,9 @@ fn parse_elements(
   elements: List(Element),
 ) {
   case tokens {
-    [lexer.Token(kind: lexer.RBrace, ..) as brace, ..rest] ->
-      Ok(#(list.reverse(elements), brace.span.end, rest))
+    // SYNTAX: `}`
+    [lexer.Token(kind: lexer.RBrace, ..), ..rest] ->
+      Ok(#(list.reverse(elements), rest))
 
     [lexer.Token(kind: lexer.EOF, ..)] | [] ->
       parse_unexpected(source, tokens, ExpectedToken(lexer.RBrace))
@@ -190,322 +189,170 @@ fn parse_elements(
 
 fn parse_element(source: String, tokens: List(lexer.Token)) {
   case tokens {
-    // SYNTAX: `value = ...` or `Value = ...`
+    // SYNTAX: `Value = in: Int -> { ... }` or `Value = -> { ... }`
     [
-      lexer.Token(kind: lexer.LowerIdentifier, ..),
+      lexer.Token(kind: lexer.UpperIdentifier, ..) as identifier,
       lexer.Token(kind: lexer.Equal, ..),
-      ..
-    ]
-    | [
-        lexer.Token(kind: lexer.UpperIdentifier, ..),
-        lexer.Token(kind: lexer.Equal, ..),
-        ..
-      ] -> parse_labeled_element(source, tokens)
-
-    // SYNTAX: `from -> to`
-    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..]
-    | [lexer.Token(kind: lexer.UpperIdentifier, ..), ..]
-    | [lexer.Token(kind: lexer.Dot, ..), ..]
-    | [lexer.Token(kind: lexer.Int, ..), ..]
-    | [lexer.Token(kind: lexer.Float, ..), ..]
-    | [lexer.Token(kind: lexer.String, ..), ..] ->
-      parse_unlabeled_element(source, tokens)
-
-    tokens -> parse_unexpected(source, tokens, ExpectedElement)
-  }
-}
-
-fn parse_labeled_element(source: String, tokens: List(lexer.Token)) {
-  case tokens {
-    [
-      lexer.Token(kind: lexer.LowerIdentifier, ..) as identifier,
-      lexer.Token(kind: lexer.Equal, ..),
+      lexer.Token(kind: lexer.LowerIdentifier, ..) as first,
+      lexer.Token(kind: lexer.Colon, ..) as second,
       ..rest
     ]
     | [
         lexer.Token(kind: lexer.UpperIdentifier, ..) as identifier,
         lexer.Token(kind: lexer.Equal, ..),
+        lexer.Token(kind: lexer.RArrow, ..) as first,
+        lexer.Token(..) as second,
         ..rest
       ] -> {
       let name = source.slice(source, identifier.span)
-      use #(value, end, rest) <- result.try(parse_value(source, rest))
-      let span = source.Span(start: identifier.span.start, end: end.end)
-
-      Ok(#(Labeled(name:, value:, span:), rest))
+      use #(ast, rest) <- result.try(parse_ast(source, [first, second, ..rest]))
+      parse_definition(source, name, Block(ast), rest)
     }
 
-    tokens -> parse_unexpected(source, tokens, ExpectedElement)
-  }
-}
-
-fn parse_unlabeled_element(source: String, tokens: List(lexer.Token)) {
-  use #(from, rest) <- result.try(parse_vertex(source, tokens))
-  use #(value, span, rest) <- result.try(parse_edge(source, from, rest))
-  Ok(#(Unlabeled(value, span:), rest))
-}
-
-fn parse_value(source: String, tokens: List(lexer.Token)) {
-  let vertex = fn(tokens) {
-    use #(from, rest) <- result.try(parse_vertex(source, tokens))
-
-    case rest, from {
-      [lexer.Token(kind: lexer.RArrow, ..), ..], from ->
-        parse_edge(source, from, rest)
-
-      rest, Reference(path, span:) -> Ok(#(Member(path, span:), span, rest))
-
-      rest, Source(literal, span:) -> Ok(#(Literal(literal, span:), span, rest))
-    }
-  }
-
-  case tokens {
-    // SYNTAX: `in: Int -> out: Int { ... }` or `-> { ... }`
+    // SYNTAX: `value = ...`
     [
-      lexer.Token(kind: lexer.LowerIdentifier, ..),
-      lexer.Token(kind: lexer.Colon, ..),
-      ..
-    ]
-    | [lexer.Token(kind: lexer.RArrow, ..), ..] -> {
-      use #(ast, rest) <- result.try(parse_ast(source, tokens))
-      Ok(#(Block(ast, span: ast.span), ast.span, rest))
+      lexer.Token(kind: lexer.LowerIdentifier, ..) as identifier,
+      lexer.Token(kind: lexer.Equal, ..),
+      ..rest
+    ] -> {
+      let name = source.slice(source, identifier.span)
+      use #(value, rest) <- result.try(parse_value(source, rest))
+      parse_definition(source, name, Value(value), rest)
     }
 
-    tokens -> vertex(tokens)
+    // SYNTAX: `value -> target`
+    tokens -> {
+      use #(value, rest) <- result.try(parse_value(source, tokens))
+      parse_edge(source, value, rest)
+    }
   }
 }
 
-fn parse_edge(source: String, from: Vertex, tokens: List(lexer.Token)) {
-  case tokens {
-    [lexer.Token(kind: lexer.RArrow, ..), ..rest] -> {
-      use #(to, rest) <- result.try(parse_reference(source, rest))
-      let span = source.Span(start: from.span.start, end: to.span.end)
-
-      Ok(#(Edge(from:, to:, span:), span, rest))
+fn parse_definition(
+  source: String,
+  name: String,
+  element: Element,
+  tokens: List(lexer.Token),
+) {
+  case element, tokens {
+    // SYNTAX: `name = from -> to`
+    Value(value), [lexer.Token(kind: lexer.RArrow, ..), ..] -> {
+      use #(element, rest) <- result.try(parse_edge(source, value, tokens))
+      Ok(#(Definition(name:, typename: option.None, element:), rest))
     }
+
+    element, rest ->
+      Ok(#(Definition(name:, typename: option.None, element:), rest))
+  }
+}
+
+fn parse_edge(source: String, from: Value, tokens: List(lexer.Token)) {
+  case tokens {
+    // SYNTAX: `from -> to`
+    [
+      lexer.Token(kind: lexer.RArrow, ..),
+      lexer.Token(kind: lexer.Dot, ..) as token,
+      ..tokens
+    ]
+    | [
+        lexer.Token(kind: lexer.RArrow, ..),
+        lexer.Token(kind: lexer.LowerIdentifier, ..) as token,
+        ..tokens
+      ]
+    | [
+        lexer.Token(kind: lexer.RArrow, ..),
+        lexer.Token(kind: lexer.UpperIdentifier, ..) as token,
+        ..tokens
+      ] -> {
+      use #(to, rest) <- result.try(parse_value(source, [token, ..tokens]))
+      Ok(#(Edge(from:, to:), rest))
+    }
+
+    [lexer.Token(kind: lexer.RArrow, ..), ..tokens] ->
+      parse_unexpected(source, tokens, ExpectedValue)
 
     tokens -> parse_unexpected(source, tokens, ExpectedToken(lexer.RArrow))
   }
 }
 
-fn parse_vertex(source: String, tokens: List(lexer.Token)) {
-  case tokens {
-    // SYNTAX: `1` or `1.23` or `"hello world!"`
-    [lexer.Token(kind: lexer.Int, ..), ..]
-    | [lexer.Token(kind: lexer.Float, ..), ..]
-    | [lexer.Token(kind: lexer.String, ..), ..] -> {
-      use #(literal, rest) <- result.try(parse_literal(source, tokens))
-      Ok(#(Source(literal, span: literal.span), rest))
-    }
-
-    // SYNTAX: `reference` or `root.reference` or `.port`
-    [lexer.Token(kind: lexer.Dot, ..), ..]
-    | [lexer.Token(kind: lexer.LowerIdentifier, ..), ..]
-    | [lexer.Token(kind: lexer.UpperIdentifier, ..), ..] ->
-      parse_reference(source, tokens)
-
-    tokens -> parse_unexpected(source, tokens, ExpectedVertex)
-  }
-}
-
-fn parse_reference(source: String, tokens: List(lexer.Token)) {
-  use #(path, span, rest) <- result.try(parse_path(source, tokens))
-  Ok(#(Reference(path, span:), rest))
-}
-
-fn parse_literal(source: String, tokens: List(lexer.Token)) {
-  let parse_int = fn(lexeme: String, span: source.Span) {
-    case int.parse(lexeme) {
-      Ok(value) -> Ok(Int(lexeme:, value:, span:))
-      Error(_error) -> parse_unexpected(source, tokens, ExpectedLiteral)
-    }
-  }
-
-  let parse_float = fn(lexeme: String, span: source.Span) {
-    case float.parse(lexeme) {
-      Ok(value) -> Ok(Float(lexeme:, value:, span:))
-      Error(_error) -> parse_unexpected(source, tokens, ExpectedLiteral)
-    }
-  }
-
+fn parse_value(source: String, tokens: List(lexer.Token)) {
   case tokens {
     // SYNTAX: `1`
-    [lexer.Token(kind: lexer.Int, ..) as token, ..rest] -> {
-      let lexeme = source.slice(source, token.span)
-      use literal <- result.try(parse_int(lexeme, token.span))
-      Ok(#(literal, rest))
-    }
+    [lexer.Token(kind: lexer.Int, ..) as token, ..rest] ->
+      parse_int(source, token, rest)
 
     // SYNTAX: `1.23`
-    [lexer.Token(kind: lexer.Float, ..) as token, ..rest] -> {
-      let lexeme = source.slice(source, token.span)
-      use literal <- result.try(parse_float(lexeme, token.span))
-      Ok(#(literal, rest))
-    }
+    [lexer.Token(kind: lexer.Float, ..) as token, ..rest] ->
+      parse_float(source, token, rest)
 
     // SYNTAX: `"hello world!"`
     [lexer.Token(kind: lexer.String, ..) as token, ..rest] -> {
-      let lexeme = source.slice(source, token.span)
-      let inner =
+      let span =
         source.Span(start: token.span.start + 1, end: token.span.end - 1)
-      let value = source.slice(source, inner)
-      Ok(#(String(lexeme:, value:, span: token.span), rest))
+      Ok(#(String(source.slice(source, span)), rest))
     }
 
-    tokens -> parse_unexpected(source, tokens, ExpectedLiteral)
-  }
-}
-
-fn parse_path(source: String, tokens: List(lexer.Token)) {
-  case tokens {
     // SYNTAX: `.value`
     [
-      lexer.Token(kind: lexer.Dot, ..) as dot,
-      lexer.Token(kind: lexer.LowerIdentifier, ..) as identifier,
+      lexer.Token(kind: lexer.Dot, ..),
+      lexer.Token(kind: lexer.LowerIdentifier, ..) as name,
       ..rest
     ] -> {
-      let name = source.slice(source, identifier.span)
-      let span = source.Span(start: dot.span.start, end: identifier.span.end)
-      Ok(#(Port(name), span, rest))
+      let name = source.slice(source, name.span)
+      Ok(#(Port(name), rest))
     }
 
-    // SYNTAX: `root.value` or `root.Node`
+    // SYNTAX: `root.value`
     [
       lexer.Token(kind: lexer.LowerIdentifier, ..) as root,
       lexer.Token(kind: lexer.Dot, ..),
       lexer.Token(kind: lexer.LowerIdentifier, ..) as member,
       ..rest
-    ]
-    | [
-        lexer.Token(kind: lexer.LowerIdentifier, ..) as root,
-        lexer.Token(kind: lexer.Dot, ..),
-        lexer.Token(kind: lexer.UpperIdentifier, ..) as member,
-        ..rest
-      ] -> {
-      let span = source.Span(start: root.span.start, end: member.span.end)
+    ] -> {
       let root = source.slice(source, root.span)
       let member = source.slice(source, member.span)
-      Ok(#(Neighbor([root, member]), span, rest))
+      Ok(#(Vertex([root, member]), rest))
     }
 
-    // SYNTAX: `value` or `Node`
-    [lexer.Token(kind: lexer.LowerIdentifier, ..) as identifier, ..rest]
-    | [lexer.Token(kind: lexer.UpperIdentifier, ..) as identifier, ..rest] -> {
-      let name = source.slice(source, identifier.span)
-      Ok(#(Neighbor([name]), identifier.span, rest))
-    }
-
-    tokens -> parse_unexpected(source, tokens, ExpectedPath)
-  }
-}
-
-fn parse_ports(source: String, tokens: List(lexer.Token)) {
-  case tokens {
-    [lexer.Token(span:, ..), ..] -> {
-      use #(inputs, rest) <- result.try(parse_port_inputs(source, tokens, []))
-      use #(outputs, rest) <- result.try(parse_port_outputs(source, rest, []))
-
-      let ports = list.append(inputs, outputs)
-      Ok(#(ports, span.start, rest))
-    }
-
-    [] -> parse_unexpected(source, tokens, ExpectedToken(lexer.LowerIdentifier))
-  }
-}
-
-fn parse_port_inputs(
-  source: String,
-  tokens: List(lexer.Token),
-  inputs: List(Port),
-) {
-  case tokens, inputs {
-    // SYNTAX: `->`
-    [lexer.Token(kind: lexer.RArrow, ..), ..rest], _ ->
-      Ok(#(list.reverse(inputs), rest))
-
-    // SYNTAX: `name: Type`
-    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..], [] -> {
-      use #(#(name, typename, span), rest) <- result.try(parse_port(
-        source,
-        tokens,
-      ))
-      let inputs = [Input(name:, typename:, span:), ..inputs]
-      parse_port_inputs(source, rest, inputs)
-    }
-
-    // SYNTAX: `, name: Type`
-    [lexer.Token(kind: lexer.Comma, ..), ..rest], [_, ..] -> {
-      use #(#(name, typename, span), rest) <- result.try(parse_port(
-        source,
-        rest,
-      ))
-      let inputs = [Input(name:, typename:, span:), ..inputs]
-      parse_port_inputs(source, rest, inputs)
-    }
-
-    tokens, [] ->
-      parse_unexpected(source, tokens, ExpectedToken(lexer.LowerIdentifier))
-
-    tokens, _ -> parse_unexpected(source, tokens, ExpectedToken(lexer.Comma))
-  }
-}
-
-fn parse_port_outputs(
-  source: String,
-  tokens: List(lexer.Token),
-  outputs: List(Port),
-) {
-  case tokens, outputs {
-    // SYNTAX: `{`
-    [lexer.Token(kind: lexer.LBrace, ..), ..rest], _ ->
-      Ok(#(list.reverse(outputs), rest))
-
-    // SYNTAX: `name: Type`
-    [lexer.Token(kind: lexer.LowerIdentifier, ..), ..], [] -> {
-      use #(#(name, typename, span), rest) <- result.try(parse_port(
-        source,
-        tokens,
-      ))
-      let outputs = [Output(name:, typename:, span:), ..outputs]
-      parse_port_outputs(source, rest, outputs)
-    }
-
-    // SYNTAX: `, name: Type`
-    [lexer.Token(kind: lexer.Comma, ..), ..rest], [_, ..] -> {
-      use #(#(name, typename, span), rest) <- result.try(parse_port(
-        source,
-        rest,
-      ))
-      let outputs = [Output(name:, typename:, span:), ..outputs]
-      parse_port_outputs(source, rest, outputs)
-    }
-
-    tokens, [] ->
-      parse_unexpected(source, tokens, ExpectedToken(lexer.LowerIdentifier))
-
-    tokens, _ -> parse_unexpected(source, tokens, ExpectedToken(lexer.Comma))
-  }
-}
-
-fn parse_port(source: String, tokens: List(lexer.Token)) {
-  case tokens {
-    // SYNTAX: `name: Type`
+    // SYNTAX: `root.Node`
     [
-      lexer.Token(kind: lexer.LowerIdentifier, ..) as lower,
-      lexer.Token(kind: lexer.Colon, ..),
-      lexer.Token(kind: lexer.UpperIdentifier, ..) as upper,
+      lexer.Token(kind: lexer.LowerIdentifier, ..) as root,
+      lexer.Token(kind: lexer.Dot, ..),
+      lexer.Token(kind: lexer.UpperIdentifier, ..) as member,
       ..rest
     ] -> {
-      let span = source.Span(start: lower.span.start, end: upper.span.end)
-
-      let name = source.slice(source, lower.span)
-      let typename =
-        Typename(source.slice(source, upper.span), span: upper.span)
-
-      Ok(#(#(name, typename, span), rest))
+      let root = source.slice(source, root.span)
+      let member = source.slice(source, member.span)
+      Ok(#(Node([root, member]), rest))
     }
 
-    tokens ->
-      parse_unexpected(source, tokens, ExpectedToken(lexer.LowerIdentifier))
+    // SYNTAX: `value`
+    [lexer.Token(kind: lexer.LowerIdentifier, ..) as name, ..rest] -> {
+      let name = source.slice(source, name.span)
+      Ok(#(Vertex([name]), rest))
+    }
+
+    // SYNTAX: `Node`
+    [lexer.Token(kind: lexer.UpperIdentifier, ..) as name, ..rest] -> {
+      let name = source.slice(source, name.span)
+      Ok(#(Node([name]), rest))
+    }
+
+    tokens -> parse_unexpected(source, tokens, ExpectedValue)
+  }
+}
+
+fn parse_int(source: String, token: lexer.Token, rest: List(lexer.Token)) {
+  case int.parse(source.slice(source, token.span)) {
+    Ok(value) -> Ok(#(Int(value), rest))
+    Error(_) -> parse_unexpected(source, [token, ..rest], ExpectedLiteral)
+  }
+}
+
+fn parse_float(source: String, token: lexer.Token, rest: List(lexer.Token)) {
+  case float.parse(source.slice(source, token.span)) {
+    Ok(value) -> Ok(#(Float(value), rest))
+    Error(_) -> parse_unexpected(source, [token, ..rest], ExpectedLiteral)
   }
 }
 
@@ -530,7 +377,10 @@ fn parse_unexpected(
         |> bit_array.from_string()
         |> bit_array.byte_size()
 
-      Error(Diagnostic(kind: UnexpectedEof, span: source.Span(start: end, end:)))
+      Error(Diagnostic(
+        kind: UnexpectedEof,
+        span: source.Span(start: end, end: end),
+      ))
     }
   }
 }

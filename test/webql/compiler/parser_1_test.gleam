@@ -1,51 +1,166 @@
+import gleam/option
 import webql/compiler/lexer
 import webql/compiler/parser_1
 import webql/compiler/source
 
-pub fn parse_consumes_lexer_eof_test() {
+pub fn from_ordered_ast_test() {
   let assert Ok(parser_1.Ast(
-    ports: [],
-    elements: [],
-    span: source.Span(start: 0, end: 5),
-  )) = parse("-> {}")
-}
-
-pub fn parse_allows_every_interface_cardinality_test() {
-  let assert Ok(parser_1.Ast(ports: [], ..)) = parse("-> {}")
-
-  let assert Ok(parser_1.Ast(ports: [parser_1.Output(name: "out", ..)], ..)) =
-    parse("-> out: Int {}")
-
-  let assert Ok(parser_1.Ast(ports: [parser_1.Input(name: "in", ..)], ..)) =
-    parse("in: Int -> {}")
-
-  let assert Ok(parser_1.Ast(
-    ports: [parser_1.Input(name: "in", ..), parser_1.Output(name: "out", ..)],
-    ..,
-  )) = parse("in: Int -> out: Int {}")
-
-  let assert Ok(parser_1.Ast(
-    ports: [
-      parser_1.Input(name: "a", ..),
-      parser_1.Input(name: "b", ..),
-      parser_1.Output(name: "x", ..),
-      parser_1.Output(name: "y", ..),
+    parameters: [
+      parser_1.Declaration(name: "first_param", typename: "A"),
+      parser_1.Declaration(name: "second_param", typename: "B"),
     ],
-    ..,
-  )) = parse("a: A, b: B -> x: X, y: Y {}")
-}
-
-pub fn parse_allows_empty_nested_block_interfaces_test() {
-  let assert Ok(parser_1.Ast(
+    returns: [
+      parser_1.Declaration(name: "first_return", typename: "X"),
+      parser_1.Declaration(name: "second_return", typename: "Y"),
+    ],
     elements: [
-      parser_1.Labeled(
-        name: "Inner",
-        value: parser_1.Block(parser_1.Ast(ports: [], elements: [], ..), ..),
-        ..,
+      parser_1.Definition(
+        name: "integer_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Int(1)),
+      ),
+      parser_1.Definition(
+        name: "float_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Float(1.25)),
+      ),
+      parser_1.Definition(
+        name: "string_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.String("hello")),
+      ),
+      parser_1.Definition(
+        name: "port_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Port("token_port")),
+      ),
+      parser_1.Definition(
+        name: "node_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Node(["Math"])),
+      ),
+      parser_1.Edge(
+        from: parser_1.Vertex(["local_value"]),
+        to: parser_1.Port("output_port"),
+      ),
+      parser_1.Definition(
+        name: "qualified_node",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Node(["service_node", "Add"])),
+      ),
+      parser_1.Definition(
+        name: "vertex_value",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Vertex(["local_value"])),
+      ),
+      parser_1.Definition(
+        name: "qualified_vertex",
+        typename: option.None,
+        element: parser_1.Value(parser_1.Vertex(["operation_node", "out"])),
+      ),
+      parser_1.Edge(
+        from: parser_1.Int(1),
+        to: parser_1.Vertex(["operation_node", "input"]),
+      ),
+      parser_1.Definition(
+        name: "bound_service",
+        typename: option.None,
+        element: parser_1.Edge(
+          from: parser_1.Port("token_port"),
+          to: parser_1.Node(["Service"]),
+        ),
+      ),
+      parser_1.Definition(
+        name: "InnerBlock",
+        typename: option.None,
+        element: parser_1.Block(parser_1.Ast(
+          parameters: [
+            parser_1.Declaration(name: "input_value", typename: "Int"),
+          ],
+          returns: [parser_1.Declaration(name: "output_value", typename: "Int")],
+          elements: [
+            parser_1.Edge(
+              from: parser_1.Port("input_value"),
+              to: parser_1.Port("output_value"),
+            ),
+          ],
+        )),
       ),
     ],
+  )) =
+    parse(
+      "first_param: A, second_param: B -> first_return: X, second_return: Y {
+        integer_value = 1
+        float_value = 1.25
+        string_value = \"hello\"
+        port_value = .token_port
+        node_value = Math
+        local_value -> .output_port
+        qualified_node = service_node.Add
+        vertex_value = local_value
+        qualified_vertex = operation_node.out
+        1 -> operation_node.input
+        bound_service = .token_port -> Service
+        InnerBlock = input_value: Int -> output_value: Int {
+          .input_value -> .output_value
+        }
+      }",
+    )
+}
+
+pub fn parse_interface_cardinalities_test() {
+  let assert Ok(parser_1.Ast(parameters: [], returns: [], elements: [])) =
+    parse("-> {}")
+
+  let assert Ok(parser_1.Ast(
+    parameters: [],
+    returns: [parser_1.Declaration(name: "out", typename: "Int")],
+    elements: [],
+  )) = parse("-> out: Int {}")
+
+  let assert Ok(parser_1.Ast(
+    parameters: [parser_1.Declaration(name: "in", typename: "Int")],
+    returns: [],
+    elements: [],
+  )) = parse("in: Int -> {}")
+}
+
+pub fn parse_rejects_literal_edge_tos_test() {
+  let assert Error(parser_1.Diagnostic(
+    kind: parser_1.UnexpectedToken(
+      found: lexer.Int,
+      expected: parser_1.ExpectedValue,
+    ),
     ..,
-  )) = parse("-> { Inner = -> {} }")
+  )) = parse("-> { .out -> 1 }")
+}
+
+pub fn parse_requires_unbound_values_to_form_edges_test() {
+  let assert Error(parser_1.Diagnostic(
+    kind: parser_1.UnexpectedToken(
+      found: lexer.RBrace,
+      expected: parser_1.ExpectedToken(lexer.RArrow),
+    ),
+    ..,
+  )) = parse("-> { 1 }")
+}
+
+pub fn parse_rejects_invalid_numbers_test() {
+  let assert Error(parser_1.Diagnostic(
+    kind: parser_1.UnexpectedToken(
+      found: lexer.Int,
+      expected: parser_1.ExpectedLiteral,
+    ),
+    ..,
+  )) = parse("-> { value = 1__ }")
+
+  let assert Error(parser_1.Diagnostic(
+    kind: parser_1.UnexpectedToken(
+      found: lexer.Float,
+      expected: parser_1.ExpectedLiteral,
+    ),
+    ..,
+  )) = parse("-> { value = 1.2.3 }")
 }
 
 pub fn parse_returns_unexpected_eof_for_unterminated_block_test() {
@@ -56,125 +171,27 @@ pub fn parse_returns_unexpected_eof_for_unterminated_block_test() {
 }
 
 pub fn parse_requires_terminal_eof_test() {
-  let source = "-> {}"
-  let assert Ok([
-    arrow,
-    left_brace,
-    right_brace,
-    lexer.Token(kind: lexer.EOF, ..),
-  ]) = lexer.lex(source)
+  let code = "-> {}"
+  let assert Ok([arrow, left, right, lexer.Token(kind: lexer.EOF, ..)]) =
+    lexer.lex(code)
 
   let assert Error(parser_1.Diagnostic(
     kind: parser_1.UnexpectedEof,
     span: source.Span(start: 5, end: 5),
-  )) = parser_1.parse(source, [arrow, left_brace, right_brace])
+  )) = parser_1.parse(code, [arrow, left, right])
 }
 
-pub fn parse_rejects_tokens_after_document_test() {
+pub fn parse_rejects_tokens_after_ast_test() {
   let assert Error(parser_1.Diagnostic(
     kind: parser_1.UnexpectedToken(
       found: lexer.LowerIdentifier,
-      expected: parser_1.ExpectedElement,
+      expected: parser_1.ExpectedDeclaration,
     ),
     span: source.Span(start: 6, end: 14),
   )) = parse("-> {} trailing")
 }
 
-pub fn parse_allows_literal_edge_sources_test() {
-  let assert Ok(parser_1.Ast(
-    elements: [
-      parser_1.Unlabeled(
-        parser_1.Edge(from: parser_1.Source(parser_1.Int(value: 1, ..), ..), ..),
-        ..,
-      ),
-    ],
-    ..,
-  )) = parse("-> out: Int { 1 -> .out }")
-}
-
-pub fn parse_rejects_literal_edge_targets_test() {
-  let assert Error(parser_1.Diagnostic(
-    kind: parser_1.UnexpectedToken(
-      found: lexer.Int,
-      expected: parser_1.ExpectedPath,
-    ),
-    ..,
-  )) = parse("-> out: Int { .out -> 1 }")
-}
-
-pub fn parse_requires_unlabeled_members_to_form_edges_test() {
-  let assert Error(parser_1.Diagnostic(
-    kind: parser_1.UnexpectedToken(
-      found: lexer.Dot,
-      expected: parser_1.ExpectedToken(lexer.RArrow),
-    ),
-    ..,
-  )) = parse("in: Int -> out: Int { .in .out }")
-}
-
-pub fn parse_requires_unlabeled_literals_to_form_edges_test() {
-  let assert Error(parser_1.Diagnostic(
-    kind: parser_1.UnexpectedToken(
-      found: lexer.RBrace,
-      expected: parser_1.ExpectedToken(lexer.RArrow),
-    ),
-    ..,
-  )) = parse("-> out: Int { 1 }")
-}
-
-pub fn parse_preserves_labeled_non_edge_values_test() {
-  let assert Ok(parser_1.Ast(
-    elements: [
-      parser_1.Labeled(
-        name: "node",
-        value: parser_1.Member(parser_1.Neighbor(["Math"]), ..),
-        ..,
-      ),
-      parser_1.Labeled(
-        name: "one",
-        value: parser_1.Literal(parser_1.Int(value: 1, ..), ..),
-        ..,
-      ),
-    ],
-    ..,
-  )) = parse("-> { node = Math one = 1 }")
-}
-
-pub fn parse_distinguishes_interface_and_local_paths_test() {
-  let assert Ok(parser_1.Ast(
-    elements: [
-      parser_1.Unlabeled(
-        parser_1.Edge(
-          from: parser_1.Reference(parser_1.Port("x"), ..),
-          to: parser_1.Reference(parser_1.Neighbor(["sink", "in"]), ..),
-          ..,
-        ),
-        ..,
-      ),
-      parser_1.Unlabeled(
-        parser_1.Edge(
-          from: parser_1.Reference(parser_1.Neighbor(["x"]), ..),
-          to: parser_1.Reference(parser_1.Port("x"), ..),
-          ..,
-        ),
-        ..,
-      ),
-      parser_1.Labeled(
-        name: "dotted",
-        value: parser_1.Member(parser_1.Port("x"), ..),
-        ..,
-      ),
-      parser_1.Labeled(
-        name: "bare",
-        value: parser_1.Member(parser_1.Neighbor(["x"]), ..),
-        ..,
-      ),
-    ],
-    ..,
-  )) = parse("-> { .x -> sink.in x -> .x dotted = .x bare = x }")
-}
-
-fn parse(source: String) {
-  let assert Ok(tokens) = lexer.lex(source)
-  parser_1.parse(source, tokens)
+fn parse(code: String) {
+  let assert Ok(tokens) = lexer.lex(code)
+  parser_1.parse(code, tokens)
 }
