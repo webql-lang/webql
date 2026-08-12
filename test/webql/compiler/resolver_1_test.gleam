@@ -1,7 +1,9 @@
+import gleam/dict
 import webql/compiler/lexer
 import webql/compiler/parser_1
 import webql/compiler/resolver_1
 import webql/compiler/source
+import webql/schema_1
 
 pub fn resolve_services_test() {
   let code =
@@ -166,6 +168,39 @@ pub fn resolve_member_boundary_test() {
       ),
     ],
     edges: [],
+    ..,
+  )) = resolve(code)
+}
+
+pub fn resolve_nested_boundaries_and_local_supernode_test() {
+  let code =
+    "value: Int -> out: Int { a = .value -> NodeA b = .value -> a.NodeB c = b.NodeC c.value -> .out NodeD = in: Int -> out: Int { .in -> .out } d = NodeD }"
+
+  let assert Ok(resolver_1.Ast(
+    boundaries: [
+      resolver_1.Boundary(name: "a", to: ["NodeA"], ..),
+      resolver_1.Boundary(name: "b", to: ["a", "NodeB"], ..),
+    ],
+    nodes: [
+      resolver_1.Node(name: "c", path: ["b", "NodeC"], ..),
+      resolver_1.Supernode(
+        name: "d",
+        ast: resolver_1.Ast(
+          parameters: [resolver_1.Parameter(name: "in", ..)],
+          returns: [resolver_1.Return(name: "out", ..)],
+          edges: [resolver_1.Edge(..)],
+          ..,
+        ),
+        ..,
+      ),
+    ],
+    edges: [
+      resolver_1.Edge(
+        from: resolver_1.Output(path: ["c", "value"], ..),
+        to: resolver_1.Input(path: ["out"], ..),
+        ..,
+      ),
+    ],
     ..,
   )) = resolve(code)
 }
@@ -347,33 +382,27 @@ pub fn supernode_definition_can_be_instantiated_twice_test() {
 pub fn edge_definition_requires_node_diagnostic_test() {
   assert_diagnostic(
     "in: Int -> out: Int { route = .in -> .out }",
-    resolver_1.ExpectedNode(["out"]),
+    resolver_1.ExpectedBoundary(["out"]),
     ".out",
   )
 
   assert_diagnostic(
     "in: Int -> { node = Thing route = .in -> node.in }",
-    resolver_1.ExpectedNode(["node", "in"]),
+    resolver_1.ExpectedBoundary(["node", "in"]),
     "node.in",
   )
 }
 
 pub fn resolve_external_nodes_structurally_test() {
   let code =
-    "value: Missing -> out: Other { node = Unknown child = node.Anything .value -> child.anything child.result -> .out }"
+    "value: Missing -> out: Other { node = Unknown .value -> node.anything node.result -> .out }"
   let assert Ok(resolver_1.Ast(
     parameters: [resolver_1.Parameter(port: resolver_1.Port("Missing"), ..)],
     returns: [resolver_1.Return(port: resolver_1.Port("Other"), ..)],
-    nodes: [
-      resolver_1.Node(name: "node", path: ["Unknown"], ..),
-      resolver_1.Node(name: "child", path: ["node", "Anything"], ..),
-    ],
+    nodes: [resolver_1.Node(name: "node", path: ["Unknown"], ..)],
     edges: [
-      resolver_1.Edge(to: resolver_1.Input(path: ["child", "anything"], ..), ..),
-      resolver_1.Edge(
-        from: resolver_1.Output(path: ["child", "result"], ..),
-        ..,
-      ),
+      resolver_1.Edge(to: resolver_1.Input(path: ["node", "anything"], ..), ..),
+      resolver_1.Edge(from: resolver_1.Output(path: ["node", "result"], ..), ..),
     ],
     ..,
   )) = resolve(code)
@@ -467,11 +496,73 @@ pub fn unknown_definition_diagnostic_test() {
   )
 }
 
+pub fn unknown_boundary_diagnostic_test() {
+  assert_diagnostic(
+    "value: Int -> { a = .value -> Missing }",
+    resolver_1.UnknownBoundary(["Missing"]),
+    "Missing",
+  )
+
+  assert_diagnostic(
+    "value: Int -> { a = .value -> NodeA b = .value -> a.Missing }",
+    resolver_1.UnknownBoundary(["a", "Missing"]),
+    "a.Missing",
+  )
+}
+
+pub fn expected_boundary_diagnostic_test() {
+  assert_diagnostic(
+    "value: Int -> { a = .value -> Math }",
+    resolver_1.ExpectedBoundary(["Math"]),
+    "Math",
+  )
+
+  assert_diagnostic(
+    "value: Int -> { a = .value -> NodeA b = .value -> a.NodeB c = .value -> b.NodeC }",
+    resolver_1.ExpectedBoundary(["b", "NodeC"]),
+    "b.NodeC",
+  )
+
+  assert_diagnostic(
+    "-> { a = Math c = a.Child }",
+    resolver_1.ExpectedBoundary(["a"]),
+    "a.Child",
+  )
+}
+
+pub fn unknown_schema_node_diagnostic_test() {
+  assert_diagnostic(
+    "-> { node = Missing }",
+    resolver_1.UnknownNode(["Missing"]),
+    "Missing",
+  )
+
+  assert_diagnostic(
+    "value: Int -> { a = .value -> NodeA node = a.Missing }",
+    resolver_1.UnknownNode(["a", "Missing"]),
+    "a.Missing",
+  )
+}
+
+pub fn boundary_is_not_node_diagnostic_test() {
+  assert_diagnostic(
+    "value: Int -> { a = .value -> NodeA node = a.NodeB }",
+    resolver_1.ExpectedNode(["a", "NodeB"]),
+    "a.NodeB",
+  )
+}
+
 pub fn unknown_input_diagnostic_test() {
   assert_diagnostic(
     "-> out: Int { 1 -> .missing }",
     resolver_1.UnknownInput(["missing"]),
     ".missing",
+  )
+
+  assert_diagnostic(
+    "-> { node = Thing 1 -> node.missing }",
+    resolver_1.UnknownInput(["node", "missing"]),
+    "node.missing",
   )
 }
 
@@ -486,6 +577,20 @@ pub fn unknown_output_diagnostic_test() {
     "-> { item = .missing -> missing.Node }",
     resolver_1.UnknownOutput(["missing"]),
     ".missing",
+  )
+
+  assert_diagnostic(
+    "-> out: Int { node = Thing node.missing -> .out }",
+    resolver_1.UnknownOutput(["node", "missing"]),
+    "node.missing",
+  )
+}
+
+pub fn unknown_port_diagnostic_test() {
+  assert_diagnostic(
+    "value: MissingPort -> {}",
+    resolver_1.UnknownPort("MissingPort"),
+    "value: MissingPort",
   )
 }
 
@@ -621,7 +726,7 @@ pub fn invalid_element_diagnostic_test() {
       span: source.Span(start: 0, end: 7),
     )
 
-  assert resolver_1.resolve(ast)
+  assert resolver_1.resolve(ast, schema())
     == Error(resolver_1.Diagnostic(
       kind: resolver_1.InvalidElement,
       span: value_span,
@@ -642,5 +747,113 @@ fn assert_diagnostic(
 fn resolve(code: String) {
   let assert Ok(tokens) = lexer.lex(code)
   let assert Ok(ast) = parser_1.parse(code, tokens)
-  resolver_1.resolve(ast)
+  resolver_1.resolve(ast, schema())
+}
+
+fn schema() -> schema_1.Schema {
+  let uuid = schema_1.Port(name: "Uuid")
+  let int = schema_1.Port(name: "Int")
+  let float = schema_1.Port(name: "Float")
+  let string = schema_1.Port(name: "String")
+  let missing = schema_1.Port(name: "Missing")
+  let other = schema_1.Port(name: "Other")
+
+  let add =
+    schema_1.Node(
+      inputs: dict.from_list([
+        #("l", schema_1.Input(port: int)),
+        #("r", schema_1.Input(port: int)),
+      ]),
+      outputs: dict.from_list([#("out", schema_1.Output(port: int))]),
+    )
+
+  let service =
+    schema_1.Boundary(
+      port: uuid,
+      boundaries: dict.new(),
+      nodes: dict.from_list([#("Add", add)]),
+      inputs: dict.from_list([#("in", schema_1.Input(port: int))]),
+      outputs: dict.from_list([#("out", schema_1.Output(port: int))]),
+    )
+
+  let workflow =
+    schema_1.Boundary(
+      port: int,
+      boundaries: dict.new(),
+      nodes: dict.new(),
+      inputs: dict.new(),
+      outputs: dict.new(),
+    )
+
+  let editor =
+    schema_1.Boundary(
+      port: uuid,
+      boundaries: dict.from_list([#("Workflow", workflow)]),
+      nodes: dict.new(),
+      inputs: dict.new(),
+      outputs: dict.from_list([#("id", schema_1.Output(port: int))]),
+    )
+
+  let nodec =
+    schema_1.Node(
+      inputs: dict.new(),
+      outputs: dict.from_list([#("value", schema_1.Output(port: int))]),
+    )
+
+  let nodeb =
+    schema_1.Boundary(
+      port: int,
+      boundaries: dict.new(),
+      nodes: dict.from_list([#("NodeC", nodec)]),
+      inputs: dict.new(),
+      outputs: dict.new(),
+    )
+
+  let nodea =
+    schema_1.Boundary(
+      port: int,
+      boundaries: dict.from_list([#("NodeB", nodeb)]),
+      nodes: dict.new(),
+      inputs: dict.new(),
+      outputs: dict.new(),
+    )
+
+  let thing =
+    schema_1.Node(
+      inputs: dict.from_list([
+        #("in", schema_1.Input(port: int)),
+        #("value", schema_1.Input(port: int)),
+      ]),
+      outputs: dict.from_list([
+        #("out", schema_1.Output(port: int)),
+        #("value", schema_1.Output(port: int)),
+      ]),
+    )
+
+  let unknown =
+    schema_1.Node(
+      inputs: dict.from_list([#("anything", schema_1.Input(port: other))]),
+      outputs: dict.from_list([#("result", schema_1.Output(port: other))]),
+    )
+
+  schema_1.Schema(
+    boundaries: dict.from_list([
+      #("Service", service),
+      #("Editor", editor),
+      #("NodeA", nodea),
+    ]),
+    nodes: dict.from_list([
+      #("Math", schema_1.Node(inputs: dict.new(), outputs: dict.new())),
+      #("Thing", thing),
+      #("Unknown", unknown),
+    ]),
+    ports: dict.from_list([
+      #("Uuid", uuid),
+      #("Int", int),
+      #("Float", float),
+      #("String", string),
+      #("Missing", missing),
+      #("Other", other),
+    ]),
+  )
 }
