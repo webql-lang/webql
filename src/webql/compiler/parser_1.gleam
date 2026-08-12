@@ -160,7 +160,7 @@ fn parse_declarations(
     -> Ok(#(list.reverse(declarations), tokens))
 
     // SYNTAX: `name: Type` or `, name: Type`
-    tokens, [] | [lexer.Token(kind: lexer.Comma, ..), ..tokens], [_, ..] -> {
+    tokens, [] | [lexer.Token(kind: lexer.Comma, ..), ..tokens], [_token, ..] -> {
       use #(declaration, rest) <- result.try(parse_declaration(source, tokens))
       parse_declarations(source, rest, [declaration, ..declarations])
     }
@@ -408,7 +408,7 @@ fn parse_int(source: String, token: lexer.Token, rest: List(lexer.Token)) {
 fn parse_float(source: String, token: lexer.Token, rest: List(lexer.Token)) {
   case float.parse(source.slice(source, token.span)) {
     Ok(value) -> Ok(#(Float(value, span: token.span), rest))
-    Error(_) -> parse_unexpected(source, [token, ..rest], ExpectedLiteral)
+    Error(_nil) -> parse_unexpected(source, [token, ..rest], ExpectedLiteral)
   }
 }
 
