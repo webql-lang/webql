@@ -1,7 +1,7 @@
 import gleam/bool
 import gleam/dict
-import gleam/list
 import gleam/result
+import gleam/set
 import webql/compiler/parser_1
 import webql/compiler/source
 
@@ -11,7 +11,7 @@ pub type Reference(a) {
   Unlabeled(Int)
 }
 
-/// A resolved WebQL graph with its interface and objects grouped by kind.
+/// A resolved WebQL graph.
 ///
 /// ## Examples
 ///
@@ -24,7 +24,6 @@ pub type Ast {
   Ast(
     parameters: List(Parameter),
     returns: List(Return),
-    supernodes: List(Supernode),
     boundaries: List(Boundary),
     nodes: List(Node),
     edges: List(Edge),
@@ -70,21 +69,7 @@ pub type Port {
   Port(name: String)
 }
 
-/// A named graph nested inside another graph.
-///
-/// ## Examples
-///
-///     Inner = in: Int -> out: Int { .in -> .out }
-pub type Supernode {
-  Supernode(
-    name: String,
-    ast: Ast,
-    reference: Reference(String),
-    span: source.Span,
-  )
-}
-
-/// A labeled connection into a node.
+/// A named access point into a collection of nodes or values.
 ///
 /// ## Examples
 ///
@@ -100,16 +85,23 @@ pub type Boundary {
   )
 }
 
-/// A named node.
+/// A named executable node or instantiated local graph.
 ///
 /// ## Examples
 ///
 ///     math = Math
 ///     add = service.Add
+///     inner = Inner
 pub type Node {
   Node(
     name: String,
     path: List(String),
+    reference: Reference(String),
+    span: source.Span,
+  )
+  Supernode(
+    name: String,
+    ast: Ast,
     reference: Reference(String),
     span: source.Span,
   )
@@ -186,18 +178,18 @@ pub type DiagnosticKind {
   ExpectedNode(path: List(String))
   ExpectedInput
   ExpectedOutput
-  ExpectedBinding
+  ExpectedDefinition
   InvalidElement
 }
 
 type Context {
   Context(
-    parameters: dict.Dict(String, Parameter),
-    returns: dict.Dict(String, Return),
-    supernodes: dict.Dict(String, Supernode),
-    boundaries: dict.Dict(String, Boundary),
-    nodes: dict.Dict(String, Node),
-    edges: dict.Dict(List(String), Edge),
+    parameters: set.Set(String),
+    returns: set.Set(String),
+    supernodes: dict.Dict(String, Ast),
+    boundaries: set.Set(String),
+    nodes: set.Set(String),
+    edges: set.Set(List(String)),
   )
 }
 
@@ -206,24 +198,27 @@ pub fn resolve(ast: parser_1.Ast) -> Result(Ast, Diagnostic) {
   let parser_1.Ast(parameters:, returns:, elements:, span:) = ast
   let context =
     Context(
-      parameters: dict.new(),
-      returns: dict.new(),
+      parameters: set.new(),
+      returns: set.new(),
       supernodes: dict.new(),
-      boundaries: dict.new(),
-      nodes: dict.new(),
-      edges: dict.new(),
+      boundaries: set.new(),
+      nodes: set.new(),
+      edges: set.new(),
     )
 
   use #(parameters, context) <- result.try(resolve_parameters(
     parameters,
     context,
   ))
-  use #(returns, context) <- result.try(resolve_returns(returns, context))
-  use #(supernodes, boundaries, nodes, edges) <- result.try(
-    resolve_elements(elements, context, [], [], [], []),
-  )
 
-  Ok(Ast(parameters:, returns:, supernodes:, boundaries:, nodes:, edges:, span:))
+  use #(returns, context) <- result.try(resolve_returns(returns, context))
+  use context <- result.try(resolve_supernodes(elements, context))
+  use #(boundaries, nodes, edges) <- result.try(resolve_elements(
+    elements,
+    context,
+  ))
+
+  Ok(Ast(parameters:, returns:, boundaries:, nodes:, edges:, span:))
 }
 
 // PRIVATE FUNCTIONS
@@ -233,13 +228,14 @@ fn resolve_parameters(
   context: Context,
 ) {
   case declarations {
-    // SYNTAX: `name: Type`
     [declaration, ..rest] -> {
       use #(parameter, context) <- result.try(resolve_parameter(
         declaration,
         context,
       ))
+
       use #(parameters, context) <- result.try(resolve_parameters(rest, context))
+
       Ok(#([parameter, ..parameters], context))
     }
 
@@ -257,18 +253,13 @@ fn resolve_parameter(declaration: parser_1.Declaration, context: Context) {
   let parameter =
     Parameter(name:, port: Port(typename), reference: Labeled([name]), span:)
 
-  let context =
-    Context(
-      ..context,
-      parameters: dict.insert(context.parameters, name, parameter),
-    )
+  let context = add_parameter(context, parameter)
 
   Ok(#(parameter, context))
 }
 
 fn resolve_returns(declarations: List(parser_1.Declaration), context: Context) {
   case declarations {
-    // SYNTAX: `name: Type`
     [declaration, ..rest] -> {
       use #(return, context) <- result.try(resolve_return(declaration, context))
       use #(returns, context) <- result.try(resolve_returns(rest, context))
@@ -289,394 +280,297 @@ fn resolve_return(declaration: parser_1.Declaration, context: Context) {
   let return =
     Return(name:, port: Port(typename), reference: Labeled([name]), span:)
 
-  let context =
-    Context(..context, returns: dict.insert(context.returns, name, return))
+  let context = add_return(context, return)
 
   Ok(#(return, context))
 }
 
-fn resolve_elements(
-  elements: List(parser_1.Element),
-  context: Context,
-  supernodes: List(Supernode),
-  boundaries: List(Boundary),
-  nodes: List(Node),
-  edges: List(Edge),
-) {
+fn resolve_supernodes(elements: List(parser_1.Element), context: Context) {
   case elements {
-    // SYNTAX: `Inner = in: Int -> out: Int { ... }`
-    [parser_1.Definition(element: parser_1.Block(..), ..) as definition, ..rest] -> {
-      use #(supernode, context) <- result.try(resolve_supernode(
-        definition,
-        context,
-      ))
-      resolve_elements(
-        rest,
-        context,
-        [supernode, ..supernodes],
-        boundaries,
-        nodes,
-        edges,
-      )
+    [parser_1.Definition(name:, element:, span:, ..), ..rest] -> {
+      use context <- result.try(resolve_supernode(name, element, span, context))
+      resolve_supernodes(rest, context)
     }
 
-    // SYNTAX: `name = value -> Node`
-    [
-      parser_1.Definition(element: parser_1.Edge(to: parser_1.Node(..), ..), ..) as definition,
-      ..rest
-    ] -> {
-      use #(boundary, context) <- result.try(resolve_boundary(
-        definition,
-        context,
-      ))
+    [parser_1.Edge(..), ..rest]
+    | [parser_1.Value(..), ..rest]
+    | [parser_1.Block(..), ..rest] -> resolve_supernodes(rest, context)
 
-      resolve_elements(
-        rest,
-        context,
-        supernodes,
-        [boundary, ..boundaries],
-        nodes,
-        edges,
-      )
-    }
-
-    // SYNTAX: `name = Node`
-    [
-      parser_1.Definition(element: parser_1.Value(parser_1.Node(..), ..), ..) as definition,
-      ..rest
-    ] -> {
-      use #(node, context) <- result.try(resolve_node(definition, context))
-      resolve_elements(
-        rest,
-        context,
-        supernodes,
-        boundaries,
-        [node, ..nodes],
-        edges,
-      )
-    }
-
-    // SYNTAX: `name = value`
-    [parser_1.Definition(element: parser_1.Value(..), span:, ..), ..] ->
-      Error(Diagnostic(kind: ExpectedBinding, span:))
-
-    // SYNTAX: `value -> Node`
-    [parser_1.Edge(to: parser_1.Node(..) as node, ..), ..] ->
-      Error(Diagnostic(kind: ExpectedBinding, span: node.span))
-
-    // SYNTAX: `name = value -> .input`
-    [
-      parser_1.Definition(
-        element: parser_1.Edge(to: parser_1.Port(name, span:), ..),
-        ..,
-      ),
-      ..
-    ] -> Error(Diagnostic(kind: ExpectedNode([name]), span:))
-
-    // SYNTAX: `name = value -> owner.input`
-    [
-      parser_1.Definition(
-        element: parser_1.Edge(to: parser_1.Vertex(path, span:), ..),
-        ..,
-      ),
-      ..
-    ] -> Error(Diagnostic(kind: ExpectedNode(path), span:))
-
-    // SYNTAX: `value -> input`
-    [parser_1.Edge(..) as edge, ..rest] -> {
-      use #(edge, context) <- result.try(resolve_edge(edge, context))
-      resolve_elements(rest, context, supernodes, boundaries, nodes, [
-        edge,
-        ..edges
-      ])
-    }
-
-    // SYNTAX: `Node`
-    [parser_1.Value(parser_1.Node(path, span:), ..), ..] ->
-      Error(Diagnostic(kind: ExpectedNode(path), span:))
-
-    [parser_1.Definition(span:, ..), ..]
-    | [parser_1.Value(span:, ..), ..]
-    | [parser_1.Block(span:, ..), ..] ->
-      Error(Diagnostic(kind: InvalidElement, span:))
-
-    [] ->
-      Ok(#(
-        list.reverse(supernodes),
-        list.reverse(boundaries),
-        list.reverse(nodes),
-        list.reverse(edges),
-      ))
+    [] -> Ok(context)
   }
 }
 
-fn resolve_supernode(definition: parser_1.Element, context: Context) {
-  case definition {
-    // SYNTAX: `Inner = in: Int -> out: Int { ... }`
-    parser_1.Definition(name:, element: parser_1.Block(nested, ..), span:, ..) -> {
+fn resolve_supernode(
+  name: String,
+  element: parser_1.Element,
+  span: source.Span,
+  context: Context,
+) {
+  case element {
+    parser_1.Block(ast, ..) -> {
       use <- bool.guard(
         when: has_supernode(context, name),
         return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
       )
 
-      use ast <- result.try(resolve(nested))
-      let supernode = Supernode(name:, ast:, reference: Labeled(name), span:)
-      let context =
-        Context(
-          ..context,
-          supernodes: dict.insert(context.supernodes, name, supernode),
-        )
+      use ast <- result.try(resolve(ast))
+      let context = add_supernode(context, name, ast)
 
-      Ok(#(supernode, context))
+      Ok(context)
     }
 
-    parser_1.Definition(span:, ..)
-    | parser_1.Edge(span:, ..)
-    | parser_1.Value(span:, ..)
-    | parser_1.Block(span:, ..) ->
-      Error(Diagnostic(kind: InvalidElement, span:))
+    parser_1.Definition(..) | parser_1.Edge(..) | parser_1.Value(..) ->
+      Ok(context)
   }
 }
 
-fn resolve_boundary(definition: parser_1.Element, context: Context) {
-  case definition {
-    // SYNTAX: `name = value -> Node`
-    parser_1.Definition(
-      name:,
-      element: parser_1.Edge(from:, to: parser_1.Node([_node] as to, ..), ..),
-      span:,
-      ..,
-    ) -> {
-      use <- bool.guard(
-        when: has_boundary(context, name),
-        return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
-      )
+fn resolve_elements(elements: List(parser_1.Element), context: Context) {
+  case elements {
+    [parser_1.Definition(name:, element:, span:, ..), ..rest] ->
+      resolve_definition(name, element, span, rest, context)
 
+    [parser_1.Edge(from:, to:, span:), ..rest] -> {
+      use #(edge, context) <- result.try(resolve_edge(from, to, span, context))
+      use #(boundaries, nodes, edges) <- result.try(resolve_elements(
+        rest,
+        context,
+      ))
+      Ok(#(boundaries, nodes, [edge, ..edges]))
+    }
+
+    [parser_1.Value(value, span:), ..] -> resolve_value(value, span)
+
+    [parser_1.Block(span:, ..), ..] ->
+      Error(Diagnostic(kind: InvalidElement, span:))
+
+    [] -> Ok(#([], [], []))
+  }
+}
+
+fn resolve_definition(
+  name: String,
+  element: parser_1.Element,
+  span: source.Span,
+  rest: List(parser_1.Element),
+  context: Context,
+) {
+  case element {
+    parser_1.Block(..) -> resolve_elements(rest, context)
+
+    parser_1.Edge(from:, to:, ..) -> {
+      use boundary <- result.try(resolve_boundary(name, from, to, span, context))
+      let context = add_boundary(context, boundary)
+
+      use #(boundaries, nodes, edges) <- result.try(resolve_elements(
+        rest,
+        context,
+      ))
+
+      Ok(#([boundary, ..boundaries], nodes, edges))
+    }
+
+    parser_1.Value(value, ..) -> {
+      use node <- result.try(resolve_node(name, value, span, context))
+      let context = add_node(context, node)
+
+      use #(boundaries, nodes, edges) <- result.try(resolve_elements(
+        rest,
+        context,
+      ))
+
+      Ok(#(boundaries, [node, ..nodes], edges))
+    }
+
+    parser_1.Definition(..) -> Error(Diagnostic(kind: InvalidElement, span:))
+  }
+}
+
+fn resolve_value(value: parser_1.Value, span: source.Span) {
+  case value {
+    parser_1.Node(path, span:) ->
+      Error(Diagnostic(kind: ExpectedNode(path), span:))
+
+    parser_1.Int(..)
+    | parser_1.Float(..)
+    | parser_1.String(..)
+    | parser_1.Port(..)
+    | parser_1.Vertex(..) -> Error(Diagnostic(kind: InvalidElement, span:))
+  }
+}
+
+fn resolve_boundary(
+  name: String,
+  from: parser_1.Value,
+  to: parser_1.Value,
+  span: source.Span,
+  context: Context,
+) {
+  case to {
+    parser_1.Node([definition], ..) -> {
       use <- bool.guard(
-        when: has_node(context, name),
+        when: has_boundary(context, name) || has_node(context, name),
         return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
       )
 
       use from <- result.try(resolve_from(from, context))
 
-      let boundary =
-        Boundary(name:, from:, to:, reference: Labeled(name), span:)
-
-      let context =
-        Context(
-          ..context,
-          boundaries: dict.insert(context.boundaries, name, boundary),
-        )
-
-      Ok(#(boundary, context))
-    }
-
-    // SYNTAX: `name = value -> owner.Node`
-    parser_1.Definition(
-      name:,
-      element: parser_1.Edge(
+      Ok(Boundary(
+        name:,
         from:,
-        to: parser_1.Node([owner, _member] as to, ..) as node,
-        ..,
-      ),
-      span:,
-      ..,
-    ) -> {
+        to: [definition],
+        reference: Labeled(name),
+        span:,
+      ))
+    }
+
+    parser_1.Node([owner, member], ..) -> {
       use <- bool.guard(
-        when: has_boundary(context, name),
-        return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
-      )
-      use <- bool.guard(
-        when: has_node(context, name),
+        when: has_boundary(context, name) || has_node(context, name),
         return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
       )
 
       use from <- result.try(resolve_from(from, context))
-      let has_boundary = has_boundary(context, owner)
-      let has_node = has_node(context, owner)
+
       use <- bool.guard(
-        when: !has_boundary && !has_node,
-        return: Error(Diagnostic(
-          kind: UnknownDefinition(owner),
-          span: node.span,
-        )),
+        when: !has_boundary(context, owner) && !has_node(context, owner),
+        return: Error(Diagnostic(kind: UnknownDefinition(owner), span: to.span)),
       )
 
-      let boundary =
-        Boundary(name:, from:, to:, reference: Labeled(name), span:)
-      let context =
-        Context(
-          ..context,
-          boundaries: dict.insert(context.boundaries, name, boundary),
-        )
-
-      Ok(#(boundary, context))
+      Ok(Boundary(
+        name:,
+        from:,
+        to: [owner, member],
+        reference: Labeled(name),
+        span:,
+      ))
     }
 
-    parser_1.Definition(
-      element: parser_1.Edge(to: parser_1.Node(to, ..) as node, ..),
-      ..,
-    ) -> Error(Diagnostic(kind: UnknownNode(to), span: node.span))
+    parser_1.Node(path, ..) ->
+      Error(Diagnostic(kind: UnknownNode(path), span: to.span))
 
-    parser_1.Definition(span:, ..)
-    | parser_1.Edge(span:, ..)
-    | parser_1.Value(span:, ..)
-    | parser_1.Block(span:, ..) ->
+    parser_1.Port(name, ..) ->
+      Error(Diagnostic(kind: ExpectedNode([name]), span: to.span))
+
+    parser_1.Vertex(path, ..) ->
+      Error(Diagnostic(kind: ExpectedNode(path), span: to.span))
+
+    parser_1.Int(..) | parser_1.Float(..) | parser_1.String(..) ->
       Error(Diagnostic(kind: InvalidElement, span:))
   }
 }
 
-fn resolve_node(definition: parser_1.Element, context: Context) {
-  case definition {
-    // SYNTAX: `name = Node`
-    parser_1.Definition(
-      name:,
-      element: parser_1.Value(parser_1.Node([_node] as path, ..), ..),
-      span:,
-      ..,
-    ) -> {
+fn resolve_node(
+  name: String,
+  value: parser_1.Value,
+  span: source.Span,
+  context: Context,
+) {
+  case value {
+    parser_1.Node([definition], ..) -> {
       use <- bool.guard(
-        when: has_node(context, name),
-        return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
-      )
-      use <- bool.guard(
-        when: has_boundary(context, name),
+        when: has_boundary(context, name) || has_node(context, name),
         return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
       )
 
-      let node = Node(name:, path:, reference: Labeled(name), span:)
-      let context =
-        Context(..context, nodes: dict.insert(context.nodes, name, node))
+      let node = case dict.get(context.supernodes, definition) {
+        Ok(ast) -> Supernode(name:, ast:, reference: Labeled(name), span:)
+        Error(Nil) ->
+          Node(name:, path: [definition], reference: Labeled(name), span:)
+      }
 
-      Ok(#(node, context))
+      Ok(node)
     }
 
-    // SYNTAX: `name = owner.Node`
-    parser_1.Definition(
-      name:,
-      element: parser_1.Value(
-        parser_1.Node([owner, _member] as path, ..) as node,
-        ..,
-      ),
-      span:,
-      ..,
-    ) -> {
+    parser_1.Node([owner, member], ..) -> {
       use <- bool.guard(
-        when: has_node(context, name),
-        return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
-      )
-      use <- bool.guard(
-        when: has_boundary(context, name),
+        when: has_boundary(context, name) || has_node(context, name),
         return: Error(Diagnostic(kind: DuplicateDefinition(name), span:)),
       )
 
-      let has_boundary = has_boundary(context, owner)
-      let has_node = has_node(context, owner)
       use <- bool.guard(
-        when: !has_boundary && !has_node,
+        when: !has_boundary(context, owner) && !has_node(context, owner),
         return: Error(Diagnostic(
           kind: UnknownDefinition(owner),
-          span: node.span,
+          span: value.span,
         )),
       )
 
-      let node = Node(name:, path:, reference: Labeled(name), span:)
-      let context =
-        Context(..context, nodes: dict.insert(context.nodes, name, node))
-
-      Ok(#(node, context))
+      Ok(Node(name:, path: [owner, member], reference: Labeled(name), span:))
     }
 
-    parser_1.Definition(
-      element: parser_1.Value(parser_1.Node(path, ..) as node, ..),
-      ..,
-    ) -> Error(Diagnostic(kind: UnknownNode(path), span: node.span))
+    parser_1.Node(path, ..) ->
+      Error(Diagnostic(kind: UnknownNode(path), span: value.span))
 
-    parser_1.Definition(span:, ..)
-    | parser_1.Edge(span:, ..)
-    | parser_1.Value(span:, ..)
-    | parser_1.Block(span:, ..) ->
-      Error(Diagnostic(kind: InvalidElement, span:))
+    parser_1.Int(..)
+    | parser_1.Float(..)
+    | parser_1.String(..)
+    | parser_1.Port(..)
+    | parser_1.Vertex(..) -> Error(Diagnostic(kind: InvalidElement, span:))
   }
 }
 
-fn resolve_edge(edge: parser_1.Element, context: Context) {
-  case edge {
-    // SYNTAX: `value -> input`
-    parser_1.Edge(from:, to:, span:) -> {
-      use from <- result.try(resolve_from(from, context))
-      use to <- result.try(resolve_input(to, context))
-      use <- bool.guard(
-        when: has_edge(context, to.path),
-        return: Error(Diagnostic(kind: DuplicateInput(to.path), span: to.span)),
-      )
+fn resolve_edge(
+  from: parser_1.Value,
+  to: parser_1.Value,
+  span: source.Span,
+  context: Context,
+) {
+  use from <- result.try(resolve_from(from, context))
+  use to <- result.try(resolve_input(to, context))
+  use <- bool.guard(
+    when: has_edge(context, to.path),
+    return: Error(Diagnostic(kind: DuplicateInput(to.path), span: to.span)),
+  )
 
-      let reference = Unlabeled(dict.size(context.edges))
-      let edge = Edge(from:, to:, reference:, span:)
-      let context =
-        Context(..context, edges: dict.insert(context.edges, to.path, edge))
+  let edge =
+    Edge(from:, to:, reference: Unlabeled(set.size(context.edges)), span:)
 
-      Ok(#(edge, context))
-    }
+  let context = add_edge(context, edge)
 
-    parser_1.Definition(span:, ..)
-    | parser_1.Value(span:, ..)
-    | parser_1.Block(span:, ..) ->
-      Error(Diagnostic(kind: InvalidElement, span:))
-  }
+  Ok(#(edge, context))
 }
 
 fn resolve_from(value: parser_1.Value, context: Context) {
   case value {
-    // SYNTAX: `1`
     parser_1.Int(value, span:) -> Ok(Literal(value: Int(value, span:), span:))
 
-    // SYNTAX: `1.23`
     parser_1.Float(value, span:) ->
       Ok(Literal(value: Float(value, span:), span:))
 
-    // SYNTAX: `"value"`
     parser_1.String(value, span:) ->
       Ok(Literal(value: String(value, span:), span:))
 
-    // SYNTAX: `.parameter`
     parser_1.Port(name, span:) -> {
       let path = [name]
-      let has_parameter = has_parameter(context, name)
-      let has_return = has_return(context, name)
-
       use <- bool.guard(
-        when: !has_parameter && !has_return,
+        when: !has_parameter(context, name) && !has_return(context, name),
         return: Error(Diagnostic(kind: UnknownOutput(path), span:)),
       )
+
       use <- bool.guard(
-        when: !has_parameter,
+        when: !has_parameter(context, name),
         return: Error(Diagnostic(kind: ExpectedOutput, span:)),
       )
 
       Ok(Output(path:, reference: Labeled(path), span:))
     }
 
-    // SYNTAX: `owner.output`
-    parser_1.Vertex([owner, _member] as path, span:) -> {
-      let has_boundary = has_boundary(context, owner)
-      let has_node = has_node(context, owner)
+    parser_1.Vertex([owner, member], span:) -> {
       use <- bool.guard(
-        when: !has_boundary && !has_node,
+        when: !has_boundary(context, owner) && !has_node(context, owner),
         return: Error(Diagnostic(kind: UnknownDefinition(owner), span:)),
       )
 
+      let path = [owner, member]
       Ok(Output(path:, reference: Labeled(path), span:))
     }
 
-    // SYNTAX: `value`
-    parser_1.Vertex([_name], span:) ->
+    parser_1.Vertex([_], span:) ->
       Error(Diagnostic(kind: ExpectedOutput, span:))
 
     parser_1.Vertex(path, span:) ->
       Error(Diagnostic(kind: UnknownOutput(path), span:))
 
-    // SYNTAX: `Node`
     parser_1.Node(path, span:) ->
       Error(Diagnostic(kind: ExpectedNode(path), span:))
   }
@@ -684,70 +578,89 @@ fn resolve_from(value: parser_1.Value, context: Context) {
 
 fn resolve_input(value: parser_1.Value, context: Context) {
   case value {
-    // SYNTAX: `.return`
     parser_1.Port(name, span:) -> {
       let path = [name]
-      let has_parameter = has_parameter(context, name)
-      let has_return = has_return(context, name)
-
       use <- bool.guard(
-        when: !has_parameter && !has_return,
+        when: !has_parameter(context, name) && !has_return(context, name),
         return: Error(Diagnostic(kind: UnknownInput(path), span:)),
       )
+
       use <- bool.guard(
-        when: !has_return,
+        when: !has_return(context, name),
         return: Error(Diagnostic(kind: ExpectedInput, span:)),
       )
 
       Ok(Input(path:, reference: Labeled(path), span:))
     }
 
-    // SYNTAX: `owner.input`
-    parser_1.Vertex([owner, _member] as path, span:) -> {
-      let has_boundary = has_boundary(context, owner)
-      let has_node = has_node(context, owner)
+    parser_1.Vertex([owner, member], span:) -> {
       use <- bool.guard(
-        when: !has_boundary && !has_node,
+        when: !has_boundary(context, owner) && !has_node(context, owner),
         return: Error(Diagnostic(kind: UnknownDefinition(owner), span:)),
       )
+
+      let path = [owner, member]
 
       Ok(Input(path:, reference: Labeled(path), span:))
     }
 
-    // SYNTAX: `value`
-    parser_1.Vertex([_name], span:) ->
-      Error(Diagnostic(kind: ExpectedInput, span:))
+    parser_1.Vertex([_], span:) -> Error(Diagnostic(kind: ExpectedInput, span:))
 
     parser_1.Vertex(path, span:) ->
       Error(Diagnostic(kind: UnknownInput(path), span:))
 
-    parser_1.Node(path, span:) ->
-      Error(Diagnostic(kind: ExpectedNode(path), span:))
+    parser_1.Node(span:, ..) ->
+      Error(Diagnostic(kind: ExpectedDefinition, span:))
 
-    value -> Error(Diagnostic(kind: ExpectedInput, span: value.span))
+    parser_1.Int(..) | parser_1.Float(..) | parser_1.String(..) ->
+      Error(Diagnostic(kind: ExpectedInput, span: value.span))
   }
 }
 
-fn has_parameter(context: Context, name: String) {
-  dict.has_key(context.parameters, name)
+fn add_parameter(context: Context, parameter: Parameter) -> Context {
+  Context(..context, parameters: set.insert(context.parameters, parameter.name))
 }
 
-fn has_return(context: Context, name: String) {
-  dict.has_key(context.returns, name)
+fn has_parameter(context: Context, name: String) -> Bool {
+  set.contains(context.parameters, name)
 }
 
-fn has_supernode(context: Context, name: String) {
+fn add_return(context: Context, return: Return) -> Context {
+  Context(..context, returns: set.insert(context.returns, return.name))
+}
+
+fn has_return(context: Context, name: String) -> Bool {
+  set.contains(context.returns, name)
+}
+
+fn add_supernode(context: Context, name: String, ast: Ast) -> Context {
+  Context(..context, supernodes: dict.insert(context.supernodes, name, ast))
+}
+
+fn has_supernode(context: Context, name: String) -> Bool {
   dict.has_key(context.supernodes, name)
 }
 
-fn has_node(context: Context, name: String) {
-  dict.has_key(context.nodes, name)
+fn add_boundary(context: Context, boundary: Boundary) -> Context {
+  Context(..context, boundaries: set.insert(context.boundaries, boundary.name))
 }
 
-fn has_edge(context: Context, path: List(String)) {
-  dict.has_key(context.edges, path)
+fn has_boundary(context: Context, name: String) -> Bool {
+  set.contains(context.boundaries, name)
 }
 
-fn has_boundary(context: Context, name: String) {
-  dict.has_key(context.boundaries, name)
+fn add_node(context: Context, node: Node) -> Context {
+  Context(..context, nodes: set.insert(context.nodes, node.name))
+}
+
+fn has_node(context: Context, name: String) -> Bool {
+  set.contains(context.nodes, name)
+}
+
+fn add_edge(context: Context, edge: Edge) -> Context {
+  Context(..context, edges: set.insert(context.edges, edge.to.path))
+}
+
+fn has_edge(context: Context, path: List(String)) -> Bool {
+  set.contains(context.edges, path)
 }

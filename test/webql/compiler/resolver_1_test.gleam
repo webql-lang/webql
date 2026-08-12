@@ -37,7 +37,6 @@ pub fn resolve_services_test() {
         span: return_span,
       ),
     ],
-    supernodes: [],
     boundaries: [
       resolver_1.Boundary(
         name: "service",
@@ -130,7 +129,6 @@ pub fn resolve_boundary_endpoints_test() {
         ..,
       ),
     ],
-    nodes: [],
     edges: [
       resolver_1.Edge(
         to: resolver_1.Input(path: ["service", "in"], ..),
@@ -167,7 +165,6 @@ pub fn resolve_member_boundary_test() {
         ..,
       ),
     ],
-    nodes: [],
     edges: [],
     ..,
   )) = resolve(code)
@@ -240,9 +237,9 @@ pub fn resolve_supernode_test() {
       resolver_1.Parameter(reference: resolver_1.Labeled(["in"]), ..),
     ],
     returns: [resolver_1.Return(reference: resolver_1.Labeled(["out"]), ..)],
-    supernodes: [
+    nodes: [
       resolver_1.Supernode(
-        name: "Inner",
+        name: "inner",
         ast: resolver_1.Ast(
           parameters: [
             resolver_1.Parameter(reference: resolver_1.Labeled(["value"]), ..),
@@ -260,14 +257,6 @@ pub fn resolve_supernode_test() {
           span: nested_span,
           ..,
         ),
-        reference: resolver_1.Labeled("Inner"),
-        span: supernode_span,
-      ),
-    ],
-    nodes: [
-      resolver_1.Node(
-        name: "inner",
-        path: ["Inner"],
         reference: resolver_1.Labeled("inner"),
         span: node_span,
       ),
@@ -300,12 +289,62 @@ pub fn resolve_supernode_test() {
   assert source.slice(code, nested_edge_span) == ".value -> .result"
   assert source.slice(code, nested_span)
     == "value: Int -> result: Int { .value -> .result }"
-  assert source.slice(code, supernode_span)
-    == "Inner = value: Int -> result: Int { .value -> .result }"
   assert source.slice(code, node_span) == "inner = Inner"
 }
 
-pub fn edge_binding_requires_node_diagnostic_test() {
+pub fn resolve_forward_supernode_reference_test() {
+  let code = "-> { inner = Inner Inner = -> { node = Thing } }"
+  let assert Ok(resolver_1.Ast(
+    nodes: [
+      resolver_1.Supernode(
+        name: "inner",
+        ast: resolver_1.Ast(
+          nodes: [resolver_1.Node(name: "node", path: ["Thing"], ..)],
+          ..,
+        ),
+        reference: resolver_1.Labeled("inner"),
+        span: instance_span,
+      ),
+    ],
+    ..,
+  )) = resolve(code)
+
+  assert source.slice(code, instance_span) == "inner = Inner"
+}
+
+pub fn unused_supernode_definitions_are_omitted_test() {
+  let code = "-> { Unused = -> {} node = Thing }"
+  let assert Ok(resolver_1.Ast(
+    boundaries: [],
+    nodes: [resolver_1.Node(name: "node", path: ["Thing"], ..)],
+    ..,
+  )) = resolve(code)
+}
+
+pub fn supernode_definition_can_be_instantiated_twice_test() {
+  let code = "-> { first = Shared Shared = -> {} second = Shared }"
+  let assert Ok(resolver_1.Ast(
+    nodes: [
+      resolver_1.Supernode(
+        name: "first",
+        ast: first,
+        reference: resolver_1.Labeled("first"),
+        ..,
+      ),
+      resolver_1.Supernode(
+        name: "second",
+        ast: second,
+        reference: resolver_1.Labeled("second"),
+        ..,
+      ),
+    ],
+    ..,
+  )) = resolve(code)
+
+  assert first == second
+}
+
+pub fn edge_definition_requires_node_diagnostic_test() {
   assert_diagnostic(
     "in: Int -> out: Int { route = .in -> .out }",
     resolver_1.ExpectedNode(["out"]),
@@ -524,10 +563,10 @@ pub fn duplicate_input_diagnostic_test() {
   )
 }
 
-pub fn boundary_requires_binding_diagnostic_test() {
+pub fn boundary_requires_definition_diagnostic_test() {
   assert_diagnostic(
     "token: Uuid -> { .token -> Service }",
-    resolver_1.ExpectedBinding,
+    resolver_1.ExpectedDefinition,
     "Service",
   )
 }
@@ -556,16 +595,16 @@ pub fn expected_output_diagnostic_test() {
   )
 }
 
-pub fn unsupported_binding_diagnostic_test() {
-  assert_diagnostic("-> { value = 1 }", resolver_1.ExpectedBinding, "value = 1")
+pub fn invalid_definition_diagnostic_test() {
+  assert_diagnostic("-> { value = 1 }", resolver_1.InvalidElement, "value = 1")
   assert_diagnostic(
     "in: Int -> { value = .in }",
-    resolver_1.ExpectedBinding,
+    resolver_1.InvalidElement,
     "value = .in",
   )
   assert_diagnostic(
     "-> { math = Math value = math.out }",
-    resolver_1.ExpectedBinding,
+    resolver_1.InvalidElement,
     "value = math.out",
   )
 }

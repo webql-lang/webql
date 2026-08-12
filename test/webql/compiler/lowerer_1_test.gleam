@@ -22,7 +22,6 @@ pub fn lower_ast_test() {
           span: span(2),
         ),
       ],
-      supernodes: [],
       boundaries: [],
       nodes: [],
       edges: [
@@ -48,7 +47,6 @@ pub fn lower_ast_test() {
     resolver_1.Ast(
       parameters: [],
       returns: [],
-      supernodes: [],
       boundaries: [],
       nodes: [],
       edges: [],
@@ -97,20 +95,6 @@ pub fn lower_ast_test() {
           span: span(13),
         ),
       ],
-      supernodes: [
-        resolver_1.Supernode(
-          name: "Identity",
-          ast: identity,
-          reference: resolver_1.Labeled("Identity"),
-          span: span(14),
-        ),
-        resolver_1.Supernode(
-          name: "Empty",
-          ast: empty,
-          reference: resolver_1.Unlabeled(3),
-          span: span(15),
-        ),
-      ],
       boundaries: [
         resolver_1.Boundary(
           name: "service",
@@ -141,11 +125,17 @@ pub fn lower_ast_test() {
           reference: resolver_1.Labeled("add"),
           span: span(21),
         ),
-        resolver_1.Node(
+        resolver_1.Supernode(
           name: "identity",
-          path: ["Identity"],
+          ast: identity,
           reference: resolver_1.Unlabeled(5),
           span: span(22),
+        ),
+        resolver_1.Supernode(
+          name: "empty",
+          ast: empty,
+          reference: resolver_1.Unlabeled(3),
+          span: span(15),
         ),
       ],
       edges: [
@@ -214,7 +204,6 @@ pub fn lower_ast_test() {
       returns: [
         graph_1.Return(name: "result", port: graph_1.Port("Int")),
       ],
-      supernodes: [],
       boundaries: [],
       nodes: [],
       edges: [
@@ -229,7 +218,6 @@ pub fn lower_ast_test() {
     graph_1.Graph(
       parameters: [],
       returns: [],
-      supernodes: [],
       boundaries: [],
       nodes: [],
       edges: [],
@@ -247,10 +235,6 @@ pub fn lower_ast_test() {
         graph_1.Return(name: "decimal", port: graph_1.Port("Float")),
         graph_1.Return(name: "text", port: graph_1.Port("String")),
       ],
-      supernodes: [
-        graph_1.Supernode(name: "Identity", graph: lowered_identity),
-        graph_1.Supernode(name: "Empty", graph: lowered_empty),
-      ],
       boundaries: [
         graph_1.Boundary(
           name: "service",
@@ -265,7 +249,8 @@ pub fn lower_ast_test() {
       ],
       nodes: [
         graph_1.Node(name: "add", path: ["service", "Add"]),
-        graph_1.Node(name: "identity", path: ["Identity"]),
+        graph_1.Supernode(name: "identity", graph: lowered_identity),
+        graph_1.Supernode(name: "empty", graph: lowered_empty),
       ],
       edges: [
         graph_1.Edge(

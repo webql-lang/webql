@@ -3,7 +3,6 @@ pub type Graph {
   Graph(
     parameters: List(Parameter),
     returns: List(Return),
-    supernodes: List(Supernode),
     boundaries: List(Boundary),
     nodes: List(Node),
     edges: List(Edge),
@@ -25,19 +24,15 @@ pub type Port {
   Port(name: String)
 }
 
-/// A named graph nested inside another graph.
-pub type Supernode {
-  Supernode(name: String, graph: Graph)
-}
-
-/// A labeled connection into a node.
+/// A named access point into a collection of nodes or values.
 pub type Boundary {
   Boundary(name: String, from: From, to: List(String))
 }
 
-/// A named node.
+/// A named executable node or nested graph.
 pub type Node {
   Node(name: String, path: List(String))
+  Supernode(name: String, graph: Graph)
 }
 
 /// A directed connection from an output or literal to an input.

@@ -4,20 +4,12 @@ import webql/graph_1
 
 /// Lowers a resolved syntax tree into a graph.
 pub fn lower(ast: resolver_1.Ast) -> graph_1.Graph {
-  let resolver_1.Ast(
-    parameters:,
-    returns:,
-    supernodes:,
-    boundaries:,
-    nodes:,
-    edges:,
-    ..,
-  ) = ast
+  let resolver_1.Ast(parameters:, returns:, boundaries:, nodes:, edges:, ..) =
+    ast
 
   graph_1.Graph(
     parameters: list.map(parameters, lower_parameter),
     returns: list.map(returns, lower_return),
-    supernodes: list.map(supernodes, lower_supernode),
     boundaries: list.map(boundaries, lower_boundary),
     nodes: list.map(nodes, lower_node),
     edges: list.map(edges, lower_edge),
@@ -36,10 +28,6 @@ fn lower_port(port: resolver_1.Port) -> graph_1.Port {
   graph_1.Port(port.name)
 }
 
-fn lower_supernode(supernode: resolver_1.Supernode) -> graph_1.Supernode {
-  graph_1.Supernode(name: supernode.name, graph: lower(supernode.ast))
-}
-
 fn lower_boundary(boundary: resolver_1.Boundary) -> graph_1.Boundary {
   graph_1.Boundary(
     name: boundary.name,
@@ -49,7 +37,12 @@ fn lower_boundary(boundary: resolver_1.Boundary) -> graph_1.Boundary {
 }
 
 fn lower_node(node: resolver_1.Node) -> graph_1.Node {
-  graph_1.Node(name: node.name, path: node.path)
+  case node {
+    resolver_1.Node(name:, path:, ..) -> graph_1.Node(name:, path:)
+
+    resolver_1.Supernode(name:, ast:, ..) ->
+      graph_1.Supernode(name:, graph: lower(ast))
+  }
 }
 
 fn lower_edge(edge: resolver_1.Edge) -> graph_1.Edge {
