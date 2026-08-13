@@ -1,8 +1,11 @@
+import gleam/option
+
 /// A lowered WebQL graph without compiler metadata.
 pub type Graph {
   Graph(
     parameters: List(Parameter),
     returns: List(Return),
+    supernodes: List(Supernode),
     boundaries: List(Boundary),
     nodes: List(Node),
     edges: List(Edge),
@@ -11,49 +14,64 @@ pub type Graph {
 
 /// A value supplied by the caller and used on the left side of an edge.
 pub type Parameter {
-  Parameter(name: String, port: Port)
+  Parameter(name: String, typename: Typename)
 }
 
 /// A value produced by the graph and returned through the right side of an edge.
 pub type Return {
-  Return(name: String, port: Port)
+  Return(name: String, typename: Typename)
 }
 
 /// A declared parameter or return type.
-pub type Port {
-  Port(name: String)
+pub type Typename {
+  Typename(name: String)
 }
 
-/// A named access point into a collection of nodes or values.
-pub type Boundary {
-  Boundary(name: String, from: From, to: List(String))
-}
-
-/// A named executable node or nested graph.
-pub type Node {
-  Node(name: String, path: List(String))
+/// A reusable graph declared inside another graph.
+pub type Supernode {
   Supernode(name: String, graph: Graph)
 }
 
-/// A directed connection from an output or literal to an input.
+/// An instantiated boundary.
+pub type Boundary {
+  Boundary(
+    name: String,
+    from: From,
+    owner: option.Option(String),
+    boundary: String,
+  )
+}
+
+/// An executable node instance.
+pub type Node {
+  Node(name: String, owner: option.Option(String), node: String)
+}
+
+/// A directed connection from a value to an input.
 pub type Edge {
-  Edge(from: From, to: Input)
+  Edge(from: From, to: To)
 }
 
-/// A destination that receives an edge.
-pub type Input {
-  Input(path: List(String))
+/// A graph-interface port or node or boundary vertex.
+pub type Path {
+  Port(name: String)
+  Vertex(owner: String, name: String)
 }
 
-/// An output or literal on the left side of an arrow.
+/// A value on the left side of an arrow.
 pub type From {
-  Output(path: List(String))
+  Output(path: Path)
   Literal(value: Value)
+}
+
+/// An input on the right side of an arrow.
+pub type To {
+  Input(path: Path)
 }
 
 /// A literal embedded directly in the graph.
 pub type Value {
-  Int(Int)
-  Float(Float)
-  String(String)
+  Int(value: Int)
+  Float(value: Float)
+  String(value: String)
 }

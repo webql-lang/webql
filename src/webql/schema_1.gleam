@@ -1,20 +1,18 @@
 import gleam/dict
 
-/// The ports, boundaries, and nodes available to a WebQL document.
+/// The typenames, boundaries, and nodes available to a WebQL document.
 pub type Schema {
   Schema(
-    ports: dict.Dict(String, Port),
+    typenames: dict.Dict(String, Typename),
     boundaries: dict.Dict(String, Boundary),
     nodes: dict.Dict(String, Node),
   )
 }
 
-/// A value-consuming definition that exposes inputs, outputs, boundaries, and
-/// nodes.
+/// A value-consuming definition that exposes outputs, boundaries, and nodes.
 pub type Boundary {
   Boundary(
-    port: Port,
-    inputs: dict.Dict(String, Input),
+    typename: Typename,
     outputs: dict.Dict(String, Output),
     boundaries: dict.Dict(String, Boundary),
     nodes: dict.Dict(String, Node),
@@ -27,16 +25,16 @@ pub type Node {
 }
 
 /// A value type available to document and definition interfaces.
-pub type Port {
-  Port(name: String)
+pub type Typename {
+  Typename(name: String)
 }
 
 /// An input exposed under its dictionary key and its value type.
 pub type Input {
-  Input(port: Port)
+  Input(typename: Typename)
 }
 
 /// An output exposed under its dictionary key and its value type.
 pub type Output {
-  Output(port: Port)
+  Output(typename: Typename)
 }

@@ -1,4 +1,5 @@
 import gleam/dict
+import gleam/option
 import webql/compiler/lexer
 import webql/compiler/parser_1
 import webql/compiler/resolver_1
@@ -14,19 +15,19 @@ pub fn resolve_services_test() {
     parameters: [
       resolver_1.Parameter(
         name: "token",
-        port: resolver_1.Port("Uuid"),
+        typename: resolver_1.Typename("Uuid"),
         reference: resolver_1.Labeled(["token"]),
         span: token_parameter_span,
       ),
       resolver_1.Parameter(
         name: "l",
-        port: resolver_1.Port("Int"),
+        typename: resolver_1.Typename("Int"),
         reference: resolver_1.Labeled(["l"]),
         ..,
       ),
       resolver_1.Parameter(
         name: "r",
-        port: resolver_1.Port("Int"),
+        typename: resolver_1.Typename("Int"),
         reference: resolver_1.Labeled(["r"]),
         ..,
       ),
@@ -34,20 +35,22 @@ pub fn resolve_services_test() {
     returns: [
       resolver_1.Return(
         name: "out",
-        port: resolver_1.Port("Int"),
+        typename: resolver_1.Typename("Int"),
         reference: resolver_1.Labeled(["out"]),
         span: return_span,
       ),
     ],
+    supernodes: [],
     boundaries: [
       resolver_1.Boundary(
         name: "service",
         from: resolver_1.Output(
-          path: ["token"],
+          path: resolver_1.Port("token"),
           reference: resolver_1.Labeled(["token"]),
           span: token_from_span,
         ),
-        to: ["Service"],
+        owner: option.None,
+        boundary: "Service",
         reference: resolver_1.Labeled("service"),
         span: service_span,
       ),
@@ -55,7 +58,8 @@ pub fn resolve_services_test() {
     nodes: [
       resolver_1.Node(
         name: "add",
-        path: ["service", "Add"],
+        owner: option.Some("service"),
+        node: "Add",
         reference: resolver_1.Labeled("add"),
         span: add_span,
       ),
@@ -63,12 +67,12 @@ pub fn resolve_services_test() {
     edges: [
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["l"],
+          path: resolver_1.Port("l"),
           reference: resolver_1.Labeled(["l"]),
           ..,
         ),
         to: resolver_1.Input(
-          path: ["add", "l"],
+          path: resolver_1.Vertex("add", "l"),
           reference: resolver_1.Labeled(["add", "l"]),
           ..,
         ),
@@ -77,12 +81,12 @@ pub fn resolve_services_test() {
       ),
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["r"],
+          path: resolver_1.Port("r"),
           reference: resolver_1.Labeled(["r"]),
           ..,
         ),
         to: resolver_1.Input(
-          path: ["add", "r"],
+          path: resolver_1.Vertex("add", "r"),
           reference: resolver_1.Labeled(["add", "r"]),
           ..,
         ),
@@ -91,12 +95,12 @@ pub fn resolve_services_test() {
       ),
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["add", "out"],
+          path: resolver_1.Vertex("add", "out"),
           reference: resolver_1.Labeled(["add", "out"]),
           ..,
         ),
         to: resolver_1.Input(
-          path: ["out"],
+          path: resolver_1.Port("out"),
           reference: resolver_1.Labeled(["out"]),
           ..,
         ),
@@ -118,28 +122,24 @@ pub fn resolve_services_test() {
   assert resolve(code) == Ok(ast)
 }
 
-pub fn resolve_boundary_endpoints_test() {
+pub fn resolve_boundary_field_test() {
   let code =
-    "token: Uuid -> out: Int { service = .token -> Service 1 -> service.in service.out -> .out }"
+    "token: Uuid -> out: Int { service = .token -> Service service.out -> .out }"
   let assert Ok(resolver_1.Ast(
     boundaries: [
       resolver_1.Boundary(
         name: "service",
-        from: resolver_1.Output(path: ["token"], ..),
-        to: ["Service"],
+        from: resolver_1.Output(path: resolver_1.Port("token"), ..),
+        owner: option.None,
+        boundary: "Service",
         reference: resolver_1.Labeled("service"),
         ..,
       ),
     ],
     edges: [
       resolver_1.Edge(
-        to: resolver_1.Input(path: ["service", "in"], ..),
+        from: resolver_1.Output(path: resolver_1.Vertex("service", "out"), ..),
         reference: resolver_1.Unlabeled(0),
-        ..,
-      ),
-      resolver_1.Edge(
-        from: resolver_1.Output(path: ["service", "out"], ..),
-        reference: resolver_1.Unlabeled(1),
         ..,
       ),
     ],
@@ -154,15 +154,17 @@ pub fn resolve_member_boundary_test() {
     boundaries: [
       resolver_1.Boundary(
         name: "editor",
-        from: resolver_1.Output(path: ["token"], ..),
-        to: ["Editor"],
+        from: resolver_1.Output(path: resolver_1.Port("token"), ..),
+        owner: option.None,
+        boundary: "Editor",
         reference: resolver_1.Labeled("editor"),
         ..,
       ),
       resolver_1.Boundary(
         name: "workflow",
-        from: resolver_1.Output(path: ["editor", "id"], ..),
-        to: ["editor", "Workflow"],
+        from: resolver_1.Output(path: resolver_1.Vertex("editor", "id"), ..),
+        owner: option.Some("editor"),
+        boundary: "Workflow",
         reference: resolver_1.Labeled("workflow"),
         ..,
       ),
@@ -178,13 +180,17 @@ pub fn resolve_nested_boundaries_and_local_supernode_test() {
 
   let assert Ok(resolver_1.Ast(
     boundaries: [
-      resolver_1.Boundary(name: "a", to: ["NodeA"], ..),
-      resolver_1.Boundary(name: "b", to: ["a", "NodeB"], ..),
+      resolver_1.Boundary(name: "a", owner: option.None, boundary: "NodeA", ..),
+      resolver_1.Boundary(
+        name: "b",
+        owner: option.Some("a"),
+        boundary: "NodeB",
+        ..,
+      ),
     ],
-    nodes: [
-      resolver_1.Node(name: "c", path: ["b", "NodeC"], ..),
+    supernodes: [
       resolver_1.Supernode(
-        name: "d",
+        name: "NodeD",
         ast: resolver_1.Ast(
           parameters: [resolver_1.Parameter(name: "in", ..)],
           returns: [resolver_1.Return(name: "out", ..)],
@@ -194,10 +200,14 @@ pub fn resolve_nested_boundaries_and_local_supernode_test() {
         ..,
       ),
     ],
+    nodes: [
+      resolver_1.Node(name: "c", owner: option.Some("b"), node: "NodeC", ..),
+      resolver_1.Node(name: "d", owner: option.None, node: "NodeD", ..),
+    ],
     edges: [
       resolver_1.Edge(
-        from: resolver_1.Output(path: ["c", "value"], ..),
-        to: resolver_1.Input(path: ["out"], ..),
+        from: resolver_1.Output(path: resolver_1.Vertex("c", "value"), ..),
+        to: resolver_1.Input(path: resolver_1.Port("out"), ..),
         ..,
       ),
     ],
@@ -221,7 +231,7 @@ pub fn resolve_literals_test() {
           span: int_from_span,
         ),
         to: resolver_1.Input(
-          path: ["integer"],
+          path: resolver_1.Port("integer"),
           reference: resolver_1.Labeled(["integer"]),
           ..,
         ),
@@ -234,7 +244,7 @@ pub fn resolve_literals_test() {
           ..,
         ),
         to: resolver_1.Input(
-          path: ["decimal"],
+          path: resolver_1.Port("decimal"),
           reference: resolver_1.Labeled(["decimal"]),
           ..,
         ),
@@ -247,7 +257,7 @@ pub fn resolve_literals_test() {
           ..,
         ),
         to: resolver_1.Input(
-          path: ["text"],
+          path: resolver_1.Port("text"),
           reference: resolver_1.Labeled(["text"]),
           ..,
         ),
@@ -272,9 +282,9 @@ pub fn resolve_supernode_test() {
       resolver_1.Parameter(reference: resolver_1.Labeled(["in"]), ..),
     ],
     returns: [resolver_1.Return(reference: resolver_1.Labeled(["out"]), ..)],
-    nodes: [
+    supernodes: [
       resolver_1.Supernode(
-        name: "inner",
+        name: "Inner",
         ast: resolver_1.Ast(
           parameters: [
             resolver_1.Parameter(reference: resolver_1.Labeled(["value"]), ..),
@@ -292,6 +302,14 @@ pub fn resolve_supernode_test() {
           span: nested_span,
           ..,
         ),
+        ..,
+      ),
+    ],
+    nodes: [
+      resolver_1.Node(
+        name: "inner",
+        owner: option.None,
+        node: "Inner",
         reference: resolver_1.Labeled("inner"),
         span: node_span,
       ),
@@ -300,7 +318,7 @@ pub fn resolve_supernode_test() {
       resolver_1.Edge(
         from: resolver_1.Output(reference: resolver_1.Labeled(["in"]), ..),
         to: resolver_1.Input(
-          path: ["inner", "value"],
+          path: resolver_1.Vertex("inner", "value"),
           reference: resolver_1.Labeled(["inner", "value"]),
           ..,
         ),
@@ -309,7 +327,7 @@ pub fn resolve_supernode_test() {
       ),
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["inner", "result"],
+          path: resolver_1.Vertex("inner", "result"),
           reference: resolver_1.Labeled(["inner", "result"]),
           ..,
         ),
@@ -330,13 +348,23 @@ pub fn resolve_supernode_test() {
 pub fn resolve_forward_supernode_reference_test() {
   let code = "-> { inner = Inner Inner = -> { node = Thing } }"
   let assert Ok(resolver_1.Ast(
-    nodes: [
+    supernodes: [
       resolver_1.Supernode(
-        name: "inner",
+        name: "Inner",
         ast: resolver_1.Ast(
-          nodes: [resolver_1.Node(name: "node", path: ["Thing"], ..)],
+          nodes: [
+            resolver_1.Node(name: "node", owner: option.None, node: "Thing", ..),
+          ],
           ..,
         ),
+        ..,
+      ),
+    ],
+    nodes: [
+      resolver_1.Node(
+        name: "inner",
+        owner: option.None,
+        node: "Inner",
         reference: resolver_1.Labeled("inner"),
         span: instance_span,
       ),
@@ -347,11 +375,14 @@ pub fn resolve_forward_supernode_reference_test() {
   assert source.slice(code, instance_span) == "inner = Inner"
 }
 
-pub fn unused_supernode_definitions_are_omitted_test() {
+pub fn unused_supernode_definitions_are_retained_test() {
   let code = "-> { Unused = -> {} node = Thing }"
   let assert Ok(resolver_1.Ast(
+    supernodes: [resolver_1.Supernode(name: "Unused", ..)],
     boundaries: [],
-    nodes: [resolver_1.Node(name: "node", path: ["Thing"], ..)],
+    nodes: [
+      resolver_1.Node(name: "node", owner: option.None, node: "Thing", ..),
+    ],
     ..,
   )) = resolve(code)
 }
@@ -359,24 +390,32 @@ pub fn unused_supernode_definitions_are_omitted_test() {
 pub fn supernode_definition_can_be_instantiated_twice_test() {
   let code = "-> { first = Shared Shared = -> {} second = Shared }"
   let assert Ok(resolver_1.Ast(
-    nodes: [
+    supernodes: [
       resolver_1.Supernode(
+        name: "Shared",
+        ast: resolver_1.Ast(parameters: [], returns: [], ..),
+        reference: resolver_1.Labeled("Shared"),
+        ..,
+      ),
+    ],
+    nodes: [
+      resolver_1.Node(
         name: "first",
-        ast: first,
+        owner: option.None,
+        node: "Shared",
         reference: resolver_1.Labeled("first"),
         ..,
       ),
-      resolver_1.Supernode(
+      resolver_1.Node(
         name: "second",
-        ast: second,
+        owner: option.None,
+        node: "Shared",
         reference: resolver_1.Labeled("second"),
         ..,
       ),
     ],
     ..,
   )) = resolve(code)
-
-  assert first == second
 }
 
 pub fn edge_definition_requires_node_diagnostic_test() {
@@ -397,12 +436,22 @@ pub fn resolve_external_nodes_structurally_test() {
   let code =
     "value: Missing -> out: Other { node = Unknown .value -> node.anything node.result -> .out }"
   let assert Ok(resolver_1.Ast(
-    parameters: [resolver_1.Parameter(port: resolver_1.Port("Missing"), ..)],
-    returns: [resolver_1.Return(port: resolver_1.Port("Other"), ..)],
-    nodes: [resolver_1.Node(name: "node", path: ["Unknown"], ..)],
+    parameters: [
+      resolver_1.Parameter(typename: resolver_1.Typename("Missing"), ..),
+    ],
+    returns: [resolver_1.Return(typename: resolver_1.Typename("Other"), ..)],
+    nodes: [
+      resolver_1.Node(name: "node", owner: option.None, node: "Unknown", ..),
+    ],
     edges: [
-      resolver_1.Edge(to: resolver_1.Input(path: ["node", "anything"], ..), ..),
-      resolver_1.Edge(from: resolver_1.Output(path: ["node", "result"], ..), ..),
+      resolver_1.Edge(
+        to: resolver_1.Input(path: resolver_1.Vertex("node", "anything"), ..),
+        ..,
+      ),
+      resolver_1.Edge(
+        from: resolver_1.Output(path: resolver_1.Vertex("node", "result"), ..),
+        ..,
+      ),
     ],
     ..,
   )) = resolve(code)
@@ -415,7 +464,7 @@ pub fn output_references_are_reused_test() {
     edges: [
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["node", "out"],
+          path: resolver_1.Vertex("node", "out"),
           reference: first,
           span: first_span,
         ),
@@ -423,7 +472,7 @@ pub fn output_references_are_reused_test() {
       ),
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["node", "out"],
+          path: resolver_1.Vertex("node", "out"),
           reference: second,
           span: second_span,
         ),
@@ -463,7 +512,7 @@ pub fn node_members_are_directional_test() {
     edges: [
       resolver_1.Edge(
         to: resolver_1.Input(
-          path: ["node", "value"],
+          path: resolver_1.Vertex("node", "value"),
           reference: resolver_1.Labeled(["node", "value"]),
           ..,
         ),
@@ -471,7 +520,7 @@ pub fn node_members_are_directional_test() {
       ),
       resolver_1.Edge(
         from: resolver_1.Output(
-          path: ["node", "value"],
+          path: resolver_1.Vertex("node", "value"),
           reference: resolver_1.Labeled(["node", "value"]),
           ..,
         ),
@@ -552,6 +601,14 @@ pub fn boundary_is_not_node_diagnostic_test() {
   )
 }
 
+pub fn boundary_is_not_input_owner_diagnostic_test() {
+  assert_diagnostic(
+    "token: Uuid -> { service = .token -> Service 1 -> service.in }",
+    resolver_1.ExpectedNode(["service"]),
+    "service.in",
+  )
+}
+
 pub fn unknown_input_diagnostic_test() {
   assert_diagnostic(
     "-> out: Int { 1 -> .missing }",
@@ -586,11 +643,19 @@ pub fn unknown_output_diagnostic_test() {
   )
 }
 
-pub fn unknown_port_diagnostic_test() {
+pub fn unknown_boundary_output_diagnostic_test() {
   assert_diagnostic(
-    "value: MissingPort -> {}",
-    resolver_1.UnknownPort("MissingPort"),
-    "value: MissingPort",
+    "token: Uuid -> out: Int { service = .token -> Service service.missing -> .out }",
+    resolver_1.UnknownOutput(["service", "missing"]),
+    "service.missing",
+  )
+}
+
+pub fn unknown_typename_diagnostic_test() {
+  assert_diagnostic(
+    "value: MissingTypename -> {}",
+    resolver_1.UnknownTypename("MissingTypename"),
+    "value: MissingTypename",
   )
 }
 
@@ -663,7 +728,7 @@ pub fn duplicate_definition_diagnostic_test() {
 pub fn duplicate_input_diagnostic_test() {
   assert_diagnostic(
     "-> { node = Thing 1 -> node.in 2 -> node.in }",
-    resolver_1.DuplicateInput(["node", "in"]),
+    resolver_1.DuplicateInput(resolver_1.Vertex("node", "in")),
     "node.in",
   )
 }
@@ -751,89 +816,84 @@ fn resolve(code: String) {
 }
 
 fn schema() -> schema_1.Schema {
-  let uuid = schema_1.Port(name: "Uuid")
-  let int = schema_1.Port(name: "Int")
-  let float = schema_1.Port(name: "Float")
-  let string = schema_1.Port(name: "String")
-  let missing = schema_1.Port(name: "Missing")
-  let other = schema_1.Port(name: "Other")
+  let uuid = schema_1.Typename(name: "Uuid")
+  let int = schema_1.Typename(name: "Int")
+  let float = schema_1.Typename(name: "Float")
+  let string = schema_1.Typename(name: "String")
+  let missing = schema_1.Typename(name: "Missing")
+  let other = schema_1.Typename(name: "Other")
 
   let add =
     schema_1.Node(
       inputs: dict.from_list([
-        #("l", schema_1.Input(port: int)),
-        #("r", schema_1.Input(port: int)),
+        #("l", schema_1.Input(typename: int)),
+        #("r", schema_1.Input(typename: int)),
       ]),
-      outputs: dict.from_list([#("out", schema_1.Output(port: int))]),
+      outputs: dict.from_list([#("out", schema_1.Output(typename: int))]),
     )
 
   let service =
     schema_1.Boundary(
-      port: uuid,
+      typename: uuid,
       boundaries: dict.new(),
       nodes: dict.from_list([#("Add", add)]),
-      inputs: dict.from_list([#("in", schema_1.Input(port: int))]),
-      outputs: dict.from_list([#("out", schema_1.Output(port: int))]),
+      outputs: dict.from_list([#("out", schema_1.Output(typename: int))]),
     )
 
   let workflow =
     schema_1.Boundary(
-      port: int,
+      typename: int,
       boundaries: dict.new(),
       nodes: dict.new(),
-      inputs: dict.new(),
       outputs: dict.new(),
     )
 
   let editor =
     schema_1.Boundary(
-      port: uuid,
+      typename: uuid,
       boundaries: dict.from_list([#("Workflow", workflow)]),
       nodes: dict.new(),
-      inputs: dict.new(),
-      outputs: dict.from_list([#("id", schema_1.Output(port: int))]),
+      outputs: dict.from_list([#("id", schema_1.Output(typename: int))]),
     )
 
   let nodec =
     schema_1.Node(
       inputs: dict.new(),
-      outputs: dict.from_list([#("value", schema_1.Output(port: int))]),
+      outputs: dict.from_list([#("value", schema_1.Output(typename: int))]),
     )
 
   let nodeb =
     schema_1.Boundary(
-      port: int,
+      typename: int,
       boundaries: dict.new(),
       nodes: dict.from_list([#("NodeC", nodec)]),
-      inputs: dict.new(),
       outputs: dict.new(),
     )
 
   let nodea =
     schema_1.Boundary(
-      port: int,
+      typename: int,
       boundaries: dict.from_list([#("NodeB", nodeb)]),
       nodes: dict.new(),
-      inputs: dict.new(),
       outputs: dict.new(),
     )
 
   let thing =
     schema_1.Node(
       inputs: dict.from_list([
-        #("in", schema_1.Input(port: int)),
-        #("value", schema_1.Input(port: int)),
+        #("in", schema_1.Input(typename: int)),
+        #("value", schema_1.Input(typename: int)),
       ]),
       outputs: dict.from_list([
-        #("out", schema_1.Output(port: int)),
-        #("value", schema_1.Output(port: int)),
+        #("out", schema_1.Output(typename: int)),
+        #("value", schema_1.Output(typename: int)),
       ]),
     )
 
   let unknown =
     schema_1.Node(
-      inputs: dict.from_list([#("anything", schema_1.Input(port: other))]),
-      outputs: dict.from_list([#("result", schema_1.Output(port: other))]),
+      inputs: dict.from_list([#("anything", schema_1.Input(typename: other))]),
+      outputs: dict.from_list([#("result", schema_1.Output(typename: other))]),
     )
 
   schema_1.Schema(
@@ -847,7 +907,7 @@ fn schema() -> schema_1.Schema {
       #("Thing", thing),
       #("Unknown", unknown),
     ]),
-    ports: dict.from_list([
+    typenames: dict.from_list([
       #("Uuid", uuid),
       #("Int", int),
       #("Float", float),

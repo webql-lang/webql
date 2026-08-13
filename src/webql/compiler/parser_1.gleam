@@ -265,7 +265,7 @@ fn parse_element(source: String, tokens: List(lexer.Token)) {
       Ok(#(Definition(name:, typename: option.None, element:, span:), rest))
     }
 
-    // SYNTAX: `value -> target`
+    // SYNTAX: `from -> to`
     [lexer.Token(kind: lexer.LowerIdentifier, ..), ..]
     | [lexer.Token(kind: lexer.UpperIdentifier, ..), ..]
     | [lexer.Token(kind: lexer.Dot, ..), ..]
