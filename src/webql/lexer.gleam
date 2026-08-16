@@ -1,6 +1,6 @@
 import gleam/bit_array
 import gleam/list
-import webql/compiler/source
+import webql/source
 
 pub type TokenKind {
   // ========== LITERALS ==========

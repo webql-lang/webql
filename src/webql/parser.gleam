@@ -4,8 +4,8 @@ import gleam/int
 import gleam/list
 import gleam/option
 import gleam/result
-import webql/compiler/lexer
-import webql/compiler/source
+import webql/lexer
+import webql/source
 
 /// A WebQL block containing its interface and value-ordered body.
 pub type Ast {
